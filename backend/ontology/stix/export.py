@@ -33,6 +33,21 @@ def _timestamp(now: datetime | None) -> str:
     return now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
+_DATE_FORMATS = ("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%B %d, %Y", "%b %d, %Y", "%d %B %Y", "%d %b %Y", "%Y/%m/%d", "%d/%m/%Y")
+
+
+def parse_date(value: str | None) -> datetime | None:
+    """Date de publication d'un article depuis les formats rencontrés dans la base (« 2020-08-03 », « April 22, 2026 »…).
+    None si elle n'est pas reconnue : l'appelant choisit alors un repli plutôt que de produire une date fausse."""
+    text = (value or "").strip().rstrip("Z")
+    for fmt in _DATE_FORMATS:
+        try:
+            return datetime.strptime(text, fmt).replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+    return None
+
+
 def _publisher_identity(report: dict, ts: str) -> dict:
     name = report.get("site_name") or "unknown-source"
     return {
@@ -80,9 +95,8 @@ def build_stix_objects(graph: SanitizedGraph, report: dict, now: datetime | None
             }
         )
 
-    published = report.get("published") or ts
-    if len(published) == 10:  # AAAA-MM-JJ
-        published += "T00:00:00.000Z"
+    parsed = parse_date(report.get("published"))
+    published = _timestamp(parsed) if parsed else ts  # date inconnue : repli sur l'instant de l'extraction
     report_obj = {
         **common,
         "type": "report",

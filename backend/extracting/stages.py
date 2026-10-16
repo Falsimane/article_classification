@@ -27,7 +27,12 @@ MAX_RELATION_TOKENS = 550
 
 
 def llm_entity_types(profile_name: str) -> tuple[str, ...]:
-    return tuple(t for t in PROFILES[profile_name].entity_types if t not in SKIPPED_TYPES)
+    """Types demandés au modèle : ni ceux qu'il ne peut pas produire brièvement, ni ceux que le pipeline dérive."""
+    from backend.ontology.stix import OBJECT_TYPES
+
+    return tuple(
+        t for t in PROFILES[profile_name].entity_types if t not in SKIPPED_TYPES and OBJECT_TYPES[t].extraction == "llm"
+    )
 
 
 # --- Étape 1 : entités ---------------------------------------------------------------------------------------------
@@ -44,11 +49,27 @@ _ENTITY_FORMAT = (
 )
 
 
+_ENTITY_EXAMPLE = """EXEMPLE
+Extrait :
+## Recommandations
+[1] Activez Sensor Tampering Protection et HVCI sur tous les hôtes.
+## Intrusion
+[2] En 2022, SCATTERED SPIDER a visé des opérateurs télécoms et utilisé KDMapper pour charger un pilote Intel vulnérable (CVE-2015-2291).
+Réponse : {"entities": ["intrusion-set|SCATTERED SPIDER", "identity|telecommunications", "tool|KDMapper", "vulnerability|CVE-2015-2291"]}
+Sensor Tampering Protection et HVCI sont des mesures de DÉFENSE recommandées : ils ne sont pas des entités. Un secteur
+visé s'écrit avec un terme du vocabulaire ci-dessous."""
+
+
 def entity_system(profile_name: str) -> str:
+    from backend.ontology.stix.vocab import OPEN_VOCABULARIES
+
+    sectors = ", ".join(OPEN_VOCABULARIES["industry-sector-ov"])
     return (
         "Tu es analyste en renseignement sur la menace (CTI). Tu lis un extrait numéroté d'un rapport et tu listes "
         "les ENTITÉS précises qui y sont nommées, selon l'ontologie STIX 2.1 ci-dessous.\n\n"
         + render_entity_card(profile_name)
+        + f"\n\nSECTEURS D'ACTIVITÉ (type identity, vocabulaire STIX) : {sectors}.\n\n"
+        + _ENTITY_EXAMPLE
         + "\n\n"
         + _ENTITY_FORMAT
     )
@@ -118,27 +139,12 @@ def parse_entities(items: list, allowed: tuple[str, ...]) -> tuple[list[dict], i
     return out, dropped
 
 
-# --- Étape 2 : relations ---------------------------------------------------------------------------------------------
-def relation_schema(relations: tuple[str, ...]) -> dict:
-    """Chaque relation est une chaîne `uid|Ea|relation|Eb` dont le motif impose un type de relation autorisé."""
-    names = "|".join(re.escape(r) for r in relations)
-    return {
-        "type": "object",
-        "properties": {"relations": {"type": "array", "items": {"type": "string", "pattern": rf"^[0-9]{{1,5}}\|E[0-9]{{1,3}}\|({names})\|E[0-9]{{1,3}}$"}}},
-        "required": ["relations"],
-    }
-
-
-def relation_system(profile_name: str) -> str:
-    return (
-        "Tu es analyste en renseignement sur la menace (CTI). On te donne des ENTITÉS numérotées (E1, E2…) et un extrait "
-        "dont les phrases sont numérotées. Tu écris les relations STIX 2.1 que ces phrases établissent entre les "
-        "entités.\n\n"
-        + render_relation_card(profile_name)
-        + "\n\nFORMAT DE RÉPONSE : un objet JSON {\"relations\": [...]} dont chaque élément est UNE chaîne "
-        "\"numéro_de_phrase|E3|relation|E7\" : la phrase qui étaye la relation, l'entité source, la relation, "
-        "l'entité cible. Exemple : \"12|E3|uses|E7\". Aucune autre entité que celles listées. Aucun commentaire."
-    )
+# --- Étape 2 : relations, par classification de candidats fermés -------------------------------------------------------
+# Demander au modèle d'ÉCRIRE des relations entre identifiants d'entités le conduit à en inventer (mesuré : une
+# trentaine proposées pour trois vraies, la plupart mal typées). Le code énumère donc, phrase par phrase, les paires
+# d'entités réellement nommées dans la phrase et ne garde que les relations que l'ontologie autorise entre leurs
+# types. Le modèle ne répond que pour les candidats que la phrase AFFIRME : `15a:variant-of`.
+# Tout candidat est valide en STIX et étayé par sa phrase par construction.
 
 
 @dataclass(frozen=True)
@@ -149,12 +155,14 @@ class EntityRow:
     terms: tuple[str, ...]  # nom + alias, pour repérer l'entité dans une phrase
 
 
-def relation_user(title: str, category: str, rows: list[EntityRow], units: list[Unit]) -> str:
-    table = "\n".join(f"{r.eid} {r.stix_type} {r.name}" for r in rows)
-    body = "\n".join(
-        f"[{u.uid}] ({u.kind})\n{u.prompt_text}" if u.kind in ("code", "table") else f"[{u.uid}] {u.prompt_text}" for u in units
-    )
-    return f"RAPPORT : {title}\nCATÉGORIE : {category}\n\nENTITÉS :\n{table}\n\nEXTRAIT :\n{body}"
+@dataclass(frozen=True)
+class Candidate:
+    cid: str  # "15a" : numéro de phrase + lettre
+    uid: int
+    source: str
+    target: str
+    options: tuple[str, ...]  # relations autorisées entre les types de la source et de la cible
+    prev_uid: int | None = None  # phrase précédente (même section), si l'une des extrémités n'y est nommée que là
 
 
 def entity_hits(units: tuple[Unit, ...] | list[Unit], rows: list[EntityRow]) -> dict[int, set[str]]:
@@ -168,17 +176,240 @@ def entity_hits(units: tuple[Unit, ...] | list[Unit], rows: list[EntityRow]) -> 
     return hits
 
 
-_RELATION_LINE = re.compile(r"^\s*(\d+)\s*\|\s*(E\d+)\s*\|\s*([a-z\-]+)\s*\|\s*(E\d+)\s*$")
+def pair_options(profile_name: str) -> dict[tuple[str, str], tuple[str, ...]]:
+    """{(type source, type cible): relations que le profil autorise}."""
+    options: dict[tuple[str, str], set[str]] = {}
+    for s, r, t in PROFILES[profile_name].pairs():
+        options.setdefault((s, t), set()).add(r)
+    return {k: tuple(sorted(v)) for k, v in options.items()}
 
 
-def parse_relations(items: list, valid_ids: set[str], unit_ids: set[int]) -> tuple[list[tuple[int, str, str, str]], int]:
-    """Relations (uid, source, relation, cible) depuis les chaînes du modèle ; retire ce qui cite une phrase ou une
-    entité inexistante. Retourne aussi le nombre de chaînes écartées."""
-    out, dropped = [], 0
+def _letters(i: int) -> str:
+    return chr(97 + i) if i < 26 else chr(97 + i // 26 - 1) + chr(97 + i % 26)
+
+
+def build_candidates(
+    units: list[Unit],
+    rows: list[EntityRow],
+    profile_name: str,
+    implicit: EntityRow | None = None,
+    max_per_unit: int = 10,
+) -> list[tuple[Unit, list[Candidate]]]:
+    """Candidats de relation par phrase, dans l'ordre du texte. Trois façons de réunir deux entités :
+
+    1. toutes deux nommées dans la même phrase ;
+    2. l'une nommée dans la phrase précédente de la même section, l'autre dans la courante : la preuve est alors la
+       fenêtre de deux phrases, citées toutes les deux ;
+    3. la phrase nomme une capacité mais aucun acteur : sujet de section (dernier acteur nommé DANS CETTE SECTION),
+       à défaut `implicit` (l'incident d'un récit d'intrusion). Le sujet ne traverse jamais une section : une
+       phrase sur une tendance générale n'a aucun rapport avec l'acteur nommé plus haut.
+    """
+    options = pair_options(profile_name)
+    last_adversary: EntityRow | None = None
+    last_section = ""
+    previous: tuple[Unit, list[EntityRow]] | None = None
+    out: list[tuple[Unit, list[Candidate]]] = []
+    for u in units:
+        if not u.is_evidence_eligible:
+            continue
+        prepared = prepare_text(u.text)
+        named = [r for r in rows if mentions_prepared(prepared, r.terms)]
+        if u.heading_path != last_section:
+            last_adversary, last_section, previous = None, u.heading_path, None
+        prev_unit, prev_named = previous if previous else (None, [])
+        adversaries = [r for r in named if r.stix_type in ADVERSARY]
+
+        seen: set[tuple[str, str]] = set()
+        cands: list[Candidate] = []
+
+        def add(a: EntityRow, b: EntityRow, prev_uid: int | None) -> None:
+            opts = options.get((a.stix_type, b.stix_type))
+            if a.eid != b.eid and opts and (a.eid, b.eid) not in seen:
+                seen.add((a.eid, b.eid))
+                cands.append(Candidate(f"{u.uid}{_letters(len(cands))}", u.uid, a.eid, b.eid, opts, prev_uid))
+
+        for a in named:  # 1. même phrase
+            for b in named:
+                add(a, b, None)
+        if not adversaries and named:  # 3. sujet de section ou incident
+            subject = last_adversary or implicit
+            if subject is not None:
+                for b in named:
+                    add(subject, b, None)
+        if prev_unit is not None:  # 2. fenêtre de deux phrases
+            in_prev = {r.eid for r in prev_named}
+            for a in prev_named + named:
+                for b in prev_named + named:
+                    if (a.eid in in_prev) != (b.eid in in_prev):  # une extrémité dans chaque phrase
+                        add(a, b, prev_unit.uid)
+        if adversaries:
+            last_adversary = adversaries[-1]
+        previous = (u, named)
+        if cands:
+            out.append((u, cands[:max_per_unit]))
+    return out
+
+
+def group_candidate_units(items: list[tuple[Unit, list[Candidate]]], max_chars: int = 7000) -> list[list[tuple[Unit, list[Candidate]]]]:
+    groups: list[list[tuple[Unit, list[Candidate]]]] = []
+    cur: list[tuple[Unit, list[Candidate]]] = []
+    size = 0
+    for u, cands in items:
+        cost = len(u.prompt_text) + 40 * len(cands)
+        if cur and size + cost > max_chars:
+            groups.append(cur)
+            cur, size = [], 0
+        cur.append((u, cands))
+        size += cost
+    if cur:
+        groups.append(cur)
+    return groups
+
+
+def relation_schema(group: list[tuple[Unit, list[Candidate]]]) -> dict:
+    """Schéma de la réponse : les seules valeurs admises sont les couples `candidat:relation` proposés dans CE prompt.
+    Le serveur applique les `enum` mais ignore les motifs (`pattern`) : un enum fermé garantit des réponses valides."""
+    answers = [f"{c.cid}:{rel}" for _, cands in group for c in cands for rel in c.options]
+    return {
+        "type": "object",
+        "properties": {"relations": {"type": "array", "items": {"type": "string", "enum": answers}}},
+        "required": ["relations"],
+    }
+
+
+def relation_system(profile_name: str) -> str:
+    return (
+        "Tu es analyste en renseignement sur la menace (CTI). On te donne des ENTITÉS numérotées (E1, E2…), puis des "
+        "phrases numérotées. Sous chaque phrase, des CANDIDATS de relation entre deux entités, chacun avec les relations "
+        "possibles : `15a E5 -> E1 : variant-of | drops`.\n\n"
+        "TA TÂCHE : pour chaque candidat que la phrase AFFIRME explicitement, écris `identifiant:relation` en choisissant "
+        "UNE relation parmi celles proposées pour ce candidat. N'écris RIEN pour les autres. La grande majorité des "
+        "candidats est fausse : entités simplement citées ensemble, liste, contexte. En cas de doute, ne retiens pas.\n\n"
+        + render_relation_card(profile_name)
+        + "\n\nFORMAT DE RÉPONSE : un objet JSON {\"relations\": [...]} dont chaque élément est UNE chaîne "
+        "\"15a:variant-of\". Aucun commentaire. Liste vide si aucun candidat n'est affirmé."
+    )
+
+
+def relation_user(title: str, category: str, rows: list[EntityRow], group: list[tuple[Unit, list[Candidate]]]) -> str:
+    used = {c.source for _, cs in group for c in cs} | {c.target for _, cs in group for c in cs}
+    table = "\n".join(f"{r.eid} {r.stix_type} {r.name}" for r in rows if r.eid in used)
+    lines = []
+    for u, cands in group:
+        lines.append(f"[{u.uid}] {u.prompt_text}")
+        lines += [
+            f"  {c.cid} {c.source} -> {c.target} : {' | '.join(c.options)}" + (f"  [preuve : phrases {c.prev_uid} et {c.uid}]" if c.prev_uid else "")
+            for c in cands
+        ]
+    return f"RAPPORT : {title}\nCATÉGORIE : {category}\n\nENTITÉS :\n{table}\n\nPHRASES ET CANDIDATS :\n" + "\n".join(lines)
+
+
+_ANSWER = re.compile(r"^\s*([0-9]+[a-z]{1,2})\b.*?([a-z]+(?:-[a-z]+)*)\s*$")
+
+
+def parse_answers(items: list, group: list[tuple[Unit, list[Candidate]]]) -> tuple[list[tuple[Unit, Candidate, str]], int]:
+    """Réponses du modèle -> (phrase, candidat, relation). Écarte ce qui n'est pas un candidat proposé ou une relation
+    hors des options de ce candidat. Retourne aussi le nombre de chaînes écartées."""
+    index = {c.cid: (u, c) for u, cands in group for c in cands}
+    out, dropped, seen = [], 0, set()
     for item in items or []:
-        m = _RELATION_LINE.match(str(item))
-        if not m or int(m.group(1)) not in unit_ids or m.group(2) not in valid_ids or m.group(4) not in valid_ids:
+        m = _ANSWER.match(str(item))
+        if not m or m.group(1) not in index or m.group(2) not in index[m.group(1)][1].options:
             dropped += 1
             continue
-        out.append((int(m.group(1)), m.group(2), m.group(3), m.group(4)))
+        if (m.group(1), m.group(2)) in seen:
+            continue
+        seen.add((m.group(1), m.group(2)))
+        unit, cand = index[m.group(1)]
+        out.append((unit, cand, m.group(2)))
     return out, dropped
+
+
+# --- Étape 3 : vérification des relations retenues ------------------------------------------------------------------
+# Filet de précision : pour chaque relation, une question fermée posée avec la SEULE phrase citée et la définition
+# de la relation. Coût : environ 4 tokens générés par relation.
+from backend.ontology.stix import SEMANTICS  # noqa: E402
+
+MAX_VERIFY_TOKENS = 220
+VERIFY_BATCH = 30
+
+
+def verify_system() -> str:
+    return (
+        "Tu vérifies des relations extraites d'un rapport de cybermenace. Pour chaque ligne tu reçois une PHRASE et une "
+        "AFFIRMATION. Réponds `o` UNIQUEMENT si la phrase, lue seule, affirme explicitement l'affirmation à propos de "
+        "l'attaque décrite ; sinon `n`.\n"
+        "Réponds `n` quand la phrase : recommande ou décrit une mesure de défense ou un paramètre de configuration ; "
+        "décrit une règle de détection, un journal ou une liste ; énonce une généralité ou une tendance sans lien avec "
+        "ces deux éléments ; cite les deux éléments sans les relier.\n"
+        "Quand l'affirmation désigne « l'intrusion décrite » ou « l'acteur » sans qu'ils soient nommés dans la phrase, "
+        "la phrase doit quand même décrire une action de l'attaquant dans cette intrusion : une commande ou un fichier "
+        "exécuté pendant l'intrusion (`vssadmin delete shadows /all`) affirme l'usage de l'outil. Quand la preuve réunit "
+        "deux phrases (séparées par [...]), lis-les ensemble.\n"
+        "FORMAT : un objet JSON {\"verdicts\": [...]} avec une chaîne `numéro:o` ou `numéro:n` par ligne, dans l'ordre."
+    )
+
+
+def _claim(source_name: str, source_type: str, rel: str, target_name: str, target_type: str) -> str:
+    return f"[{source_type}] {source_name}  --{rel}-->  [{target_type}] {target_name}. Sens de `{rel}` : {SEMANTICS[rel].definition}"
+
+
+def verify_user(items: list[tuple[int, str, str]]) -> str:
+    """items : [(numéro, phrase, affirmation)]"""
+    return "\n\n".join(f"{n}. PHRASE : {sentence}\n   AFFIRMATION : {claim}" for n, sentence, claim in items)
+
+
+def verify_schema(numbers: list[int]) -> dict:
+    answers = [f"{n}:{v}" for n in numbers for v in ("o", "n")]
+    return {"type": "object", "properties": {"verdicts": {"type": "array", "items": {"type": "string", "enum": answers}}}, "required": ["verdicts"]}
+
+
+def parse_verdicts(items: list, numbers: list[int]) -> set[int]:
+    """Numéros confirmés (`o`). Une relation sans verdict n'est pas confirmée : le doute écarte."""
+    ok = set()
+    for item in items or []:
+        m = re.match(r"^\s*(\d+)\s*:\s*([on])\s*$", str(item))
+        if m and int(m.group(1)) in numbers and m.group(2) == "o":
+            ok.add(int(m.group(1)))
+    return ok
+
+
+# --- Vérification des entités ---------------------------------------------------------------------------------------------
+# Avant de fabriquer des candidats, chaque entité est jugée avec sa première phrase et sa section, d'après la définition
+# de son type. Elle retire les mesures de défense, produits recommandés et termes génériques que le modèle a typés à tort.
+MAX_ENTITY_VERIFY_TOKENS = 300
+ENTITY_VERIFY_BATCH = 40
+
+
+def first_mentions(units: list[Unit], rows: list[EntityRow]) -> dict[str, Unit]:
+    """Première phrase éligible qui nomme chaque entité. Une entité absente de toute phrase n'est pas dans le texte."""
+    found: dict[str, Unit] = {}
+    for u in units:
+        if not u.is_evidence_eligible or len(found) == len(rows):
+            continue
+        prepared = prepare_text(u.text)
+        for r in rows:
+            if r.eid not in found and mentions_prepared(prepared, r.terms):
+                found[r.eid] = u
+    return found
+
+
+def entity_verify_system(profile_name: str) -> str:
+    return (
+        "Tu vérifies des entités extraites d'un rapport de cybermenace. Pour chaque ligne tu reçois un TYPE, un NOM, la "
+        "SECTION et une PHRASE où il apparaît. Réponds `o` UNIQUEMENT si, dans cette phrase et cette section, le nom est "
+        "bien une entité du type indiqué au sens de ces définitions ET fait partie de l'attaque décrite (adversaire, "
+        "capacité employée par l'adversaire, victime, infrastructure).\n\n"
+        + render_entity_card(profile_name).split("\n\nRÈGLES")[0]
+        + "\n\nRéponds `n` pour : une mesure de défense, un paramètre de configuration, un produit ou une fonction "
+        "recommandés ou décrits comme protection ; une source citée ; un terme générique ; une fonction d'API, un "
+        "algorithme, un certificat ; un nom qui n'a pas ce type dans cette phrase.\n"
+        "FORMAT : un objet JSON {\"verdicts\": [...]} avec une chaîne `numéro:o` ou `numéro:n` par ligne, dans l'ordre."
+    )
+
+
+def entity_verify_user(items: list[tuple[int, EntityRow, Unit]]) -> str:
+    return "\n".join(
+        f"{n}. TYPE : {r.stix_type} | NOM : {r.name} | SECTION : {u.heading_path.split(' > ')[-1][:60]} | PHRASE : {u.prompt_text[:260]}"
+        for n, r, u in items
+    )

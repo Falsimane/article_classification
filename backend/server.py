@@ -21,11 +21,12 @@ if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 from backend.database.neo4j_store import Neo4jStore
+from backend import stix_dashboard
 from backend.ontology.ontology import export_to_turtle, export_to_owl
 
 BASE_DIR = root_dir
 DB_PATH = BASE_DIR / "db_outputs" / "cti_knowledge.db"
-WEB_DIR = BASE_DIR / "frontend"
+WEB_DIR = BASE_DIR / "frontend" / "dist"  # build Vite (cd frontend && npm run build)
 
 # Palette de couleurs STIX 2.1 conforme aux standards OpenCTI
 ENTITY_STIX_COLORS = {
@@ -239,7 +240,10 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
         if path.startswith("/api/"):
             self.handle_api(path, params)
         else:
-            # Servir fichiers statiques
+            # Fichiers statiques du build ; toute autre route est une page de l'application React (routage côté client)
+            target = WEB_DIR / path.lstrip("/")
+            if path != "/" and not target.is_file():
+                self.path = "/index.html"
             super().do_GET()
 
     def send_json_response(self, data: Any, status: int = 200) -> None:
@@ -262,9 +266,29 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def use_stix(self, params: Dict[str, List[str]]) -> bool:
+        """Sert le graphe STIX dès qu'il contient un article extrait ; `?model=legacy|stix` force un choix."""
+        forced = params.get("model", [None])[0]
+        if forced in ("legacy", "stix"):
+            return forced == "stix"
+        return stix_dashboard.has_data()
+
     def handle_api(self, path: str, params: Dict[str, List[str]]) -> None:
         try:
-            if path == "/api/stats":
+            if path == "/api/actors":
+                self.send_json_response(stix_dashboard.actors())
+            elif path.startswith("/api/actors/"):
+                profile = stix_dashboard.actor_graph(unquote(path[len("/api/actors/"):]))
+                self.send_json_response(profile or {"error": "Acteur introuvable"}, status=200 if profile else 404)
+            elif path in ("/api/stats", "/api/graph", "/api/articles") and self.use_stix(params):
+                if path == "/api/stats":
+                    self.send_json_response(stix_dashboard.stats())
+                elif path == "/api/articles":
+                    self.send_json_response(stix_dashboard.articles())
+                else:
+                    aid = params.get("article_id", [None])[0]
+                    self.send_json_response(stix_dashboard.graph(int(aid) if aid and aid.isdigit() else None, params))
+            elif path == "/api/stats":
                 self.api_stats()
             elif path == "/api/graph":
                 self.api_graph(params)

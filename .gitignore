@@ -12,7 +12,8 @@ db_outputs
 cti_core/cargo.lock
 backend/cti_core/target
 frontend/node_modules/
-
+frontend/dist
+frontend/legacy/
 
 # Neo4j local data & logs
 neo4j_data/

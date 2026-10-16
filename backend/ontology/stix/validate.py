@@ -38,6 +38,21 @@ GENERIC_TERMS = frozenset(
 )
 
 
+# Extensions de fichiers qui ne désignent pas un logiciel : un « closeapps.bat » ou un « msimg32.dll » est un observable
+# `file`, extrait par règles. `.exe` n'y figure pas : un exécutable peut être un outil légitime (PsExec.exe) ou un
+# échantillon de malware nommé par son fichier.
+_FILE_EXTENSIONS = frozenset(
+    "bat cmd ps1 vbs vbe js sh py dll sys dat tmp lnk msi scr jar iso zip rar 7z tar gz doc docx xls xlsx pdf bin log txt "
+    "cfg ini conf json xml hta wsf".split()
+)
+
+
+_OBSERVABLE = re.compile(
+    r"^(?:[a-f0-9]{32,64}|(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?|https?://\S+|[a-z0-9][a-z0-9\-]*(?:\.[a-z0-9\-]+)*\.[a-z]{2,24}(?:/\S*)?)$",
+    re.I,
+)
+
+
 @dataclass(frozen=True)
 class Issue:
     level: str  # "reject" | "fix" | "warn"
@@ -80,7 +95,8 @@ def evidence_in_source(evidence: str, source_text: str) -> bool:
     return all(p in haystack for p in parts)
 
 
-_ADVERSARY_TYPES = frozenset({"threat-actor", "intrusion-set", "campaign"})
+# Peuvent rester implicites dans la phrase citée (« l'acteur », « l'attaquant », « the threat actor »)
+_ADVERSARY_TYPES = frozenset({"threat-actor", "intrusion-set", "campaign", "incident"})
 
 
 def _tokens(text: str) -> list[str]:
@@ -96,8 +112,16 @@ def prepare_text(text: str) -> tuple[set[str], set[str]]:
 
 
 def mentions_prepared(prepared: tuple[set[str], set[str]], terms: Iterable[str]) -> bool:
+    """Un terme précédé de `~` est un RADICAL : il reconnaît tout mot qui commence ainsi (secteurs d'activité du
+    vocabulaire STIX, que les articles écrivent « financial » ou « telecom » pour `financial-services` et
+    `telecommunications`)."""
     vocabulary, joined = prepared
     for term in terms:
+        if term.startswith("~"):
+            stem = term[1:]
+            if len(stem) >= 5 and any(w.startswith(stem) for w in vocabulary):
+                return True
+            continue
         toks = _tokens(term)
         if toks and all(t in vocabulary for t in toks):
             return True
@@ -122,6 +146,15 @@ def canonical_type(raw: str) -> str:
 
 
 # --- Entités ------------------------------------------------------------------------------------------------------------
+# Mots qui, seuls ou ensemble, ne désignent personne : « Threat actor », « The attacker », « Unknown group »
+_FILLER_WORDS = frozenset("the a an this that these those threat unknown unnamed other new same another group groups".split())
+
+
+def _is_generic(name: str) -> bool:
+    words = re.findall(r"[a-z0-9]+", name.casefold())
+    return bool(words) and all(w in GENERIC_TERMS or w in _FILLER_WORDS for w in words)
+
+
 def _clean_list(values, vocab_key: tuple[str, str] | None = None) -> list[str]:
     out = []
     for v in values or []:
@@ -157,6 +190,12 @@ def _check_vocabularies(stix_type: str, ent: dict, issues: list[Issue], subject:
             del ent[prop]
 
 
+def _sector_of(name: str) -> str | None:
+    """Valeur de `industry-sector-ov` si le nom EST un secteur (« Financial Services » -> financial-services)."""
+    key = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
+    return key if key in OPEN_VOCABULARIES["industry-sector-ov"] else None
+
+
 def _normalize_entity(
     raw: dict,
     profile: ExtractionProfile,
@@ -174,8 +213,15 @@ def _normalize_entity(
     if len(name) < 2:
         issues.append(Issue("reject", "EMPTY_NAME", subject, "nom vide ou trop court"))
         return None
-    if normalize_name(name) in GENERIC_TERMS or name.casefold() in GENERIC_TERMS:
+    if _is_generic(name):
         issues.append(Issue("reject", "GENERIC_TERM", subject, "terme générique : ce n'est pas une entité précise"))
+        return None
+    if _OBSERVABLE.match(name) and name.rsplit(".", 1)[-1].lower() not in _FILE_EXTENSIONS | {"exe"} and not kb.lookup(name):
+        issues.append(Issue("reject", "OBSERVABLE_AS_ENTITY", subject, "hachage, adresse, domaine ou URL : un observable, pas une entité"))
+        return None
+    extension = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+    if extension in _FILE_EXTENSIONS and stix_type in ("malware", "tool", "infrastructure") and not kb.lookup(name):
+        issues.append(Issue("reject", "FILE_NAME_AS_ENTITY", subject, f"« .{extension} » : un fichier est un observable, pas un logiciel"))
         return None
     if stix_type in _ADVERSARY_SIDE and normalize_name(name) in publishers:
         issues.append(
@@ -254,9 +300,11 @@ def _normalize_entity(
         ent.pop("attack_id", None)
 
     elif stix_type == "identity":
-        if ent.get("identity_class") not in OPEN_VOCABULARIES["identity-class-ov"]:
-            ent["identity_class"] = "unknown"
-            issues.append(Issue("warn", "IDENTITY_CLASS", subject, "identity_class absent ou invalide : unknown"))
+        sector = _sector_of(name)
+        if sector:  # « government », « manufacturing » : un secteur d'activité du vocabulaire STIX, pas une organisation
+            ent["identity_class"], ent["sectors"] = "class", [sector]
+        elif ent.get("identity_class") not in OPEN_VOCABULARIES["identity-class-ov"]:
+            ent["identity_class"] = "unknown"  # le modèle ne précise pas la classe : on ne la devine pas
 
     elif stix_type == "location":
         country = str(ent.get("country") or "").strip().upper()

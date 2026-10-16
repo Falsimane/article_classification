@@ -137,9 +137,10 @@ OBJECT_TYPES: dict[str, ObjectType] = {
         _sdo("opinion", "Avis d'un analyste sur l'exactitude d'un objet.", extraction="off"),
         _sdo(
             "incident",
-            "Événement de sécurité subi par une organisation (objet STIX 2.1 réservé, repris par OpenCTI). "
-            "Pour un rapport d'incident, préférer `sighting` + `attack-flow` ; `incident` reste utilisable "
-            "quand le texte nomme l'incident.",
+            "L'intrusion décrite par l'article : objet STIX 2.1 réservé, repris par OpenCTI. Construit par le pipeline "
+            "(jamais par le LLM) à partir du titre du rapport ; il est le sujet implicite des phrases qui parlent de "
+            "« l'acteur », « l'attaquant » ou « the threat actor » quand aucun acteur n'est nommé.",
+            extraction="derived",
             origin="stix-2.1/opencti",
         ),
         # --- Relations (SRO) ---------------------------------------------------------------------------------

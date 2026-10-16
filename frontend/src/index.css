@@ -1,0 +1,19 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@xyflow/react/dist/style.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body { @apply bg-bg text-ink font-sans text-base antialiased; }
+* { scrollbar-width: thin; scrollbar-color: #404854 transparent; }
+
+.react-flow { --xy-background-color: #111418; --xy-edge-stroke-default: #5f6b7c; font-family: inherit; }
+.react-flow__attribution { display: none; }
+.react-flow__controls { @apply border border-line rounded shadow-none; }
+.react-flow__controls-button { @apply bg-panel border-line text-muted; fill: #abb3bf; }
+.react-flow__controls-button:hover { @apply bg-raised; }
+.react-flow__minimap { @apply bg-panel border border-line; }
+.react-flow__edge-textbg { fill: #111418; }
+.react-flow__edge-text { fill: #abb3bf; font-size: 10px; font-family: "JetBrains Mono Variable", monospace; }

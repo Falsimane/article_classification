@@ -59,7 +59,11 @@ _GROUP_STRUCTURE = (
     _R(("threat-actor",), "cooperates-with", ("threat-actor",)),
     _R(("threat-actor",), "participates-in", ("campaign",)),
 )
-_VICTIMOLOGY = (_R(ADVERSARY + IMPLANT, "targets", ("identity", "location", "vulnerability")),)
+_VICTIMOLOGY = (
+    _R(ADVERSARY, "targets", ("identity", "location", "vulnerability")),
+    _R(IMPLANT, "targets", ("identity", "location")),
+    _R(("tool",), "has", ("vulnerability",)),  # un logiciel légitime vulnérable (pilote, appliance) a une vulnérabilité
+)
 _CAPABILITY = (
     _R(ADVERSARY + IMPLANT, "uses", ("attack-pattern", "malware", "tool", "infrastructure")),
     _R(("malware",), "exploits", ("vulnerability",)),
@@ -80,11 +84,20 @@ _NETWORK = (
     _R(("infrastructure",), "controls", ("malware",)),
     _R(("infrastructure",), "hosts", ("malware", "tool")),
     _R(ADVERSARY, "compromises", ("infrastructure",)),
-    _R(("threat-actor", "intrusion-set", "identity"), "owns", ("infrastructure",)),
+    _R(("threat-actor", "intrusion-set"), "owns", ("infrastructure",)),
 )
 _DEFENSE = (
     _R(("indicator",), "indicates", ("attack-pattern", "malware", "tool", "intrusion-set", "threat-actor", "campaign")),
     _R(("course-of-action",), "mitigates", ("attack-pattern", "malware", "tool", "vulnerability")),
+)
+
+# L'intrusion décrite par un rapport opérationnel, sujet implicite quand l'acteur n'est pas nommé
+_INCIDENT = (
+    _R(("incident",), "uses", ("attack-pattern", "malware", "tool", "infrastructure")),
+    _R(("incident",), "targets", ("identity", "location", "vulnerability")),
+    _R(("incident",), "attributed-to", ("campaign", "intrusion-set", "threat-actor")),
+    _R(("incident",), "compromises", ("infrastructure",)),
+    _R(("incident",), "originates-from", ("location",)),
 )
 
 _CORE_ENTITIES = (
@@ -97,8 +110,8 @@ PROFILES: dict[str, ExtractionProfile] = {
         "operational",
         "Récit d'une intrusion réelle. Capture QUI a fait QUOI, CHEZ QUI et DANS QUEL ORDRE : objets, observations "
         "(sightings) et séquence d'actions (Attack Flow).",
-        _CORE_ENTITIES + ("indicator", "course-of-action"),
-        _ATTRIBUTION[:2] + _VICTIMOLOGY + _CAPABILITY + _DELIVERY + _NETWORK + _DEFENSE,
+        _CORE_ENTITIES + ("indicator", "course-of-action", "incident"),
+        _ATTRIBUTION[:2] + _VICTIMOLOGY + _CAPABILITY + _DELIVERY + _NETWORK + _DEFENSE + _INCIDENT,
         sightings=True,
         attack_flow=True,
     ),
@@ -124,7 +137,11 @@ ENTITY_RULES = (
     "L'éditeur de sécurité, le chercheur ou le média qui rédige le rapport n'est ni un acteur ni une victime : "
     "il est l'auteur du rapport et n'est pas extrait.",
     "N'extrais PAS les observables : adresses IP, noms de domaine, URL, condensats, e-mails, chemins, noms de "
-    "fichier ou de bibliothèque (.dll, .exe, .sys) qui ne sont pas un outil connu. Ils sont extraits par ailleurs.",
+    "fichier ou de bibliothèque (.dll, .sys, .bat) qui ne sont pas un outil connu. Ils sont extraits par ailleurs.",
+    "Ne sont PAS des entités : fonctions d'API (DbgPrintEx), algorithmes et formats (XOR, AES, JSON), protocoles, "
+    "certificats et clés, commandes isolées, produits de sécurité que l'attaquant vise (ils sont la cible, pas son outil).",
+    "Les organisations citées seulement comme SOURCE d'information (médias, éditeurs, chercheurs, rapports et "
+    "références cités) ne sont pas des entités. Une victime est une organisation ou un secteur effectivement attaqué.",
     "Une CVE est une `vulnerability`. Une technique ATT&CK est un `attack-pattern` : donne son nom ou son identifiant "
     "(T1059.001) tel que le texte le cite.",
     "Malware ou outil ? Le code écrit pour nuire est un `malware`. Le logiciel légitime détourné (PsExec, rclone, "
@@ -179,7 +196,9 @@ def _first_sentence(text: str) -> str:
 def render_entity_card(profile_name: str) -> str:
     """Carte pour l'étape « entités » : types et règles d'entités seulement (aucune relation)."""
     profile = PROFILES[profile_name]
-    lines = "\n".join(f"- {t} : {_first_sentence(OBJECT_TYPES[t].definition)}" for t in profile.entity_types)
+    lines = "\n".join(
+        f"- {t} : {_first_sentence(OBJECT_TYPES[t].definition)}" for t in profile.entity_types if OBJECT_TYPES[t].extraction == "llm"
+    )
     rules = "\n".join(f"{i}. {r}" for i, r in enumerate(ENTITY_RULES, 1))
     return f"TYPES D'ENTITÉS (n'utilise que ceux-ci) :\n{lines}\n\nRÈGLES :\n{rules}"
 
@@ -220,7 +239,7 @@ def _check_profiles() -> None:
     """Garde-fou à l'import : un profil ne peut pas déclarer un type inconnu ni une relation sans paire valide."""
     for p in PROFILES.values():
         for t in p.entity_types:
-            assert t in OBJECT_TYPES and OBJECT_TYPES[t].extraction == "llm", (p.name, t)
+            assert t in OBJECT_TYPES and OBJECT_TYPES[t].extraction in ("llm", "derived"), (p.name, t)
         for spec in p.relations:
             assert spec.relationship in SEMANTICS, (p.name, spec.relationship)
             assert spec.pairs(), (p.name, spec)

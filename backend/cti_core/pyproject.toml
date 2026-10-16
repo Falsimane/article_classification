@@ -9,3 +9,7 @@ requires-python = ">=3.10"
 
 [tool.maturin]
 features = ["extension-module"]
+
+# uv met en cache la compilation : sans ces clés, une modification de lib.rs n'est jamais recompilée par `uv run`
+[tool.uv]
+cache-keys = [{ file = "pyproject.toml" }, { file = "Cargo.toml" }, { file = "src/**/*.rs" }]

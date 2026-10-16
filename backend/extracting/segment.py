@@ -24,6 +24,45 @@ _SENTENCE_END = re.compile(r"(?<=[.!?])[\"'»”)\]]*\s+(?=[\"'«“(\[]?[A-Z0-9
 _LIST_ITEM = re.compile(r"^\s*(?:[*+\-•]|\d{1,3}[.)])\s+")
 
 
+_HASH = re.compile(r"\b[a-fA-F0-9]{32,64}\b")
+_IPV4 = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
+_DOMAIN = re.compile(r"^[a-z0-9][a-z0-9\-]*(?:\.[a-z0-9\-]+)+(?:[:/].*)?$", re.I)
+# Extensions de fichier courantes : un « nom.exe » n'est pas un nom de domaine
+_FILE_EXT = frozenset("exe dll sys bat cmd ps1 vbs js jar msi scr lnk so dat tmp bin log txt cfg ini conf json xml hta zip rar 7z iso doc docx xls xlsx pdf py sh".split())
+
+
+def is_indicator_text(text: str) -> bool:
+    """Ligne dominée par des indicateurs techniques (hachages, adresses IP, domaines, URL). Elle n'apporte rien au
+    modèle (il ne doit pas extraire d'observables) et pollue son contexte : elle est masquée dans les prompts."""
+    tokens = text.split()
+    if not tokens:
+        return False
+    hashes, ips = len(_HASH.findall(text)), len(_IPV4.findall(text))
+    domains = sum(1 for t in tokens if _DOMAIN.match(t.strip("|,;()[]")) and t.rsplit(".", 1)[-1].lower().strip("|,;()[]") not in _FILE_EXT)
+    return hashes >= 2 or (hashes + ips + domains) / len(tokens) >= 0.4
+
+
+_CODE_KEYWORDS = re.compile(r"\b(condition|strings|meta)\s*:|\brule\s+\w+\s*\{|\bselection\s*:|\bdetection\s*:", re.I)
+
+
+_REFERENCE_START = re.compile(r"^\s*\[\d{1,3}\]\s*\S")
+
+
+def looks_like_reference(text: str) -> bool:
+    """Entrée de bibliographie (« [9] Éditeur, Titre, date ») : cite des sources, n'affirme rien sur la menace.
+    Un « [1] » en fin de phrase est une citation en ligne et reste une phrase."""
+    return bool(_REFERENCE_START.match(text))
+
+
+def looks_like_code(text: str) -> bool:
+    """Règle YARA ou Sigma, script, journal : texte qui n'affirme rien mais peut contenir des noms d'outils. Le
+    prendre pour une phrase fabriquerait de fausses relations (« la règle nomme X et Y » n'est pas « X utilise Y »)."""
+    if len(text) < 40:
+        return False
+    symbols = sum(1 for c in text if c in "{}=$;|<>\\")
+    return symbols / len(text) >= 0.03 or bool(_CODE_KEYWORDS.search(text))
+
+
 @dataclass(frozen=True)
 class Unit:
     uid: int  # numéro stable dans l'article, à partir de 1
@@ -32,8 +71,25 @@ class Unit:
     heading_path: str
 
     @property
+    def is_indicators(self) -> bool:
+        return self.kind in ("sentence", "item") and is_indicator_text(self.text)
+
+    @property
+    def is_reference(self) -> bool:
+        return self.kind in ("sentence", "item") and looks_like_reference(self.text)
+
+    @property
+    def is_evidence_eligible(self) -> bool:
+        """Peut-elle étayer une relation ? Ni code, ni table, ni liste d'indicateurs, ni bibliographie."""
+        return self.kind in ("sentence", "item") and not self.is_indicators and not self.is_reference
+
+    @property
     def prompt_text(self) -> str:
         """Texte montré au modèle (borné)."""
+        if self.is_indicators:
+            return "(liste d'indicateurs techniques, omise)"
+        if self.is_reference:
+            return "(référence bibliographique, omise)"
         if self.kind == "code":
             lines = [l for l in self.text.splitlines() if not l.strip().startswith(("```", "~~~"))]
             head = "\n".join(l.strip() for l in lines[:MAX_CODE_LINES])
@@ -88,10 +144,10 @@ def segment(clean_markdown: str) -> list[Unit]:
         items = _list_items(block.text)
         if items is not None:
             for item in items:
-                add("item", item, block.heading_path)
+                add("code" if looks_like_code(item) else "item", item, block.heading_path)
         else:
             for sentence in split_sentences(block.text):
-                add("sentence", sentence, block.heading_path)
+                add("code" if looks_like_code(sentence) else "sentence", sentence, block.heading_path)
     return units
 
 

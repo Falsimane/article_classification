@@ -1,4 +1,8 @@
 """
+DÉPRÉCIÉ : ancien extracteur (ontologie maison, un appel LLM séquentiel par segment, ~10 min par article).
+Remplacé par `cti_extractor.py` (ontologie STIX, `pipeline.py`). Conservé uniquement parce que le tableau de bord lit
+encore l'ancien graphe Neo4j (`Entity`, `Article`) ; à supprimer quand le tableau de bord aura migré.
+
 Module V2 d'Extraction de Cyber Threat Intelligence (CTI) pour Knowledge Graph & Attack Graph.
 Intègre :
 - Contrainte grammaticale stricte par schéma Pydantic (Ollama Structured Outputs)

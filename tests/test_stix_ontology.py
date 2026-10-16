@@ -182,6 +182,14 @@ class Evidence(unittest.TestCase):
         self.assertFalse(evidence_in_source("Le groupe a certainement chiffré toutes les données du client", SOURCE))
         self.assertFalse(evidence_in_source("PsExec", SOURCE))  # trop courte pour être probante
 
+    def test_sector_stems_match_the_words_articles_use(self):
+        from backend.ontology.stix.validate import mentions
+
+        self.assertTrue(mentions("victims in the financial, cryptocurrency and retail sectors", ["financial-services", "~financ"]))
+        self.assertTrue(mentions("attacks against telecom operators", ["telecommunications", "~teleco"]))
+        self.assertTrue(mentions("the finance team of the victim", ["~financ"]))  # « finance » commence bien par « financ »
+        self.assertFalse(mentions("nothing relevant here", ["~financ"]))
+
     def test_mentions_use_whole_words(self):
         self.assertTrue(mentions("a exécuté PsExec.exe sur le contrôleur", ["PsExec"]))
         self.assertTrue(mentions("le cluster APT 29 a ciblé", ["APT29"]))
@@ -342,6 +350,18 @@ class Export(unittest.TestCase):
         self.assertNotIn('"_', text)
         techniques = [o for o in json.loads(text)["objects"] if o["type"] == "attack-pattern"]
         self.assertTrue(techniques and all(t["kill_chain_phases"][0]["kill_chain_name"] == "mitre-attack" for t in techniques))
+
+    def test_publication_dates_in_every_format_of_the_database(self):
+        from backend.ontology.stix.export import parse_date
+
+        for raw in ("2020-08-03", "April 22, 2026", "Dec 17, 2025", "2026-08-24T10:11:12", "24 August 2026"):
+            self.assertIsNotNone(parse_date(raw), raw)
+        self.assertIsNone(parse_date("hier"))
+        self.assertIsNone(parse_date(None))
+        graph = sanitize_extraction(_scenario(), "operational", SOURCE, publisher_names=["Mandiant"], keep_orphans=True)
+        for raw in ("April 22, 2026", "2020-08-03", "date inconnue", None):
+            objects = build_stix_objects(graph, {"source_id": 1, "title": "t", "site_name": "s", "published": raw})
+            to_bundle(objects)  # doit rester du STIX valide, quelle que soit la date fournie
 
     def test_stix2_rejects_what_the_ontology_would_reject(self):
         with self.assertRaises(Exception):
