@@ -1,0 +1,267 @@
+@prefix cti: <https://w3id.org/cti/ontology#> .
+@prefix kc:  <https://w3id.org/cti/killchain#> .
+@prefix ag:  <https://w3id.org/cti/attackgraph#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:  <http://www.w3.org/ns/shacl#> .
+
+<https://w3id.org/cti/ontology>
+    a owl:Ontology ;
+    rdfs:label "Enterprise Attack-Graph & Contextual CTI Ontology"@en ;
+    rdfs:comment "Ontologie RDF/OWL/SHACL non-manichéenne orientée Attack Graph, alignée STIX 2.1, MITRE ATT&CK et D3FEND."@fr ;
+    owl:versionInfo "2.0.0" .
+
+#################################################################
+#    1. Classes d'Entités (Séparation Actifs / Menaces / États)
+#################################################################
+
+cti:CyberThreatElement a owl:Class ;
+    rdfs:label "Cyber Threat Element"@en .
+
+# --- Acteurs & Profils Victimes ---
+cti:ThreatActor a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Groupe d'intrusion, opérateur ou cluster d'activité (ex: APT29, UNC3944)."@fr .
+
+cti:VictimProfile a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Entité organisationnelle, secteur industriel ou zone géographique ciblée."@fr .
+
+# --- Approche Non-Manichéenne : Unification Logicielle & Actifs ---
+cti:TechnicalAsset a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Tout composant technique pouvant exister dans le SI d'entreprise ou dans l'arsenal d'un attaquant."@fr .
+
+cti:SoftwareSystem a owl:Class ;
+    rdfs:subClassOf cti:TechnicalAsset ;
+    rdfs:comment "Tout logiciel, binaire OS, agent IA, utilitaire d'administration, script ou implant. Sa nature (légitime, LOLBin, malware dédié) dépend du contexte d'exécution."@fr .
+
+cti:HardwareOrHost a owl:Class ;
+    rdfs:subClassOf cti:TechnicalAsset ;
+    rdfs:comment "Serveur, poste de travail, hyperviseur, équipement réseau ou conteneur."@fr .
+
+cti:IdentityOrCredential a owl:Class ;
+    rdfs:subClassOf cti:TechnicalAsset ;
+    rdfs:comment "Compte utilisateur, jeton OAuth/Session, clé d'API, ticket Kerberos, secret `.env`."@fr .
+
+cti:DataRepository a owl:Class ;
+    rdfs:subClassOf cti:TechnicalAsset ;
+    rdfs:comment "Base de données, dépôt Git, bucket S3, partage SMB ou archive de fichiers sensibles."@fr .
+
+# --- Faiblesses & Techniques ---
+cti:SecurityWeakness a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Faille exploitable : CVE (Vulnerability), CWE ou mauvaise configuration (Misconfiguration)."@fr .
+
+cti:Vulnerability a owl:Class ;
+    rdfs:subClassOf cti:SecurityWeakness ;
+    rdfs:comment "Vulnérabilité logicielle identifiée par un CVE (ex: CVE-2025-55182)."@fr .
+
+cti:Misconfiguration a owl:Class ;
+    rdfs:subClassOf cti:SecurityWeakness ;
+    rdfs:comment "Défaut de configuration ou exposition (ex: serveur sans authentification, permissions IAM excessives)."@fr .
+
+cti:AttackPattern a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Technique ou sous-technique comportementale MITRE ATT&CK (ex: T1059.001)."@fr .
+
+# --- Infrastructure & Indicateurs Atomiques ---
+cti:Infrastructure a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Noeud logique ou physique externe utilisé pour les opérations : serveur C2, relais, bot Telegram, webhook, tenant cloud."@fr .
+
+cti:ObservableIndicator a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Artefact technique immuable et atomique : IPv4/v6, FQDN, URL, Hash SHA256, Mutex, Clé de registre."@fr .
+
+# --- Défense ---
+cti:DefensiveMeasure a owl:Class ;
+    rdfs:subClassOf cti:CyberThreatElement ;
+    rdfs:comment "Règle de détection (YARA, Sigma, KQL) ou contre-mesure MITRE D3FEND."@fr .
+
+#################################################################
+#    2. Modélisation Non-Manichéenne : Postures d'Usage & Modalité
+#################################################################
+
+cti:UsagePosture a owl:Class ;
+    rdfs:label "Contextual Usage Posture"@en ;
+    rdfs:comment "Qualifie comment un SoftwareSystem ou une Infrastructure est employé dans une action spécifique."@fr .
+
+cti:DedicatedMalwarePosture a cti:UsagePosture ;
+    rdfs:comment "Conçu exclusivement à des fins offensives/malveillantes (ex: LockBit ransomware, Bissa Scanner)."@fr .
+
+cti:LOTLPosture a cti:UsagePosture ;
+    rdfs:comment "Living Off The Land : binaire natif de l'OS détourné (ex: PowerShell, certutil, bash)."@fr .
+
+cti:DualUseAdminToolPosture a cti:UsagePosture ;
+    rdfs:comment "Outil d'administration, RMM, transfert ou dev détourné (ex: AnyDesk, Rclone, Claude Code, PsExec)."@fr .
+
+cti:CommercialRedTeamPosture a cti:UsagePosture ;
+    rdfs:comment "Framework d'évaluation de sécurité utilisé de manière offensive (ex: Cobalt Strike, Sliver, Metasploit)."@fr .
+
+cti:BYOVDPosture a cti:UsagePosture ;
+    rdfs:comment "Bring Your Own Vulnerable Driver : pilote légitime signé mais vulnérable déployé pour élever ses privilèges."@fr .
+
+cti:LegitimateTargetPosture a cti:UsagePosture ;
+    rdfs:comment "Le logiciel est présent légitimement chez la victime et subit l'attaque (cible d'exploitation ou d'abus)."@fr .
+
+# --- Modalité Épistémique (Anti-Hallucination sur le texte) ---
+cti:EpistemicModality a owl:Class ;
+    rdfs:comment "Statut factuel de l'assertion dans le rapport source."@fr .
+
+cti:ObservedInIncident a cti:EpistemicModality ;
+    rdfs:comment "Action factuellement observée lors d'une intrusion réelle."@fr .
+
+cti:ProofOfConceptOrLab a cti:EpistemicModality ;
+    rdfs:comment "Démonstration de recherche ou test en laboratoire non observé in-the-wild."@fr .
+
+cti:HypothesizedCapability a cti:EpistemicModality ;
+    rdfs:comment "Capacité présente dans le code (analyse statique) ou supposée par l'analyste mais non déclenchée."@fr .
+
+#################################################################
+#    3. Primitives d'Attack Graph (États & Transitions)
+#################################################################
+
+ag:SecurityState a owl:Class ;
+    rdfs:label "Attack Graph Security State"@en ;
+    rdfs:comment "Condition système, réseau ou privilège requise (précondition) ou obtenue (postcondition) par une action."@fr .
+
+ag:UnauthenticatedNetworkAccess a ag:SecurityState .
+ag:AuthenticatedUserAccess a ag:SecurityState .
+ag:LocalCodeExecution a ag:SecurityState .
+ag:SystemOrRootPrivilege a ag:SecurityState .
+ag:DomainOrTenantAdminAccess a ag:SecurityState .
+ag:SensitiveDataAccess a ag:SecurityState .
+
+#################################################################
+#    4. Propriétés d'Objets Strictes (Prédicats)
+#################################################################
+
+# --- Attribution & Infrastructure ---
+cti:attributed_to a owl:ObjectProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:SoftwareSystem cti:Infrastructure cti:AttackPattern) ] ;
+    rdfs:range cti:ThreatActor .
+
+cti:operates_infrastructure a owl:ObjectProperty ;
+    rdfs:domain cti:ThreatActor ;
+    rdfs:range cti:Infrastructure .
+
+cti:resolves_to_indicator a owl:ObjectProperty ;
+    rdfs:domain cti:Infrastructure ;
+    rdfs:range cti:ObservableIndicator .
+
+# --- Chaîne d'Exécution Système (Précision granulaire) ---
+cti:spawns_process a owl:ObjectProperty ;
+    rdfs:comment "Un logiciel ou script lance l'exécution d'un autre processus logiciel."@fr ;
+    rdfs:domain cti:SoftwareSystem ;
+    rdfs:range cti:SoftwareSystem .
+
+cti:drops_artifact a owl:ObjectProperty ;
+    rdfs:comment "Un logiciel écrit ou dépose un autre binaire, script ou indicateur sur le disque."@fr ;
+    rdfs:domain cti:SoftwareSystem ;
+    rdfs:range [ a owl:Class ; owl:unionOf (cti:SoftwareSystem cti:ObservableIndicator) ] .
+
+cti:injects_into a owl:ObjectProperty ;
+    rdfs:comment "Un processus malveillant injecte du code en mémoire dans un processus légitime."@fr ;
+    rdfs:domain cti:SoftwareSystem ;
+    rdfs:range cti:SoftwareSystem .
+
+cti:implements_technique a owl:ObjectProperty ;
+    rdfs:comment "Un logiciel ou acteur met en oeuvre une technique MITRE ATT&CK spécifique."@fr ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:ThreatActor cti:SoftwareSystem) ] ;
+    rdfs:range cti:AttackPattern .
+
+# --- Exploitation & Ciblage d'Actifs (Pont CMDB / Attack Graph) ---
+cti:affects_asset a owl:ObjectProperty ;
+    rdfs:comment "Une vulnérabilité ou mauvaise configuration touche un logiciel ou hôte spécifique (lié par CPE)."@fr ;
+    rdfs:domain cti:SecurityWeakness ;
+    rdfs:range [ a owl:Class ; owl:unionOf (cti:SoftwareSystem cti:HardwareOrHost) ] .
+
+cti:exploits_weakness a owl:ObjectProperty ;
+    rdfs:comment "Un acteur, logiciel ou technique exploite une CVE ou une mauvaise configuration."@fr ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:ThreatActor cti:SoftwareSystem cti:AttackPattern) ] ;
+    rdfs:range cti:SecurityWeakness .
+
+cti:targets a owl:ObjectProperty ;
+    rdfs:comment "Un acteur, malware ou technique cible une organisation, un profil victime ou un système."@fr ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:ThreatActor cti:SoftwareSystem cti:AttackPattern) ] ;
+    rdfs:range [ a owl:Class ; owl:unionOf (cti:VictimProfile cti:HardwareOrHost cti:SoftwareSystem cti:DataRepository) ] .
+
+cti:harvests_asset a owl:ObjectProperty ;
+    rdfs:comment "Un acteur, logiciel ou technique extrait des identifiants, clés d'API ou données d'un dépôt/système."@fr ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:ThreatActor cti:SoftwareSystem cti:AttackPattern) ] ;
+    rdfs:range [ a owl:Class ; owl:unionOf (cti:IdentityOrCredential cti:DataRepository) ] .
+
+cti:authenticates_with a owl:ObjectProperty ;
+    rdfs:comment "Utilisation d'un identifiant ou jeton volé pour accéder à un actif ou une infrastructure."@fr ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:ThreatActor cti:SoftwareSystem) ] ;
+    rdfs:range cti:IdentityOrCredential .
+
+# --- Communications Réseau & Exfiltration ---
+cti:communicates_with_c2 a owl:ObjectProperty ;
+    rdfs:domain cti:SoftwareSystem ;
+    rdfs:range cti:Infrastructure .
+
+cti:exfiltrates_to a owl:ObjectProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:SoftwareSystem cti:DataRepository cti:IdentityOrCredential) ] ;
+    rdfs:range cti:Infrastructure .
+
+# --- Chaînage Causal d'Attack Graph ---
+ag:requiresPrecondition a owl:ObjectProperty ;
+    rdfs:domain cti:AttackPattern ;
+    rdfs:range ag:SecurityState .
+
+ag:yieldsPostcondition a owl:ObjectProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf (cti:AttackPattern cti:SecurityWeakness) ] ;
+    rdfs:range ag:SecurityState .
+
+ag:leads_to_step a owl:ObjectProperty ;
+    rdfs:comment "Séquence causale directe : l'exécution de A permet l'exécution de B."@fr ;
+    rdfs:domain cti:CyberThreatElement ;
+    rdfs:range cti:CyberThreatElement .
+
+# --- Détection & Défense ---
+cti:detects_or_mitigates a owl:ObjectProperty ;
+    rdfs:domain cti:DefensiveMeasure ;
+    rdfs:range cti:CyberThreatElement .
+
+#################################################################
+#    5. Propriétés de Qualification (Sur les Statements réifiés)
+#################################################################
+
+cti:hasSourcePosture a owl:ObjectProperty ;
+    rdfs:range cti:UsagePosture ;
+    rdfs:comment "Posture contextuelle de l'entité source au moment de l'action (ex: DualUseAdminToolPosture)."@fr .
+
+cti:hasTargetPosture a owl:ObjectProperty ;
+    rdfs:range cti:UsagePosture ;
+    rdfs:comment "Posture contextuelle de l'entité cible au moment de l'action (ex: LegitimateTargetPosture)."@fr .
+
+cti:hasModality a owl:ObjectProperty ;
+    rdfs:range cti:EpistemicModality ;
+    rdfs:comment "Modalité épistémique (ObservedInIncident, ProofOfConceptOrLab, HypothesizedCapability)."@fr .
+
+cti:cpe23Uri a owl:DatatypeProperty ;
+    rdfs:domain cti:TechnicalAsset ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Identifiant CPE 2.3 ou PURL permettant la jointure directe avec les actifs de l'entreprise."@fr .
+
+cti:mitreId a owl:DatatypeProperty ;
+    rdfs:domain cti:AttackPattern ;
+    rdfs:range xsd:string .
+
+cti:cveId a owl:DatatypeProperty ;
+    rdfs:domain cti:Vulnerability ;
+    rdfs:range xsd:string .
+
+cti:confidenceScore a owl:DatatypeProperty ;
+    rdfs:range xsd:integer ;
+    rdfs:comment "Score de confiance STIX 2.1 (0 à 100)."@fr .
+
+cti:validFrom a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .
+
+cti:validUntil a owl:DatatypeProperty ;
+    rdfs:range xsd:dateTime .

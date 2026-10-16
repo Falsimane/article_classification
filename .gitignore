@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+db_outputs
+cti_core/cargo.lock
+backend/cti_core/target
+frontend/node_modules/
+
+
+# Neo4j local data & logs
+neo4j_data/
+neo4j_logs/
+neo4j_plugins/

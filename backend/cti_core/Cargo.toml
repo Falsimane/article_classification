@@ -1,0 +1,17 @@
+[package]
+name = "cti_core"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+name = "cti_core"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+# Activée par maturin (cf. pyproject.toml) ; désactivée pour `cargo test` afin de pouvoir lier les tests.
+extension-module = ["pyo3/extension-module"]
+
+[dependencies]
+pyo3 = { version = "0.22" }
+regex = "1.10"
