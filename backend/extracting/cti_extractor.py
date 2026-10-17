@@ -62,13 +62,14 @@ def fetch_articles(limit: int, article_id: int | None, skip_ids: set[int]) -> li
 def process_article(art: dict, store: StixStore | None, *, verify: bool, out_dir: Path | None) -> tuple[ArticleExtraction, dict]:
     t0 = time.perf_counter()
     result = extract_article(
-        art["id"], art["title"] or f"Article {art['id']}", art["primary_category"], art["clean_markdown"], art["site_name"], verify=verify
+        art["id"], art["title"] or f"Article {art['id']}", art["primary_category"], art["clean_markdown"], art["site_name"], verify=verify,
+        url=art["url"], published=art["publication_date"],
     )
     meta = {
         "source_id": art["id"], "title": art["title"], "url": art["url"], "site_name": art["site_name"],
         "published": art["publication_date"], "category": art["primary_category"],
     }  # fmt: skip
-    objects = build_stix_objects(result.graph, meta)
+    objects = build_stix_objects(result.graph, meta, iocs=result.iocs.findings)
     bundle = to_bundle(objects)  # lève une exception si un objet n'est pas du STIX 2.1 valide
     if out_dir is not None:
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -91,6 +92,21 @@ def print_triples(result: ArticleExtraction, limit: int = 40) -> None:
     for r in result.graph.relationships[:limit]:
         table.add_row(names[r["source_ref"]], r["relationship_type"], names[r["target_ref"]], r["_evidence"][0]["quote"][:140])
     console.print(table)
+
+
+def print_iocs(result: ArticleExtraction, limit: int = 60) -> None:
+    iocs = result.iocs
+    table = Table(title=f"IOC retenus (article {result.article_id}) : {len(iocs.findings)} sur {iocs.n_candidates} valeurs, {len(iocs.dropped)} écartées", header_style="bold magenta", border_style="dim")
+    for col, style in (("Type", "cyan"), ("Valeur", "bold white"), ("Rôle", "yellow"), ("Rattaché à", "green"), ("Phrase", "dim white")):
+        table.add_column(col, style=style, overflow="fold")
+    for f in iocs.findings[:limit]:
+        table.add_row(f.kind, f.value[:70], f.role, f.attach_name or "—", f.quote[:90])
+    console.print(table)
+    reasons: dict[str, int] = {}
+    for d in iocs.dropped:
+        reasons[d.reason] = reasons.get(d.reason, 0) + 1
+    if reasons:
+        console.print("  écartés : " + ", ".join(f"{k} {v}" for k, v in sorted(reasons.items(), key=lambda kv: -kv[1])))
 
 
 def print_stats() -> None:
@@ -122,6 +138,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="N'écrit rien dans Neo4j")
     parser.add_argument("--out", type=Path, help="Écrit le bundle STIX 2.1 de chaque article dans ce dossier")
     parser.add_argument("--show-triples", action="store_true", help="Affiche les relations et leur phrase de preuve")
+    parser.add_argument("--show-iocs", action="store_true", help="Affiche les IOC retenus avec leur rôle et leur rattachement")
     parser.add_argument("--show-issues", action="store_true", help="Affiche les corrections et rejets de l'ontologie")
     parser.add_argument("--stats", action="store_true", help="Statistiques du graphe STIX dans Neo4j")
     parser.add_argument("--model", default=llm.MODEL_NAME)
@@ -175,12 +192,14 @@ def main() -> None:
             trunc = [f"{c.stage}#{c.pass_index}" for c in result.calls if c.truncated]
             progress.console.print(
                 f"  [bold green]✓[/] Article {art['id']:4d} [dim][{art['primary_category'][:4]}][/] {dt:5.1f}s │ "
-                f"[cyan]{len(g.entities)} entités[/] [yellow]{len(g.relationships)} relations[/] │ "
+                f"[cyan]{len(g.entities)} entités[/] [yellow]{len(g.relationships)} relations[/] [magenta]{len(result.iocs.findings)} IOC[/] │ "
                 f"candidats {result.n_candidates} → {result.n_proposed} → {result.n_verified} vérifiés │ {result.output_tokens} tokens générés"
                 + (f" │ [red]tronqué : {', '.join(trunc)}[/]" if trunc else "")
             )
             if args.show_triples:
                 print_triples(result)
+            if args.show_iocs:
+                print_iocs(result)
             if args.show_issues:
                 for issue in g.issues:
                     progress.console.print(f"      [dim]{issue}[/]")

@@ -15,6 +15,7 @@ export interface GraphNode {
   is_dual_use: boolean;
   article_ids: number[];
   degree: number;
+  ioc_count?: number;
 }
 
 export interface Evidence { article: number | null; quote: string }
@@ -46,6 +47,7 @@ export interface Stats {
   entities_count: number;
   relations_count: number;
   dual_use_count: number;
+  iocs_count: number;
   entity_types: Record<string, number>;
   relation_types: Record<string, number>;
 }
@@ -55,6 +57,25 @@ export interface ArticleGraph {
   article: { id: number; title: string; url: string; site_name: string | null; category: string | null; published: string | null } | null;
   nodes: GraphNode[];
   edges: GraphEdge[];
+}
+
+export type IocStatus = "active" | "aging" | "stale" | "unknown";
+
+export interface IocRow {
+  id: string;
+  kind: string;
+  value: string;
+  algo: string | null;
+  role: string;
+  roles: string[];
+  confidence: number | null;
+  first_seen: string | null;
+  last_seen: string | null;
+  status: IocStatus;
+  sources: number;
+  article_ids: number[];
+  attached_to: { id: string; name: string; type: string }[];
+  evidence: Evidence[];
 }
 
 export interface ActorRow extends GraphNode { relations: number; reports: number }
@@ -77,6 +98,7 @@ export interface OrgProfile {
 export interface ActorProfile {
   actor: GraphNode;
   profile: OrgProfile;
+  iocs: IocRow[];
   nodes: GraphNode[];
   edges: GraphEdge[];
   reports: { id: number; title: string; url: string; site_name: string | null; category: string | null; published: string | null }[];

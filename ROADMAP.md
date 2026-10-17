@@ -4,6 +4,8 @@ Voir aussi `ROADMAP-UI.md` (refonte de l'interface, réalisée).
 
 ## À refaire
 
+> **Avancement : voir `TODO-IOC.md`** (état du code, bug bloquant, vérifications manquantes, prochaines étapes).
+
 ### 1. Extraction des IOC malveillants, rattachés à l'infrastructure de l'attaquant, datés par l'article
 
 **Besoin.** Extraire les indicateurs de compromission cités dans les articles, les rattacher à l'infrastructure (et au malware ou à l'acteur) concernée, et conserver la date de l'article pour juger plus tard s'ils sont encore pertinents.

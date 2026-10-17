@@ -275,7 +275,10 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
 
     def handle_api(self, path: str, params: Dict[str, List[str]]) -> None:
         try:
-            if path == "/api/actors":
+            if path == "/api/iocs":
+                aid = params.get("article_id", [None])[0]
+                self.send_json_response(stix_dashboard.iocs_of_article(int(aid)) if aid and aid.isdigit() else {"error": "article_id requis"}, status=200 if aid and aid.isdigit() else 400)
+            elif path == "/api/actors":
                 self.send_json_response(stix_dashboard.actors())
             elif path.startswith("/api/actors/"):
                 profile = stix_dashboard.actor_graph(unquote(path[len("/api/actors/"):]))

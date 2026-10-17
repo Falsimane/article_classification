@@ -13,9 +13,11 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from backend.ontology.stix import PROFILES, SanitizedGraph, normalize_name, sanitize_extraction
+from backend.ontology.stix.export import parse_date
 from backend.ontology.stix.validate import Issue
 
 from . import llm
+from .iocs import MAX_IOC_TOKENS, IocResult, extract_iocs
 from .segment import Pass, Unit, make_passes, segment
 from .stages import (
     ENTITY_SCHEMA, MAX_ENTITY_TOKENS, MAX_RELATION_TOKENS, EntityRow, build_candidates, entity_system, entity_user,
@@ -52,6 +54,7 @@ class ArticleExtraction:
     n_candidates: int = 0
     n_proposed: int = 0  # relations proposées avant vérification
     n_verified: int = 0  # relations confirmées par la passe de vérification
+    iocs: IocResult = field(default_factory=IocResult)  # IOC malveillants : valeurs par règles, rôle par le modèle
     seconds: float = 0.0
 
     @property
@@ -108,6 +111,9 @@ def extract_article(
     workers: int = 1,
     max_pass_chars: int = MAX_PASS_CHARS,
     verify: bool = True,
+    url: str | None = None,
+    published: str | None = None,
+    with_iocs: bool = True,
 ) -> ArticleExtraction:
     """Extrait le graphe d'un article. `category` choisit le profil d'extraction (operational, tactical, strategic)."""
     if category not in PROFILES:
@@ -253,5 +259,27 @@ def extract_article(
         {"entities": raw_entities, "relationships": raw_relations}, profile, clean_markdown, publisher_names=publishers
     )
     out.graph.issues = stage1.issues + out.graph.issues
+
+    # --- IOC : valeurs par règles, rôle et rattachement par le modèle ----------------------------------------------------
+    if with_iocs:
+        _extract_iocs(out, profile, title, units, url, published)
     out.seconds = time.perf_counter() - t0
     return out
+
+
+def _extract_iocs(out: ArticleExtraction, profile, title: str, units: list[Unit], url: str | None, published: str | None) -> None:
+    """Les IOC se rattachent à des entités FINALES (identifiants STIX connus), y compris l'incident même s'il n'a aucune
+    relation : il est alors ajouté au graphe, sinon l'indicateur pointerait vers un objet absent."""
+    entities = list(out.graph.entities)
+    incident = next((e for e in entities if e["type"] == "incident"), None)
+    added = False
+    if incident is None and "incident" in profile.entity_types:
+        made = sanitize_extraction({"entities": [{"type": "incident", "name": title}], "relationships": []}, profile, None, keep_orphans=True).entities
+        if made:
+            incident, added = made[0], True
+            entities.append(incident)
+    out.iocs = extract_iocs(title, units, entities, url=url, published=parse_date(published))
+    for i, res in enumerate(out.iocs.calls):
+        out.calls.append(_stat("iocs", i, res, MAX_IOC_TOKENS))
+    if added and incident and any(f.attach_id == incident["id"] for f in out.iocs.findings):
+        out.graph.entities.append(incident)

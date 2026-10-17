@@ -9,9 +9,11 @@ volontairement tout ce que les articles disent d'un même acteur.
 """
 
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 from backend.database.stix_store import StixStore
+from backend.ontology.stix.iocs import ioc_status
 
 # Familles de types STIX regroupées par les filtres du frontend
 TYPE_FAMILIES: dict[str, frozenset[str]] = {
@@ -128,6 +130,49 @@ def _filter_nodes(nodes: list[dict], params: dict[str, list[str]]) -> list[dict]
     return [n for n in nodes if keep(n)]
 
 
+def _moment(value: str | None) -> datetime | None:
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
+    except ValueError:
+        return None
+
+
+def _ioc_row(rec: dict, now: datetime) -> dict[str, Any]:
+    """Une ligne d'IOC. Première et dernière observation viennent des observations (une par article) ; le STATUT est calculé ici,
+    à chaque lecture, depuis la dernière observation : il n'est jamais stocké."""
+    ind, obs = rec["indicator"], rec["observable"]
+    sightings = [x for x in rec["sightings"] if x.get("first")]
+    firsts = [m for m in (_moment(x["first"]) for x in sightings) if m]
+    lasts = [m for m in (_moment(x.get("last") or x["first"]) for x in sightings) if m]
+    last_seen = max(lasts) if lasts else None
+    articles = sorted({x["article"] for x in sightings if x.get("article") is not None})
+    seen_quotes: set[tuple] = set()
+    evidence = []
+    for x in sightings:
+        key = (x.get("article"), x.get("quote"))
+        if x.get("quote") and key not in seen_quotes:
+            seen_quotes.add(key)
+            evidence.append({"article": x.get("article"), "quote": x["quote"]})
+    labels = ind.get("labels") or []
+    return {
+        "id": ind["id"], "kind": obs["type"], "value": obs.get("value", ""), "algo": obs.get("hash_algo"),
+        "role": labels[0] if labels else "unknown", "roles": labels, "confidence": ind.get("confidence"),
+        "first_seen": min(firsts).date().isoformat() if firsts else None,
+        "last_seen": last_seen.date().isoformat() if last_seen else None,
+        "status": ioc_status(obs["type"], last_seen, now),
+        "sources": len(articles), "article_ids": articles,
+        "attached_to": [{"id": t["id"], "name": t["name"], "type": t["type"]} for t in rec["targets"] if t.get("id")],
+        "evidence": evidence[:4],
+    }  # fmt: skip
+
+
+def iocs_of_article(article_id: int, store: StixStore | None = None, now: datetime | None = None) -> dict[str, Any]:
+    store = store or StixStore()
+    now = now or datetime.now(timezone.utc)
+    rows = [_ioc_row(r, now) for r in store.article_iocs(article_id)]
+    return {"article_id": article_id, "iocs": rows, "count": len(rows)}
+
+
 def articles(store: StixStore | None = None) -> dict[str, Any]:
     store = store or StixStore()
     rows = [
@@ -150,6 +195,7 @@ def stats(store: StixStore | None = None) -> dict[str, Any]:
         "entities_count": sum(t["nodes"].values()),
         "relations_count": sum(t["edges"].values()),
         "dual_use_count": t["lolbins"],
+        "iocs_count": t.get("iocs", 0),
         "entity_types": t["nodes"],
         "relation_types": {k.lower().replace("_", "-"): v for k, v in t["edges"].items()},
     }
@@ -172,7 +218,8 @@ def graph(article_id: int | None, params: dict[str, list[str]], store: StixStore
     for e in edges:
         degree[e["source"]] = degree.get(e["source"], 0) + 1
         degree[e["target"]] = degree.get(e["target"], 0) + 1
-    nodes = _filter_nodes([_node(n, degree.get(nid, 0)) for nid, n in by_id.items()], params)
+    counts = store.article_ioc_counts(article_id)
+    nodes = _filter_nodes([{**_node(n, degree.get(nid, 0)), "ioc_count": counts.get(nid, 0)} for nid, n in by_id.items()], params)
     kept = {n["id"] for n in nodes}
     return {
         "article_id": article_id,
@@ -227,7 +274,7 @@ def _profile(actor: dict, nodes: dict[str, dict], edges: list[dict]) -> dict[str
     return {**out, "techniques": techniques}
 
 
-def actor_graph(actor_id: str, store: StixStore | None = None) -> dict[str, Any] | None:
+def actor_graph(actor_id: str, store: StixStore | None = None, now: datetime | None = None) -> dict[str, Any] | None:
     """Profil d'un acteur : lui, ses voisins directs, et ce que TOUS les articles en disent (preuves comprises)."""
     store = store or StixStore()
     sub = store.actor_subgraph(actor_id)
@@ -247,5 +294,6 @@ def actor_graph(actor_id: str, store: StixStore | None = None) -> dict[str, Any]
         "nodes": nodes,
         "edges": edges,
         "profile": _profile(actor, {n["id"]: n for n in nodes}, edges),
+        "iocs": [_ioc_row(r, now or datetime.now(timezone.utc)) for r in store.actor_iocs(actor_id)],
         "reports": [{**r, "published": (r["published"] or "")[:10] or None} for r in sub["reports"]],
     }

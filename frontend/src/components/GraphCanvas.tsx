@@ -48,6 +48,11 @@ function CtiNodeView({ data }: NodeProps<CtiNode>) {
       >
         <Icon size={24} color={color} strokeWidth={1.75} />
       </div>
+      {!!node.ioc_count && (
+        <span className="absolute -right-3 -top-2 border border-line-strong bg-raised px-1 font-mono text-[10px] text-ink" title={`${node.ioc_count} indicateurs rattachés à cette infrastructure`}>
+          {node.ioc_count} IOC
+        </span>
+      )}
       <div className="pointer-events-none absolute left-1/2 top-full mt-1 w-max max-w-[8rem] -translate-x-1/2 bg-bg px-1 text-center">
         <div className="truncate text-xs font-medium leading-4">{node.label}{node.is_dual_use && " ·"}</div>
         <div className="truncate font-mono text-[9px] uppercase leading-3 tracking-wide text-faint">{typeLabel(node.type)}</div>

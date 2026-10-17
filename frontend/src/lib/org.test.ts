@@ -5,7 +5,7 @@ import type { ActorProfile, GraphNode, OrgProfile, ProfileEntry } from "../types
 const node = (id: string, type: string): GraphNode => ({ id, label: id, type, family: "target", aliases: [], references: [], tactics: [], sectors: [], identity_class: null, is_family: null, labels: [], is_dual_use: false, article_ids: [1], degree: 1 });
 const entry = (id: string, type: string): ProfileEntry => ({ node: node(id, type), relation: "uses", confidence: 80, evidence: [{ article: 1, quote: `preuve ${id}` }] });
 const empty: OrgProfile = { origin: [], sponsors: [], parents: [], divisions: [], malware: [], tools: [], infrastructure: [], targets: [], vulnerabilities: [], techniques: {} };
-const data = (p: Partial<OrgProfile>): ActorProfile => ({ actor: node("APT29", "intrusion-set"), profile: { ...empty, ...p }, nodes: [], edges: [], reports: [] });
+const data = (p: Partial<OrgProfile>, iocs: ActorProfile["iocs"] = []): ActorProfile => ({ actor: node("APT29", "intrusion-set"), profile: { ...empty, ...p }, iocs, nodes: [], edges: [], reports: [] });
 
 describe("organigramme", () => {
   it("n'invente pas d'origine : une case « non établie » est affichée", () => {
@@ -25,6 +25,12 @@ describe("organigramme", () => {
     const arsenal = org.boxes.find((b) => b.id === "domain:arsenal")!;
     expect(arsenal.tab).toBe("arsenal");
     expect(arsenal.lines).toEqual(["a", "b", "c", "+ 1 autres"]);
+  });
+  it("résume les indicateurs dans la case Infrastructure, et ne la déclare pas vide s'il y en a", () => {
+    const ioc = (status: "active" | "stale") => ({ status }) as ActorProfile["iocs"][number];
+    const box = buildOrg(data({}, [ioc("active"), ioc("stale"), ioc("stale")])).boxes.find((b) => b.id === "domain:infrastructure")!;
+    expect(box.empty).toBe(false);
+    expect(box.lines).toContain("3 indicateurs, 1 actifs");
   });
   it("centre chaque niveau et ne superpose pas deux cases", () => {
     const org = buildOrg(data({ divisions: [entry("x", "campaign"), entry("y", "campaign")] }));

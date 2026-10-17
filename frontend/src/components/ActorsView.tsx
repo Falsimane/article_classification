@@ -7,6 +7,7 @@ import { FAMILY, typeLabel } from "../lib/theme";
 import { useAsync } from "../lib/useAsync";
 import type { ActorProfile } from "../types";
 import { EntryTable } from "./EntryTable";
+import { IocTable } from "./IocTable";
 import { OrgChart } from "./OrgChart";
 
 const Empty = ({ children }: { children: string }) => <div className="flex h-full items-center justify-center p-8 text-sm text-faint">{children}</div>;
@@ -42,7 +43,12 @@ function TabContent({ tab, data, onOpen }: { tab: Tab; data: ActorProfile; onOpe
       );
     }
     case "infrastructure":
-      return <div className="h-full overflow-y-auto"><EntryTable entries={p.infrastructure} empty="Aucune infrastructure connue." /></div>;
+      return (
+        <div className="h-full overflow-y-auto">
+          <Group title={`Infrastructure (${p.infrastructure.length})`}><EntryTable entries={p.infrastructure} empty="Aucune infrastructure directement attribuée." /></Group>
+          <Group title={`Indicateurs rattachés (${data.iocs.length})`}><IocTable rows={data.iocs} empty="Aucun indicateur n'est rattaché à cet acteur ni à ses outils." /></Group>
+        </div>
+      );
     case "targets":
       return (
         <div className="h-full overflow-y-auto">
@@ -96,7 +102,7 @@ export function ActorsView() {
     ["org", "Organigramme", null],
     ["arsenal", "Arsenal", p ? p.malware.length + p.tools.length : null],
     ["techniques", "Techniques", p ? techniqueCount(p) : null],
-    ["infrastructure", "Infrastructure", p ? p.infrastructure.length : null],
+    ["infrastructure", "Infrastructure", data ? data.profile.infrastructure.length + data.iocs.length : null],
     ["targets", "Cibles", p ? p.targets.length + p.vulnerabilities.length : null],
     ["references", "Références", data ? data.reports.length : null],
   ];

@@ -23,7 +23,7 @@ export function Shell({ view, onView, stats, children }: { view: View; onView: (
         </nav>
         {stats && (
           <dl className="ml-auto flex gap-5 font-mono text-xs text-muted">
-            {([["Articles", stats.articles_count], ["Entités", stats.entities_count], ["Relations", stats.relations_count]] as const).map(([k, v]) => (
+            {([["Articles", stats.articles_count], ["Entités", stats.entities_count], ["Relations", stats.relations_count], ["IOC", stats.iocs_count]] as const).map(([k, v]) => (
               <div key={k} className="flex gap-1.5"><dt className="text-faint">{k}</dt><dd className="text-ink">{v}</dd></div>
             ))}
           </dl>

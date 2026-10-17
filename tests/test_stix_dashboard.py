@@ -2,6 +2,7 @@
 
 import json
 import unittest
+from datetime import datetime, timezone
 
 from backend import stix_dashboard as sd
 
@@ -9,13 +10,37 @@ def ev(article, quote):
     return json.dumps({"article": article, "quote": quote})
 
 
+def sighting(article, first, quote="vu"):
+    return {"article": article, "first": first, "last": first, "quote": quote}
+
+
+def ioc_record(kind, value, role, *sightings, targets=(), labels=None):
+    obs = {"type": kind, "value": value}
+    return {"indicator": {"id": f"indicator--{value}", "labels": labels or [role], "confidence": 75}, "observable": obs, "sightings": list(sightings),
+            "targets": [{"id": f"x--{n}", "name": n, "type": t} for n, t in targets]}  # fmt: skip
+
+
 class FakeStore:
+    def article_ioc_counts(self, article_id):
+        return {"malware--2": 3}
+
+    def article_iocs(self, article_id):
+        return [
+            ioc_record("ipv4-addr", "8.8.4.4", "c2", sighting(7, "2026-10-01T00:00:00.000Z", "C2 <b>at</b> 8.8.4.4"), sighting(8, "2026-10-10T00:00:00.000Z", "again"), targets=[("Bissa", "infrastructure")]),
+            ioc_record("file", "a" * 64, "malware-sample", sighting(7, "2025-01-01T00:00:00.000Z")),
+            ioc_record("domain-name", "old.example.org", "c2", sighting(7, "2025-01-01T00:00:00.000Z")),
+            ioc_record("url", "http://x.test/a", "unknown", {"article": 7, "first": None}),
+        ]
+
+    def actor_iocs(self, actor_id):
+        return self.article_iocs(7)[:1]
+
     def reports(self):
         return [{"id": 7, "title": "Rapport <b>test</b>", "url": "https://x.org/a", "site_name": "x", "published": "2026-04-22T00:00:00.000Z",
                  "category": "operational", "model": "m", "duration": 12.0, "extracted_at": "2026-10-16T19:00:00", "entities_count": 5, "relations_count": 3}]  # fmt: skip
 
     def totals(self):
-        return {"nodes": {"malware": 2, "tool": 1}, "edges": {"COMMUNICATES_WITH": 2, "USES": 1}, "reports": 1, "lolbins": 1}
+        return {"nodes": {"malware": 2, "tool": 1}, "edges": {"COMMUNICATES_WITH": 2, "USES": 1}, "reports": 1, "lolbins": 1, "iocs": 2}
 
     def dashboard_graph(self, article_id):
         nodes = [
@@ -97,6 +122,43 @@ class Dashboard(unittest.TestCase):
 
     def test_unknown_article_falls_back_to_an_extracted_one(self):
         self.assertEqual(sd.graph(999, {}, FakeStore())["article_id"], 7)
+
+
+NOW = datetime(2026, 10, 16, tzinfo=timezone.utc)
+
+
+class Iocs(unittest.TestCase):
+    def rows(self):
+        return {r["value"]: r for r in sd.iocs_of_article(7, FakeStore(), NOW)["iocs"]}
+
+    def test_first_and_last_seen_come_from_all_sightings(self):
+        r = self.rows()["8.8.4.4"]
+        self.assertEqual((r["first_seen"], r["last_seen"], r["sources"], r["article_ids"]), ("2026-10-01", "2026-10-10", 2, [7, 8]))
+
+    def test_status_is_computed_at_read_time_from_the_last_sighting(self):
+        rows = self.rows()
+        self.assertEqual(rows["8.8.4.4"]["status"], "active")  # 6 jours
+        self.assertEqual(rows["old.example.org"]["status"], "stale")  # > 365 jours pour un domaine
+        self.assertEqual(rows["a" * 64]["status"], "aging")  # 1 an : un hachage reste actif 365 jours
+        self.assertEqual(sd.iocs_of_article(7, FakeStore(), datetime(2026, 12, 1, tzinfo=timezone.utc))["iocs"][0]["status"], "aging")  # même IOC, plus tard
+        self.assertEqual(rows["http://x.test/a"]["status"], "unknown")  # aucune observation datée : jamais « actif »
+
+    def test_role_attachment_and_evidence_text_is_verbatim(self):
+        r = self.rows()["8.8.4.4"]
+        self.assertEqual((r["role"], r["attached_to"][0]["name"]), ("c2", "Bissa"))
+        self.assertEqual(r["evidence"][0]["quote"], "C2 <b>at</b> 8.8.4.4")  # React échappe ; le serveur ne touche pas au texte
+
+    def test_graph_nodes_carry_their_ioc_count_and_stats_the_total(self):
+        g = sd.graph(7, {}, FakeStore())
+        self.assertEqual({n["id"]: n["ioc_count"] for n in g["nodes"]}["malware--2"], 3)
+        self.assertEqual(sd.stats(FakeStore())["iocs_count"], 2)
+
+    def test_actor_profile_carries_its_iocs(self):
+        class S(Actors.Store):
+            def actor_iocs(self, actor_id):
+                return FakeStore().actor_iocs(actor_id)
+
+        self.assertEqual([r["value"] for r in sd.actor_graph("intrusion-set--1", S(), NOW)["iocs"]], ["8.8.4.4"])
 
 
 class Actors(unittest.TestCase):

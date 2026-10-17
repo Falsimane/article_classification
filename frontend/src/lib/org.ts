@@ -49,7 +49,12 @@ export function buildOrg(data: ActorProfile): OrgChartData {
     ["targets", "Cibles", "identity", [...names(p.targets), ...names(p.vulnerabilities)], "targets"],
   ];
   for (const [id, title, type, items, tab] of domains) {
-    boxes.push({ id: `domain:${id}`, level: 3, title: `${title} (${items.length})`, caption: "", type, lines: preview(items), tab, empty: items.length === 0 });
+    const iocs = id === "infrastructure" ? data.iocs : [];
+    const active = iocs.filter((i) => i.status === "active").length;
+    const lines = preview(items, iocs.length ? 2 : 3);
+    if (iocs.length) lines.push(`${iocs.length} indicateurs, ${active} actifs`);
+    const empty = items.length === 0 && iocs.length === 0;
+    boxes.push({ id: `domain:${id}`, level: 3, title: `${title} (${items.length})`, caption: "", type, lines: empty ? preview([]) : lines, tab, empty });
     links.push(["actor", `domain:${id}`]);
   }
   return { boxes, links };

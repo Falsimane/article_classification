@@ -20,6 +20,7 @@ from rdflib import Graph, Literal, Namespace, RDF, RDFS, OWL, BNode, URIRef
 from rdflib.collection import Collection
 
 from .identity import stix_id
+from .iocs import IocFinding, build_ioc_objects
 from .relationships import ALL_RELATIONSHIP_TYPES, _INDEX
 from .schema import OBJECT_TYPES
 from .validate import SanitizedGraph
@@ -61,7 +62,7 @@ def _publisher_identity(report: dict, ts: str) -> dict:
     }
 
 
-def build_stix_objects(graph: SanitizedGraph, report: dict, now: datetime | None = None) -> list[dict]:
+def build_stix_objects(graph: SanitizedGraph, report: dict, now: datetime | None = None, iocs: list[IocFinding] | None = None) -> list[dict]:
     """Objets STIX 2.1 d'une extraction assainie, plus le `report` et l'`identity` de l'éditeur.
 
     `report` : {"source_id": 597, "title": ..., "url": ..., "site_name": ..., "published": "2026-08-24",
@@ -96,6 +97,8 @@ def build_stix_objects(graph: SanitizedGraph, report: dict, now: datetime | None
         )
 
     parsed = parse_date(report.get("published"))
+    if iocs:  # IOC malveillants : observables, indicateurs, observations datées, infrastructure (voir iocs.py)
+        objects += [o for o in build_ioc_objects(iocs, common=common, publisher_id=publisher["id"], article_ref=article_ref or None, published=parsed, now=now or datetime.now(timezone.utc)) if o["id"] not in {x["id"] for x in objects}]
     published = _timestamp(parsed) if parsed else ts  # date inconnue : repli sur l'instant de l'extraction
     report_obj = {
         **common,
@@ -142,10 +145,13 @@ def to_neo4j_properties(obj: dict) -> dict:
     for key, value in obj.items():
         if key in ("source_ref", "target_ref", "type"):
             continue
-        if isinstance(value, (dict, list)) and any(isinstance(v, (dict, list)) for v in (value.values() if isinstance(value, dict) else value)):
+        if isinstance(value, dict) or (isinstance(value, list) and any(isinstance(v, (dict, list)) for v in value)):  # Neo4j : pas de map
             flat[f"{key}_json"] = json.dumps(value, ensure_ascii=False, sort_keys=True)
         else:
             flat[key] = value
+    if obj.get("type") == "file" and isinstance(obj.get("hashes"), dict) and obj["hashes"]:
+        algo, digest = next(iter(obj["hashes"].items()))
+        flat["value"], flat["hash_algo"] = digest, algo  # lisible dans une requête sans décoder `hashes_json`
     return flat
 
 

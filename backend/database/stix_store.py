@@ -26,6 +26,15 @@ _SAFE = re.compile(r"^[A-Za-z0-9_]+$")
 _LIST_KEYS = ("aliases", "labels", "sectors")
 
 
+# Nœuds d'IOC : observables, indicateurs réseau/fichier (pattern STIX) et observations. Ils ne font pas partie du graphe d'entités
+# d'un rapport (des centaines par article l'étoufferaient) : ils ont leur propre tableau.
+_IOC_TYPES = "['sighting', 'ipv4-addr', 'ipv6-addr', 'domain-name', 'url', 'email-addr', 'file']"
+
+
+def _is_ioc(var: str) -> str:
+    return f"({var}.type IN {_IOC_TYPES} OR ({var}.type = 'indicator' AND {var}.pattern_type = 'stix'))"
+
+
 def _safe(identifier: str) -> str:
     if not _SAFE.match(identifier):
         raise ValueError(f"identifiant Cypher refusé : {identifier!r}")
@@ -80,11 +89,19 @@ class StixStore:
             articles = list(dict.fromkeys(list((existing.get(node["id"]) or {}).get("article_ids") or []) + [article_id]))
             props["article_ids"] = articles
             props["type"] = node["type"]
+            old_from = (existing.get(node["id"]) or {}).get("valid_from")
+            if node["type"] == "indicator" and old_from and old_from < props.get("valid_from", "9"):
+                props["valid_from"] = old_from  # la première observation reste la première
             if node["type"] == "report":
                 props.update({"source_id": article_id, **{k: v for k, v in meta.items() if v is not None}})
             by_label.setdefault(_safe(neo4j_label(node["type"])), []).append({"id": node["id"], "props": props})
         for label, rows in by_label.items():
             tx.run(f"UNWIND $rows AS r MERGE (n:Stix {{id: r.id}}) SET n:{label} SET n += r.props", rows=rows)
+
+        sightings = [{"sid": n["id"], "iid": n["sighting_of_ref"], "pid": publisher_id} for n in nodes if n["type"] == "sighting"]
+        if sightings:
+            tx.run("UNWIND $rows AS r MATCH (s:Stix {id: r.sid}), (i:Stix {id: r.iid}) MERGE (s)-[:SIGHTING_OF]->(i)", rows=sightings)
+            tx.run("UNWIND $rows AS r MATCH (s:Stix {id: r.sid}), (p:Stix {id: r.pid}) MERGE (s)-[:SIGHTED_AT]->(p)", rows=sightings)
 
         # Rattachement de l'article : ce qu'il a fourni et son éditeur
         provided = [n["id"] for n in nodes if n["type"] not in ("report", "identity") or n["id"] != publisher_id]
@@ -166,11 +183,11 @@ class StixStore:
     # --- lecture pour le tableau de bord ---------------------------------------------------------------------------
     def reports(self) -> list[dict]:
         """Articles extraits : un enregistrement par rapport STIX, avec ses effectifs, du plus récent au plus ancien."""
-        query = """
+        query = f"""
             MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL
-            OPTIONAL MATCH (r)-[:OBJECT_REF]->(o:Stix)
+            OPTIONAL MATCH (r)-[:OBJECT_REF]->(o:Stix) WHERE NOT {_is_ioc("o")}
             WITH r, collect(o) AS objs
-            OPTIONAL MATCH (:Stix)-[x]->(:Stix) WHERE x.id IS NOT NULL AND r.source_id IN x.article_ids
+            OPTIONAL MATCH (a:Stix)-[x]->(b:Stix) WHERE x.id IS NOT NULL AND r.source_id IN x.article_ids AND NOT {_is_ioc("a")} AND NOT {_is_ioc("b")}
             RETURN r.source_id AS id, r.title AS title, r.url AS url, r.site_name AS site_name, r.published AS published,
                    r.category AS category, r.model AS model, r.extraction_seconds AS duration, r.extracted_at AS extracted_at,
                    size(objs) AS entities_count, count(x) AS relations_count
@@ -182,12 +199,12 @@ class StixStore:
     def dashboard_graph(self, article_id: int) -> dict[str, list[dict]]:
         """Nœuds et arêtes d'un article AVEC identifiants, sans l'article lui-même ni son éditeur (ils portent la
         provenance, ils ne font pas partie de l'attaque décrite)."""
-        node_query = """
-            MATCH (r:Stix:Report {source_id: $a})-[:OBJECT_REF]->(n:Stix)
+        node_query = f"""
+            MATCH (r:Stix:Report {{source_id: $a}})-[:OBJECT_REF]->(n:Stix) WHERE NOT {_is_ioc("n")}
             RETURN properties(n) AS p
         """
-        edge_query = """
-            MATCH (a:Stix)-[x]->(b:Stix) WHERE x.id IS NOT NULL AND $a IN x.article_ids
+        edge_query = f"""
+            MATCH (a:Stix)-[x]->(b:Stix) WHERE x.id IS NOT NULL AND $a IN x.article_ids AND NOT {_is_ioc("a")} AND NOT {_is_ioc("b")}
             RETURN a.id AS source, b.id AS target, type(x) AS type, properties(x) AS p
         """
         with self.driver.session() as session:
@@ -201,13 +218,19 @@ class StixStore:
             nodes = {
                 r["type"]: r["n"]
                 for r in session.run(
-                    "MATCH (r:Stix:Report)-[:OBJECT_REF]->(n:Stix) RETURN n.type AS type, count(DISTINCT n) AS n ORDER BY n DESC"
+                    f"MATCH (r:Stix:Report)-[:OBJECT_REF]->(n:Stix) WHERE NOT {_is_ioc('n')} RETURN n.type AS type, count(DISTINCT n) AS n ORDER BY n DESC"
                 )
             }
-            edges = {r["type"]: r["n"] for r in session.run("MATCH (:Stix)-[x]->(:Stix) WHERE x.id IS NOT NULL RETURN type(x) AS type, count(*) AS n ORDER BY n DESC")}
+            edges = {
+                r["type"]: r["n"]
+                for r in session.run(
+                    f"MATCH (a:Stix)-[x]->(b:Stix) WHERE x.id IS NOT NULL AND NOT {_is_ioc('a')} AND NOT {_is_ioc('b')} RETURN type(x) AS type, count(*) AS n ORDER BY n DESC"
+                )
+            }
             reports = session.run("MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL RETURN count(r) AS n").single()["n"]
             lolbins = session.run("MATCH (n:Stix:Tool) WHERE 'living-off-the-land' IN coalesce(n.labels, []) RETURN count(n) AS n").single()["n"]
-        return {"nodes": nodes, "edges": edges, "reports": reports, "lolbins": lolbins}
+            iocs = session.run("MATCH (i:Stix:Indicator {pattern_type: 'stix'}) RETURN count(i) AS n").single()["n"]
+        return {"nodes": nodes, "edges": edges, "reports": reports, "lolbins": lolbins, "iocs": iocs}
 
     def actors(self) -> list[dict]:
         """Acteurs, ensembles d'intrusion et campagnes de tous les articles, du plus relié au moins relié."""
@@ -247,3 +270,57 @@ class StixStore:
                 )
             ]
         return {"actor": dict(head["p"]), "nodes": list(nodes.values()), "edges": edges, "reports": reports}
+
+    # --- IOC ------------------------------------------------------------------------------------------------------
+    _IOC_QUERY = """
+        MATCH (i:Stix:Indicator {pattern_type: 'stix'})-[:BASED_ON]->(o:Stix)
+        WHERE %s
+        OPTIONAL MATCH (s:Stix:Sighting)-[:SIGHTING_OF]->(i)
+        OPTIONAL MATCH (i)-[:INDICATES]->(t:Stix)
+        WITH i, o, collect(DISTINCT {article: head(s.article_ids), first: s.first_seen, last: s.last_seen, quote: s.description}) AS sightings,
+             collect(DISTINCT {id: t.id, name: t.name, type: t.type}) AS targets
+        RETURN properties(i) AS indicator, properties(o) AS observable, sightings, targets
+        ORDER BY o.type, o.value
+    """
+
+    def _ioc_rows(self, where: str, **params: Any) -> list[dict]:
+        with self.driver.session() as session:
+            return [dict(r) for r in session.run(self._IOC_QUERY % where, **params)]
+
+    def article_iocs(self, article_id: int) -> list[dict]:
+        """IOC cités par un article. `sightings` couvre TOUS les articles : première et dernière observation sont globales."""
+        return self._ioc_rows("$a IN i.article_ids", a=article_id)
+
+    def article_ioc_counts(self, article_id: int) -> dict[str, int]:
+        """Nombre d'observables par infrastructure de l'article (pastille du graphe)."""
+        with self.driver.session() as session:
+            return {
+                r["id"]: r["n"]
+                for r in session.run(
+                    "MATCH (r:Stix:Report {source_id: $a})-[:OBJECT_REF]->(f:Stix:Infrastructure)-[:CONSISTS_OF]->(o:Stix) "
+                    "WHERE $a IN o.article_ids RETURN f.id AS id, count(DISTINCT o) AS n", a=article_id,
+                )
+            }
+
+    def actor_iocs(self, actor_id: str) -> list[dict]:
+        """IOC de l'acteur : ceux dont l'indicateur désigne une infrastructure, un malware ou un outil qu'il utilise, directement,
+        par l'intermédiaire d'un malware, ou dans une intrusion qui lui est attribuée."""
+        with self.driver.session() as session:
+            carriers = {
+                r["id"]
+                for r in session.run(
+                    """
+                    MATCH (a:Stix {id: $id})
+                    OPTIONAL MATCH (a)-[:USES]->(d:Stix)
+                    OPTIONAL MATCH (a)-[:USES]->(:Stix)-[:USES]->(d2:Stix:Infrastructure)
+                    OPTIONAL MATCH (inc:Stix:Incident)-[:ATTRIBUTED_TO]->(a)
+                    OPTIONAL MATCH (inc)-[:USES]->(d3:Stix)
+                    UNWIND [x IN [d, d2, d3] WHERE x IS NOT NULL] AS c
+                    RETURN DISTINCT c.id AS id
+                    """,
+                    id=actor_id,
+                )
+            }
+        if not carriers:
+            return []
+        return self._ioc_rows("EXISTS { MATCH (i)-[:INDICATES]->(c:Stix) WHERE c.id IN $carriers }", carriers=sorted(carriers))
