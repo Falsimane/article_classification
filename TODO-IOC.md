@@ -1,7 +1,7 @@
 # TODO-IOC — Reprise du chantier « IOC malveillants datés, rattachés à l'infrastructure »
 
 Contexte et raisonnement : voir `ROADMAP.md` (section « À refaire », point 1). Ce fichier dit **où en est le code** et **ce qu'il reste à faire**.
-Dernière mise à jour : 2026-10-16. Rien n'est commité (`git status` : tout est en modifications locales).
+Dernière mise à jour : 2026-10-19. Travail sur la branche `feature/ioc-infrastructure`.
 
 ## 1. Ce qui est fait (et comment c'est vérifié)
 
@@ -24,10 +24,10 @@ Décisions prises à la place de l'utilisateur (à confirmer, voir `ROADMAP.md`,
 
 ## 2. Ce qui est cassé ou jamais vérifié
 
-1. **Bug bloquant, préexistant, révélé par l'article 615** : l'extraction échoue après ~3 min avec `PropertyPresenceError: Location objects must have the properties 'region', 'country', or 'latitude' and 'longitude'`. Une entité `location` dont le nom n'est ni un code pays ni une région STIX passe `validate.py` (bloc `elif stix_type == "location"`, ~ligne 309) puis est refusée par `stix2`. À corriger dans le validateur : résoudre le nom vers `region` (vocabulaire `region-ov`, ex. « Eastern Europe » → `eastern-europe`) ou vers un code pays ISO, sinon **rejeter** l'entité avec une `Issue`. Ni `pycountry` ni `babel` ne sont installés : soit ajouter une table nom de pays → ISO 3166-1 alpha-2 comme donnée de référence, soit une dépendance. Ajouter un test (nom de lieu inconnu → rejeté, jamais d'exception à l'export). L'échec a lieu avant toute écriture : Neo4j n'a pas été modifié par cette tentative.
+1. ~~Bug des localisations~~ **corrigé** (commit `945ef7c`) : `backend/ontology/stix/places.py` résout nom → pays ISO / région STIX, sinon rejet `UNRESOLVED_LOCATION`. Tests : `tests.test_stix_ontology.Locations`. L'article 615 a ensuite abouti (voir §6).
 2. **Interface des IOC jamais vue** : aucune capture d'écran du tableau, de l'onglet Indicateurs, des pastilles ni de l'onglet Infrastructure avec des IOC. Seuls `tsc`, `vitest` et le build ont été exécutés.
 3. **Endpoints jamais appelés sur le serveur réel** après ces changements : `/api/iocs`, `/api/actors/<id>` (champ `iocs`), `/api/stats` (`iocs_count`), `/api/graph` (`ioc_count`). Les requêtes Cypher `actor_iocs` et `article_ioc_counts` n'ont été exécutées sur aucune donnée (l'article 600 n'a que 4 IOC, rattachés à une infrastructure et non à un acteur).
-4. **Qualité du rôle et du rattachement** relue sur un seul article (600 : 4 IOC, cohérents avec le texte). Aucun article dense en IOC n'a abouti.
+4. **Qualité du rôle et du rattachement** relue sur un seul article (600 : 4 IOC, cohérents avec le texte). L'article 615 a abouti (83 IOC retenus sur 86 valeurs, 15 écartées) mais n'a **pas** été relu à la main.
 5. **Purge et ré-extraction** d'un article partageant des IOC avec un autre : non testées (les nœuds partagés sont conservés tant qu'un article les étaye, par `article_ids`).
 
 ## 3. Mesures déjà faites (sans LLM, sur les 1 105 articles classifiés)
@@ -39,7 +39,7 @@ Décisions prises à la place de l'utilisateur (à confirmer, voir `ROADMAP.md`,
 
 ## 4. Reste à faire, dans l'ordre
 
-1. Corriger le bug des localisations (§2.1) et relancer `uv run cti-extractor --article-id 615 --show-iocs` (un seul article à la fois : ~3 min).
+1. ~~Bug des localisations~~ fait ; article 615 extrait dans Neo4j (265 s).
 2. Démarrer `uv run cti-dashboard --port 8080`, sonder les 4 endpoints (§2.3), puis prendre des captures de : Rapports > Indicateurs, graphe avec pastilles, Acteurs > Infrastructure, organigramme. Corriger ce qui apparaît.
 3. Relire à la main les rôles et rattachements de l'article 615 (hachages, IP, domaines) ; ajuster le prompt de `ioc_system()` si nécessaire.
 4. **Évaluation (étape 8 de la feuille de route, non commencée)** : annoter à la main au moins 20 articles de sources variées ; mesurer précision et rappel par type d'IOC, taux de faux positifs bénins (victime, service légitime, ressource de l'éditeur), et vérifier que le refanging et le masquage des unités d'indicateurs ne font perdre aucun IOC.
@@ -57,3 +57,25 @@ Décisions prises à la place de l'utilisateur (à confirmer, voir `ROADMAP.md`,
 - L'infrastructure dérivée porte un nom en anglais (« Command-and-control infrastructure — <sujet> ») : elle fusionne entre articles par ce nom.
 - Aucun enrichissement externe (DNS passif, VirusTotal) : « actif » veut dire « observé récemment », pas « confirmé en ligne ».
 - Le marquage TLP n'est posé que par défaut ; pas de gestion du partage.
+
+## 6. Durée d'extraction : mesure faite, optimisation NON faite (décision : ne pas optimiser pour l'instant)
+
+Objectif exprimé : ≤ 20 s par article. Mesuré sur l'article 615 (49 385 caractères, 246 phrases, 7 passes), serveur Ollama avec **qwen3:32b seul** (pas d'autre modèle de génération installé), exécution complète : **260-265 s**.
+
+| Étape | Appels | Tokens lus | Tokens générés | Secondes |
+| :--- | ---: | ---: | ---: | ---: |
+| entités | 7 | 22 993 | 921 | 95 |
+| vérification des entités | 1 | 2 252 | 177 | 14 |
+| relations | 3 | 13 511 | 731 | 54 |
+| vérification des relations | 4 | 14 270 | 615 | 55 |
+| IOC (rôle, rattachement) | 3 | 7 220 | 596 | 42 |
+| **Total** | **18** | **≈ 60 000** | **3 040** | **≈ 260** |
+
+Débits mesurés : génération ≈ 38 tok/s, lecture du prompt ≈ 330 tok/s (≈ 180 s de lecture + ≈ 80 s de génération). Le serveur traite les requêtes une à une, donc le parallélisme n'aide pas. Conséquence : **le budget de 20 s ≈ 3 000 tokens lus + 300 générés** ; le seul texte de l'article (≈ 12 000 tokens) dépasse déjà ce budget. Le pipeline actuel ne peut pas y arriver en changeant des paramètres.
+Constat annexe : l'appel `entities#0` est tronqué (limite de tokens atteinte) : des entités ont pu être perdues sur cet article.
+
+Pistes, par gain décroissant (à trancher avec l'utilisateur ; rien n'est implémenté) :
+1. **Hybride déterministe** : entités, CVE, ATT&CK, IOC et candidats de relations par règles et base de référence ; le LLM ne voit que quelques phrases choisies. Vise 15-25 s, rappel un peu plus faible.
+2. **Modèle plus petit** (8B, ≈ 4× plus rapide) à installer sur le serveur ; ne garantit pas 20 s sur un article long.
+3. **Allègements sans changer de modèle** : vérifications optionnelles par défaut (−70 s), plafonner le texte lu, fusionner les appels, ne soumettre au LLM que les IOC ambigus (−40 s) → ≈ 90-120 s.
+4. Dans tous les cas, mesurer avant/après avec un script de profilage par étape (celui utilisé ici n'est pas versionné) et vérifier la qualité sur les articles annotés de l'étape 8.
