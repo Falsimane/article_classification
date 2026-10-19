@@ -19,6 +19,7 @@ from typing import Iterable
 
 from .identity import confidence_from_text, normalize_name, stix_id
 from .profiles import PROFILES, ExtractionProfile
+from .places import resolve_location
 from .reference import ReferenceKB, get_reference_kb
 from .relationships import allowed_relationships, canonical_relationship, is_valid_relationship
 from .schema import OBJECT_TYPES
@@ -307,14 +308,16 @@ def _normalize_entity(
             ent["identity_class"] = "unknown"  # le modèle ne précise pas la classe : on ne la devine pas
 
     elif stix_type == "location":
-        country = str(ent.get("country") or "").strip().upper()
-        if not country and re.fullmatch(r"[A-Za-z]{2}", name):
-            country = name.upper()
+        country, region = resolve_location(name, str(ent.get("country") or ""), str(ent.get("region") or ""))
+        for prop in ("country", "region"):
+            ent.pop(prop, None)
+        if not (country or region):  # STIX exige un pays, une région ou des coordonnées : on ne devine pas
+            issues.append(Issue("reject", "UNRESOLVED_LOCATION", subject, "ni pays (ISO 3166-1) ni région STIX reconnus"))
+            return None
         if country:
-            if not re.fullmatch(r"[A-Z]{2}", country):
-                issues.append(Issue("fix", "COUNTRY_CODE", subject, f"country={country!r} n'est pas un code ISO 3166-1 alpha-2, retiré"))
-            else:
-                ent["country"] = country
+            ent["country"] = country
+        if region:
+            ent["region"] = region
 
     _check_vocabularies(stix_type, ent, issues, subject)
     if refs:

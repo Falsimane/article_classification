@@ -315,6 +315,34 @@ class Sanitizer(unittest.TestCase):
         self.assertEqual({r["id"] for r in again.relationships}, {r["id"] for r in self.graph.relationships})
 
 
+class Locations(unittest.TestCase):
+    def _sanitize(self, *names):
+        source = " ".join(f"{n} est mentionné." for n in names) + " UNC3944 cible les victimes."
+        raw = {"entities": [{"type": "location", "name": n} for n in names] + [{"type": "intrusion-set", "name": "UNC3944"}], "relationships": []}
+        return sanitize_extraction(raw, "operational", source, keep_orphans=True)
+
+    def test_country_and_region_names_are_resolved(self):
+        graph = self._sanitize("Russia", "Russie", "Eastern Europe", "Middle East")  # noqa
+        by_name = {e["name"]: e for e in graph.entities if e["type"] == "location"}
+        self.assertEqual(by_name["Russia"]["country"], "RU")
+        self.assertEqual(len([e for e in graph.entities if e["type"] == "location" and e.get("country") == "RU"]), 1)  # Russie et Russia fusionnent
+        self.assertEqual(by_name["Eastern Europe"]["region"], "eastern-europe")
+        self.assertEqual(by_name["Middle East"]["region"], "western-asia")
+
+    def test_unknown_place_is_rejected_and_export_never_raises(self):
+        graph = self._sanitize("Atlantis", "Kyiv Oblast")
+        self.assertFalse([e for e in graph.entities if e["type"] == "location"])
+        self.assertEqual([i.code for i in graph.issues].count("UNRESOLVED_LOCATION"), 2)
+        report = {"source_id": 1, "title": "t", "url": "https://exemple.org/a", "site_name": "exemple", "published": "2026-08-24", "category": "operational"}
+        json.loads(to_bundle(build_stix_objects(self._sanitize("Atlantis", "France"), report)))  # stix2 valide en mode strict
+
+    def test_invalid_model_values_are_dropped(self):
+        raw = {"entities": [{"type": "location", "name": "Germany", "country": "Deutschland!"}, {"type": "intrusion-set", "name": "UNC3944"}], "relationships": []}
+        graph = sanitize_extraction(raw, "operational", "Germany UNC3944", keep_orphans=True)
+        loc = next(e for e in graph.entities if e["type"] == "location")
+        self.assertEqual(loc["country"], "DE")
+
+
 class Export(unittest.TestCase):
     def test_bundle_is_valid_stix_with_provenance(self):
         graph = sanitize_extraction(_scenario(), "operational", SOURCE, publisher_names=["Mandiant"], keep_orphans=True)
