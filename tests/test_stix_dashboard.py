@@ -35,6 +35,15 @@ class FakeStore:
     def actor_iocs(self, actor_id):
         return self.article_iocs(7)[:1]
 
+    def article_rules(self, article_id):
+        yara_src = 'rule Bumble_ISO {\n  strings:\n    $a = "<b>x</b>"\n  condition:\n    $a\n}\n'
+        return [
+            {"rule": {"id": "indicator--y", "pattern_type": "yara", "name": "Bumble_ISO", "pattern": yara_src, "confidence": 75, "article_ids": [7]},
+             "targets": [{"id": "malware--2", "name": "BumbleBee", "type": "malware"}]},
+            {"rule": {"id": "indicator--s", "pattern_type": "sigma", "name": "Suspicious Rundll32", "pattern": "title: Suspicious Rundll32\n", "description": "Lancement", "confidence": 50, "article_ids": [7]},
+             "targets": [{"id": None, "name": None, "type": None}]},
+        ]  # fmt: skip
+
     def reports(self):
         return [{"id": 7, "title": "Rapport <b>test</b>", "url": "https://x.org/a", "site_name": "x", "published": "2026-04-22T00:00:00.000Z",
                  "category": "operational", "model": "m", "duration": 12.0, "extracted_at": "2026-10-16T19:00:00", "entities_count": 5, "relations_count": 3}]  # fmt: skip
@@ -123,6 +132,9 @@ class Dashboard(unittest.TestCase):
     def test_unknown_article_falls_back_to_an_extracted_one(self):
         self.assertEqual(sd.graph(999, {}, FakeStore())["article_id"], 7)
 
+    def test_techniques_stay_in_the_entity_graph(self):
+        self.assertIn("PowerShell", {n["label"] for n in sd.graph(7, {}, FakeStore())["nodes"]})
+
 
 NOW = datetime(2026, 10, 16, tzinfo=timezone.utc)
 
@@ -159,6 +171,25 @@ class Iocs(unittest.TestCase):
                 return FakeStore().actor_iocs(actor_id)
 
         self.assertEqual([r["value"] for r in sd.actor_graph("intrusion-set--1", S(), NOW)["iocs"]], ["8.8.4.4"])
+
+
+class Rules(unittest.TestCase):
+    def rows(self):
+        return {r["kind"]: r for r in sd.rules_of_article(7, FakeStore())["rules"]}
+
+    def test_rule_text_is_returned_verbatim_with_its_language(self):
+        r = self.rows()["yara"]
+        self.assertEqual((r["name"], r["source"]), ("Bumble_ISO", FakeStore().article_rules(7)[0]["rule"]["pattern"]))
+
+    def test_detected_entity_or_none(self):
+        rows = self.rows()
+        self.assertEqual([t["name"] for t in rows["yara"]["detects"]], ["BumbleBee"])
+        self.assertEqual((rows["sigma"]["detects"], rows["sigma"]["description"]), ([], "Lancement"))  # règle sans rattachement : liste vide
+
+    def test_rules_are_kept_out_of_the_entity_graph(self):
+        from backend.database.stix_store import _is_ioc
+
+        self.assertIn("'yara', 'sigma'", _is_ioc("n"))
 
 
 class Actors(unittest.TestCase):

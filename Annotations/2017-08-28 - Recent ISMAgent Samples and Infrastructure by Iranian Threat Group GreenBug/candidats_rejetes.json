@@ -1,0 +1,17 @@
+[
+  {"candidat": "T1566.001 Spearphishing Attachment (campagne)", "raison": "Le vecteur de livraison du document .dot (courriel, pièce jointe) n'est pas décrit."},
+  {"candidat": "T1204.002 Malicious File (campagne)", "raison": "L'ouverture du document par la victime n'est pas décrite ; simple plausibilité."},
+  {"candidat": "T1221 Template Injection (campagne)", "raison": "Le texte dit seulement que l'échantillon .dot « calls the following URL » (template.rtf) en exploitant CVE-2017-0199. Le mécanisme d'injection de modèle n'est pas décrit : seul un nom de fichier dans une URL (IOC) le suggère."},
+  {"candidat": "T1036 Masquerading (fichier « disguised as a base64 digital certificate »)", "raison": "Même comportement que T1027.013, retenu comme plus spécifique (règle 6 : une seule technique par comportement)."},
+  {"candidat": "T1036.005 Match Legitimate Resource Name or Location (srvConhost.exe)", "raison": "Le nom rappelle conhost.exe, mais l'article ne présente pas ce nom comme une imitation ; inférence à partir d'un nom de fichier."},
+  {"candidat": "T1036 Masquerading (domaine msoffice-cdn imitant Microsoft)", "raison": "Déduit d'un IOC (domaine) ; l'article ne commente pas ce choix de domaine."},
+  {"candidat": "T1608.001 Upload Malware (charge hébergée sur pomf.cat)", "raison": "Déduit de l'URL de téléchargement (IOC) ; la mise en place de la charge n'est pas décrite."},
+  {"candidat": "T1583.001 Domains (whoisName / whoisEmail de l'annexe)", "raison": "Déduit de la table d'IOCs ; l'enregistrement des domaines par l'acteur n'est pas décrit."},
+  {"candidat": "intrusion-set GreenBug located-at location Iran", "raison": "« Iranian Threat Group » donne une nationalité, sans préciser s'il s'agit de la localisation ou d'un parrainage étatique."},
+  {"candidat": "software Microsoft Office / Word (produit visé par CVE-2017-0199)", "raison": "Le produit affecté n'est pas nommé dans l'article : le relier relèverait de connaissances externes."},
+  {"candidat": "GreenBug uses [T1203, T1059.001, T1105, T1027.013, T1140, certutil]", "raison": "Le texte rattache la chaîne à la nouvelle campagne, elle-même attribuée à GreenBug : ces liens se déduisent par l'attribution et feraient doublon."},
+  {"candidat": "ISMAgent uses [T1105, T1140, T1027.013]", "raison": "La chaîne décrite est la livraison d'ISMAgent (document .dot, PowerShell, certutil), pas le comportement du trojan lui-même."},
+  {"candidat": "intrusion-set OilRig / malware ISMDoor", "raison": "Ces noms n'apparaissent que dans l'URL du lien vers l'article de Palo Alto, pas dans le texte."},
+  {"candidat": "infrastructure (domaines, IP, URL de l'annexe)", "raison": "L'infrastructure décrite se limite à des IOCs, hors périmètre."},
+  {"candidat": "T1074.001 Local Data Staging (écriture de srvRep.txt dans AppData\\Roaming)", "raison": "Il s'agit de l'écriture de la charge téléchargée, pas d'une collecte de données ; couverte par T1105."}
+]

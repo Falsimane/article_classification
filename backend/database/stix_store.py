@@ -1,6 +1,6 @@
 """Persistance Neo4j des objets STIX 2.1 extraits.
 
-Modèle de propriétés (voir `backend/ontology/stix/README.md`) :
+Modèle de propriétés (objets créés par `stix2`, voir `backend/stix/`) :
 - chaque objet STIX est un nœud `(:Stix:<Type>)` identifié par son `id` STIX déterministe, donc ré-extraire le même
   fait met à jour le même nœud : le graphe ne se fragmente pas d'un article à l'autre ;
 - chaque relation STIX est une arête typée `(:Stix)-[:USES]->(:Stix)` portant `confidence`, `description` et une
@@ -18,9 +18,39 @@ import json
 import re
 from typing import Any
 
-from backend.ontology.stix import neo4j_label, neo4j_relationship_type, to_neo4j_properties
+from backend.stix.iocs import HASH_PRIORITY, IOC_OBJECT_TYPES
+from backend.stix.rules import RULE_KINDS
 
 from .neo4j_store import Neo4jStore
+
+_LABEL_OVERRIDES = {"ipv4-addr": "IPv4Address", "ipv6-addr": "IPv6Address", "url": "URL", "x509-certificate": "X509Certificate"}
+
+
+def neo4j_label(stix_type: str) -> str:
+    """Étiquette de nœud : `threat-actor` -> `ThreatActor`."""
+    return _LABEL_OVERRIDES.get(stix_type) or "".join(part.capitalize() for part in stix_type.split("-"))
+
+
+def neo4j_relationship_type(relationship_type: str) -> str:
+    """Type de relation Neo4j : `attributed-to` -> `ATTRIBUTED_TO`."""
+    return relationship_type.upper().replace("-", "_")
+
+
+def to_neo4j_properties(obj: dict) -> dict:
+    """Propriétés plates d'un objet STIX (forme JSON) : Neo4j n'accepte pas de structures imbriquées, elles sont sérialisées en JSON."""
+    flat: dict = {}
+    for key, value in obj.items():
+        if key in ("source_ref", "target_ref", "type"):
+            continue
+        if isinstance(value, dict) or (isinstance(value, list) and any(isinstance(v, (dict, list)) for v in value)):
+            flat[f"{key}_json"] = json.dumps(value, ensure_ascii=False, sort_keys=True)
+        else:
+            flat[key] = value
+    if obj.get("type") == "file" and isinstance(obj.get("hashes"), dict) and obj["hashes"]:
+        algo = next((a for a in HASH_PRIORITY if a in obj["hashes"]), next(iter(obj["hashes"])))
+        flat["value"], flat["hash_algo"] = obj["hashes"][algo], algo  # lisible dans une requête sans décoder `hashes_json`
+    return flat
+
 
 _SAFE = re.compile(r"^[A-Za-z0-9_]+$")
 _LIST_KEYS = ("aliases", "labels", "sectors")
@@ -28,11 +58,15 @@ _LIST_KEYS = ("aliases", "labels", "sectors")
 
 # Nœuds d'IOC : observables, indicateurs réseau/fichier (pattern STIX) et observations. Ils ne font pas partie du graphe d'entités
 # d'un rapport (des centaines par article l'étoufferaient) : ils ont leur propre tableau.
-_IOC_TYPES = "['sighting', 'ipv4-addr', 'ipv6-addr', 'domain-name', 'url', 'email-addr', 'file']"
+_IOC_TYPES = repr(sorted(IOC_OBJECT_TYPES - {"indicator"}))
+# Indicateurs hors du graphe : IOC (pattern STIX, tableau des indicateurs) et règles de détection (onglet Détection)
+_PATTERN_TYPES = repr(["stix", *RULE_KINDS])
 
 
 def _is_ioc(var: str) -> str:
-    return f"({var}.type IN {_IOC_TYPES} OR ({var}.type = 'indicator' AND {var}.pattern_type = 'stix'))"
+    """Vrai pour ce qui n'est PAS une entité du graphe d'un rapport : IOC (leur tableau), règles YARA et Sigma (onglet
+    Détection)."""
+    return f"({var}.type IN {_IOC_TYPES} OR ({var}.type = 'indicator' AND {var}.pattern_type IN {_PATTERN_TYPES}))"
 
 
 def _safe(identifier: str) -> str:
@@ -57,16 +91,22 @@ class StixStore:
 
     # --- écriture ---------------------------------------------------------------------------------------------------
     def save_article(self, objects: list[dict], article_id: int, meta: dict[str, Any] | None = None) -> dict[str, int]:
-        """Enregistre les objets d'un article (sortie de `build_stix_objects`) : [identity éditeur, report, entités…,
-        relations…]. Retourne les effectifs écrits. Idempotent."""
+        """Enregistre les objets d'un article (forme JSON des objets `stix2` d'un article) : [identity éditeur, report, entités…,
+        relations…]. Retourne les effectifs écrits. Idempotent : un article déjà présent perd d'abord son ancienne contribution,
+        dans la même transaction (sans balayer le graphe pour un article nouveau)."""
         nodes = [o for o in objects if o["type"] != "relationship"]
         edges = [o for o in objects if o["type"] == "relationship"]
         report = next(o for o in nodes if o["type"] == "report")
         publisher_id = report["created_by_ref"]
         meta = meta or {}
         with self.driver.session() as session:
-            session.execute_write(self._write, nodes, edges, article_id, report, publisher_id, meta)
+            session.execute_write(self._replace, nodes, edges, article_id, report, publisher_id, meta)
         return {"nodes": len(nodes), "edges": len(edges)}
+
+    def _replace(self, tx, nodes: list[dict], edges: list[dict], article_id: int, report: dict, publisher_id: str, meta: dict) -> None:
+        if tx.run("MATCH (r:Stix:Report {source_id: $a}) RETURN count(r) > 0 AS seen", a=article_id).single()["seen"]:
+            self._purge(tx, article_id)
+        self._write(tx, nodes, edges, article_id, report, publisher_id, meta)
 
     @staticmethod
     def _merge_lists(existing: dict | None, incoming: dict, keys=_LIST_KEYS) -> dict:
@@ -165,20 +205,6 @@ class StixStore:
             edges = {r["type"]: r["n"] for r in session.run("MATCH (:Stix)-[x]->(:Stix) WHERE x.id IS NOT NULL RETURN type(x) AS type, count(*) AS n ORDER BY n DESC")}
             articles = session.run("MATCH (r:Stix:Report) RETURN count(r) AS n").single()["n"]
         return {"nodes": nodes, "edges": edges, "articles": articles}
-
-    def article_graph(self, article_id: int) -> dict[str, list[dict]]:
-        """Nœuds et arêtes étayés par un article."""
-        with self.driver.session() as session:
-            nodes = [dict(r["p"]) for r in session.run("MATCH (n:Stix) WHERE $a IN n.article_ids AND n.type <> 'report' RETURN properties(n) AS p", a=article_id)]
-            edges = [
-                {"source": r["s"], "type": r["t"], "target": r["d"], **dict(r["p"])}
-                for r in session.run(
-                    "MATCH (a:Stix)-[x]->(b:Stix) WHERE x.id IS NOT NULL AND $a IN x.article_ids "
-                    "RETURN a.name AS s, type(x) AS t, b.name AS d, properties(x) AS p",
-                    a=article_id,
-                )
-            ]
-        return {"nodes": nodes, "edges": edges}
 
     # --- lecture pour le tableau de bord ---------------------------------------------------------------------------
     def reports(self) -> list[dict]:
@@ -301,6 +327,19 @@ class StixStore:
                     "WHERE $a IN o.article_ids RETURN f.id AS id, count(DISTINCT o) AS n", a=article_id,
                 )
             }
+
+    # --- Règles de détection ----------------------------------------------------------------------------------------
+    def article_rules(self, article_id: int) -> list[dict]:
+        """Règles YARA et Sigma citées par un article, et l'entité que chacune détecte selon CET article."""
+        query = """
+            MATCH (:Stix:Report {source_id: $a})-[:OBJECT_REF]->(i:Stix:Indicator) WHERE i.pattern_type IN ['yara', 'sigma']
+            OPTIONAL MATCH (i)-[x:INDICATES]->(t:Stix) WHERE $a IN x.article_ids
+            WITH i, collect(DISTINCT {id: t.id, name: t.name, type: t.type}) AS targets
+            RETURN properties(i) AS rule, targets
+            ORDER BY i.pattern_type, toLower(i.name)
+        """
+        with self.driver.session() as session:
+            return [dict(r) for r in session.run(query, a=article_id)]
 
     def actor_iocs(self, actor_id: str) -> list[dict]:
         """IOC de l'acteur : ceux dont l'indicateur désigne une infrastructure, un malware ou un outil qu'il utilise, directement,

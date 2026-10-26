@@ -4,14 +4,11 @@ Fournit une API REST haute performance connectée à SQLite et sert le frontend 
 """
 
 import argparse
-from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
-import os
 from pathlib import Path
 import re
 import sqlite3
-import threading
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlparse, unquote
 
@@ -22,7 +19,6 @@ if str(root_dir) not in sys.path:
 
 from backend.database.neo4j_store import Neo4jStore
 from backend import stix_dashboard
-from backend.ontology.ontology import export_to_turtle, export_to_owl
 
 BASE_DIR = root_dir
 DB_PATH = BASE_DIR / "db_outputs" / "cti_knowledge.db"
@@ -256,16 +252,6 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
-    def send_text_response(self, text: str, content_type: str = "text/plain; charset=utf-8", status: int = 200) -> None:
-        payload = text.encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(payload)))
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.end_headers()
-        self.wfile.write(payload)
-
     def use_stix(self, params: Dict[str, List[str]]) -> bool:
         """Sert le graphe STIX dès qu'il contient un article extrait ; `?model=legacy|stix` force un choix."""
         forced = params.get("model", [None])[0]
@@ -278,6 +264,9 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
             if path == "/api/iocs":
                 aid = params.get("article_id", [None])[0]
                 self.send_json_response(stix_dashboard.iocs_of_article(int(aid)) if aid and aid.isdigit() else {"error": "article_id requis"}, status=200 if aid and aid.isdigit() else 400)
+            elif path == "/api/rules":
+                aid = params.get("article_id", [None])[0]
+                self.send_json_response(stix_dashboard.rules_of_article(int(aid)) if aid and aid.isdigit() else {"error": "article_id requis"}, status=200 if aid and aid.isdigit() else 400)
             elif path == "/api/actors":
                 self.send_json_response(stix_dashboard.actors())
             elif path.startswith("/api/actors/"):
@@ -309,27 +298,10 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
             elif path.startswith("/api/threat-actors/") and path.endswith("/tree"):
                 slug = unquote(path[len("/api/threat-actors/"):-len("/tree")].strip("/"))
                 self.api_threat_actor_tree(slug, params)
-            elif path == "/api/export/rdf":
-                self.api_export_rdf(params)
             else:
                 self.send_json_response({"error": "Endpoint non trouvé"}, status=404)
         except Exception as e:
             self.send_json_response({"error": str(e)}, status=500)
-
-    def api_export_rdf(self, params: Dict[str, List[str]]) -> None:
-        article_id = params.get("article_id", [None])[0]
-        fmt = params.get("format", ["turtle"])[0].lower()
-
-        store = Neo4jStore.get_instance()
-        kid = int(article_id) if (article_id and article_id.isdigit()) else None
-        entities, relations = store.fetch_entities_and_relations(article_id=kid)
-
-        if fmt == "owl":
-            rdf_content = export_to_owl(entities, relations)
-            self.send_text_response(rdf_content, content_type="application/rdf+xml; charset=utf-8")
-        else:
-            rdf_content = export_to_turtle(entities, relations)
-            self.send_text_response(rdf_content, content_type="text/turtle; charset=utf-8")
 
     def api_stats(self) -> None:
         store = Neo4jStore.get_instance()
@@ -1011,7 +983,7 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
         enriched.sort(key=lambda x: (x["extracted_at"] is not None), reverse=True)
         self.send_json_response({"articles": enriched, "count": len(enriched)})
 
-def run_server(host: str = "0.0.0.0", port: int = 8080) -> None:
+def run_server(host: str = "0.0.0.0", port: int = 8095) -> None:
     server_address = (host, port)
     httpd = ThreadingHTTPServer(server_address, CTIWebServerHandler)
     print(f"\n" + "="*70)
@@ -1030,7 +1002,7 @@ def run_server(host: str = "0.0.0.0", port: int = 8080) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Serveur Web CTI Knowledge Graph (Frontend type OpenCTI)")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="Hôte d'écoute (défaut: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=8080, help="Port d'écoute HTTP (défaut: 8080)")
+    parser.add_argument("--port", type=int, default=8095, help="Port d'écoute HTTP (défaut: 8095 ; 8080 et 8090 sont pris par OpenCTI)")
     args = parser.parse_args()
 
     run_server(host=args.host, port=args.port)

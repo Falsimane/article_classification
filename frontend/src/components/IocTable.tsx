@@ -50,6 +50,7 @@ export function IocTable({ rows, empty = "Aucun indicateur." }: { rows: IocRow[]
             <Fragment key={r.id}>
               <tr onClick={() => setOpen(open === r.id ? null : r.id)} className="cursor-pointer border-b border-line hover:bg-raised/50">
                 <td className="max-w-[320px] break-all px-3 py-2 pl-6 font-mono text-xs">
+                  {r.name && <div className="font-sans text-sm text-ink">{r.name}</div>}
                   {r.value}
                   <button className="ml-2 align-middle text-faint hover:text-ink" title="Copier" onClick={(e) => { e.stopPropagation(); copy(r.value); }}><Copy size={11} /></button>
                 </td>
@@ -64,6 +65,13 @@ export function IocTable({ rows, empty = "Aucun indicateur." }: { rows: IocRow[]
               {open === r.id && (
                 <tr className="border-b border-line bg-panel">
                   <td colSpan={8} className="px-6 py-3">
+                    {Object.keys(r.hashes ?? {}).length > 1 && (
+                      <dl className="mb-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono text-xs">
+                        {Object.entries(r.hashes ?? {}).map(([algo, digest]) => (
+                          <Fragment key={algo}><dt className="text-faint">{algo}</dt><dd className="break-all">{digest}<button className="ml-2 align-middle text-faint hover:text-ink" title="Copier" onClick={() => copy(digest)}><Copy size={11} /></button></dd></Fragment>
+                        ))}
+                      </dl>
+                    )}
                     {r.evidence.length === 0 && <p className="text-xs text-faint">Aucune phrase de preuve.</p>}
                     {r.evidence.map((ev, i) => (
                       <blockquote key={i} className="mb-1.5 border-l-2 border-line-strong pl-3 text-xs italic text-muted">

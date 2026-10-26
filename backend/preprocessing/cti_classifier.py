@@ -4,9 +4,9 @@ import sqlite3
 import json
 import time
 import threading
+import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from urllib.parse import urlparse
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -30,20 +30,18 @@ root_dir = Path(__file__).resolve().parents[2]
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
+from backend.config import OLLAMA_API_URL, OLLAMA_MODEL, OLLAMA_NUM_CTX, SOURCE_ARTICLES_DB
 from backend.preprocessing.cleaner import UniversalCTICleaner
 
-os.environ["NO_PROXY"] = "localhost,127.0.0.1"
+DB_PATH = SOURCE_ARTICLES_DB
 
-BASE_DIR = root_dir
-DB_PATH = BASE_DIR / "db_outputs" / "cti_knowledge.db"
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
-
-MODEL_NAME = "qwen3:32b"
+MODEL_NAME = OLLAMA_MODEL
 MAX_WORKERS = int(os.environ.get("CTI_CLASSIFIER_WORKERS", "2"))
 BATCH_SIZE = 10
-# Prompt système (~700 tokens) + contexte (<= ~3 000 tokens) + sortie courte : 6144 suffit avec marge.
+# Prompt système (~700 tokens) + contexte (<= ~3 000 tokens) + sortie courte : 6144 suffiraient. Le contexte est pourtant
+# celui de l'extracteur : un num_ctx différent oblige Ollama à recharger le modèle (voir backend/config.py).
 # Un num_ctx dépassé fait tronquer le DÉBUT du prompt par Ollama, donc le prompt système.
-CONTEXT_WINDOW = 6144
+CONTEXT_WINDOW = OLLAMA_NUM_CTX
 MAX_OUTPUT_TOKENS = 160
 REQUEST_TIMEOUT = 180
 POLL_INTERVAL = 10
@@ -362,7 +360,7 @@ def process_article_worker(article_row: tuple) -> tuple:
     except Exception as e:
         return article_id, prep_result, None, time.perf_counter() - t0, str(e)
 
-def display_dashboard(batch_speed: float = 0.0) -> None:
+def display_dashboard(batch_speed: float = 0.0, worker_count: int = MAX_WORKERS) -> None:
     with sqlite3.connect(DB_PATH, timeout=30.0) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM knowledge;")
@@ -418,14 +416,17 @@ def display_dashboard(batch_speed: float = 0.0) -> None:
         f"[green]Traités :[/] {classified_valid}/{total} ([bold]{pct_done:.1f}%[/])  │  "
         f"[yellow]En attente :[/] {pending}  │  "
         f"[blue]Rejet amont (0ms) :[/] [bold]{fast_rejected}[/]{speed_str}",
-        title=f"Progression du Preprocessing ({MAX_WORKERS} Workers)",
+        title=f"Progression du Preprocessing ({worker_count} Workers)",
         border_style="green",
         expand=False
     ))
     console.print("\n")
 
-def main() -> None:
+def main(workers: int | None = None) -> None:
     console.print("\n[bold cyan]=== Pipeline CTI : Module de Preprocessing & Annotation ===[/]")
+    worker_count = MAX_WORKERS if workers is None else workers
+    if worker_count < 1:
+        raise ValueError("Le nombre de workers doit être supérieur ou égal à 1.")
 
     reset = Confirm.ask(
         "[bold yellow]Voulez-vous réinitialiser toutes les tables (supprime aussi les validations humaines) ?[/]",
@@ -439,7 +440,7 @@ def main() -> None:
         f"[dim]Gabarit appris pour {len(learned)} sites "
         f"({sum(n for _, n in learned.values())} lignes de boilerplate).[/]"
     )
-    display_dashboard()
+    display_dashboard(worker_count=worker_count)
 
     attempted: set = set()  # articles déjà essayés dans cette exécution (les erreurs ne sont retentées qu'une fois)
     while True:
@@ -465,9 +466,9 @@ def main() -> None:
             TimeRemainingColumn(),
             console=console
         ) as progress:
-            task = progress.add_task(f"[cyan]Preprocessing ({MAX_WORKERS} workers)...", total=len(articles))
+            task = progress.add_task(f"[cyan]Preprocessing ({worker_count} workers)...", total=len(articles))
 
-            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
                 future_to_art = {
                     executor.submit(process_article_worker, art): art 
                     for art in articles
@@ -500,10 +501,17 @@ def main() -> None:
                     progress.advance(task, 1)
 
         batch_duration = time.perf_counter() - batch_start
-        display_dashboard(batch_speed=batch_duration / len(articles))
+        display_dashboard(batch_speed=batch_duration / len(articles), worker_count=worker_count)
 
 if __name__ == "__main__":
     try:
-        main()
+        parser = argparse.ArgumentParser(description="Classifie les articles CTI avec Ollama.")
+        parser.add_argument(
+            "--workers",
+            type=int,
+            default=None,
+            help=f"Nombre de classifications en parallèle (défaut : {MAX_WORKERS}, ou CTI_CLASSIFIER_WORKERS).",
+        )
+        main(workers=parser.parse_args().workers)
     except KeyboardInterrupt:
         console.print("\n[bold yellow]Arrêt propre. Données préservées dans SQLite.[/]")

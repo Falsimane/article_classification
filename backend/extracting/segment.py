@@ -10,6 +10,7 @@ ATT&CK, mais seul un extrait est montré au modèle (le texte complet reste disp
 
 import re
 from dataclasses import dataclass
+from functools import cached_property
 
 from backend.preprocessing.cleaner import UniversalCTICleaner
 
@@ -31,12 +32,18 @@ _DOMAIN = re.compile(r"^[a-z0-9][a-z0-9\-]*(?:\.[a-z0-9\-]+)+(?:[:/].*)?$", re.I
 _FILE_EXT = frozenset("exe dll sys bat cmd ps1 vbs js jar msi scr lnk so dat tmp bin log txt cfg ini conf json xml hta zip rar 7z iso doc docx xls xlsx pdf py sh".split())
 
 
+_RULE_LISTING = re.compile(r"^\s*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s*:", re.I)
+
+
 def is_indicator_text(text: str) -> bool:
-    """Ligne dominée par des indicateurs techniques (hachages, adresses IP, domaines, URL). Elle n'apporte rien au
-    modèle (il ne doit pas extraire d'observables) et pollue son contexte : elle est masquée dans les prompts."""
+    """Ligne dominée par des indicateurs techniques (hachages, adresses IP, domaines, URL), ou entrée d'un inventaire de règles de
+    détection (« <uuid> : titre de la règle Sigma »). Elle n'apporte rien au modèle (il ne doit pas extraire d'observables, et
+    une règle n'est pas une action) et pollue son contexte : elle est masquée dans les prompts."""
     tokens = text.split()
     if not tokens:
         return False
+    if _RULE_LISTING.match(text):
+        return True
     hashes, ips = len(_HASH.findall(text)), len(_IPV4.findall(text))
     domains = sum(1 for t in tokens if _DOMAIN.match(t.strip("|,;()[]")) and t.rsplit(".", 1)[-1].lower().strip("|,;()[]") not in _FILE_EXT)
     return hashes >= 2 or (hashes + ips + domains) / len(tokens) >= 0.4
@@ -70,15 +77,15 @@ class Unit:
     text: str  # texte complet : sert de preuve
     heading_path: str
 
-    @property
+    @cached_property  # lu à chaque passage, candidat et relation ; le texte ne change pas
     def is_indicators(self) -> bool:
         return self.kind in ("sentence", "item") and is_indicator_text(self.text)
 
-    @property
+    @cached_property
     def is_reference(self) -> bool:
         return self.kind in ("sentence", "item") and looks_like_reference(self.text)
 
-    @property
+    @cached_property
     def is_evidence_eligible(self) -> bool:
         """Peut-elle étayer une relation ? Ni code, ni table, ni liste d'indicateurs, ni bibliographie."""
         return self.kind in ("sentence", "item") and not self.is_indicators and not self.is_reference

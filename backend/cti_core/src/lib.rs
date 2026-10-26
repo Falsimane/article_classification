@@ -871,14 +871,27 @@ fn is_indented_code_line(line: &str) -> bool {
     line.starts_with("    ") || line.starts_with('\t')
 }
 
+/// Phrase de prose : assez longue, terminée par une ponctuation, faite de mots, ni code ni liste ni table ni titre.
+fn is_prose_sentence(line: &str) -> bool {
+    let t = line.trim();
+    if t.chars().count() < 60 || !ends_sentence(t) || is_code_like(t) || t.starts_with(['*', '-', '+', '|', '#', '>']) {
+        return false;
+    }
+    let non_space = t.chars().filter(|c| !c.is_whitespace()).count().max(1);
+    let alpha = t.chars().filter(|c| c.is_alphabetic()).count();
+    alpha * 10 > non_space * 7
+}
+
 /// Découpage structurel : titres, blocs de code (clôturés ou indentés, atomiques), tables et paragraphes.
 fn parse_blocks(text: &str) -> Vec<Block> {
     let lines: Vec<&str> = text.lines().collect();
 
-    // Si presque tout le document est indenté, l'indentation est un artefact de mise en forme, pas du code.
-    let non_empty = lines.iter().filter(|l| !l.trim().is_empty()).count().max(1);
-    let indented = lines.iter().filter(|l| !l.trim().is_empty() && is_indented_code_line(l)).count();
-    let allow_indented_code = indented * 10 <= non_empty * 6;
+    // Si les PHRASES du document sont indentées, l'indentation est un artefact de mise en forme, pas du code. Compter toutes
+    // les lignes désactivait le code indenté des rapports riches en code (règles, journaux, configurations : plus de 60 % des
+    // lignes), alors que leur prose est à la marge.
+    let sentences = lines.iter().filter(|l| is_prose_sentence(l)).count();
+    let indented_sentences = lines.iter().filter(|l| is_prose_sentence(l) && is_indented_code_line(l)).count();
+    let allow_indented_code = sentences < 3 || indented_sentences * 10 <= sentences * 6;
 
     let mut blocks: Vec<Block> = Vec::new();
     let mut cur: Vec<&str> = Vec::new();
@@ -1138,6 +1151,23 @@ mod tests {
         let out = run("Voici la sortie :\n\n    ## Observations: 1\n    ## $ fingerprint <chr> \"1669feb358ef7bc13fb28915c95b8a315770ed67\"\n    \n    curl -i -k https://172.30.132.194:9251/x -X POST\n\nSuite du récit de l'intrusion qui détaille la découverte du service exposé sur le réseau.");
         assert!(out.contains("1669feb358ef7bc13fb28915c95b8a315770ed67") && out.contains("172.30.132.194:9251"), "{out}");
         assert!(!out.contains("\n## Observations"), "{out}");
+    }
+
+    #[test]
+    fn code_heavy_report_keeps_its_indented_code() {
+        // Plus de 60 % des lignes sont indentées (une règle YARA), mais la prose est à la marge : le code reste du code.
+        let rule = (0..30).map(|i| format!("          $s{i} = \"chaine{i}\" fullword ascii")).collect::<Vec<_>>().join("\n");
+        let text = format!("## YARA\n\nLes règles suivantes détectent les fichiers déposés par l'opérateur lors de l'intrusion.\n\n    rule demo {{\n       strings:\n{rule}\n       condition:\n          all of them\n    }}\n");
+        let kinds: Vec<String> = CtiEngine::new().split_blocks(&text).into_iter().map(|b| b.kind).collect();
+        assert_eq!(kinds, vec!["heading", "text", "code"], "{text}");
+    }
+
+    #[test]
+    fn indented_prose_is_a_layout_artifact_not_code() {
+        let para = "    L'opérateur a déployé un chargeur sur le poste de travail compromis après l'ouverture du document.";
+        let text = format!("{para}\n\n{para}\n\n{para}\n\n{para}\n");
+        let kinds: Vec<String> = CtiEngine::new().split_blocks(&text).into_iter().map(|b| b.kind).collect();
+        assert!(kinds.iter().all(|k| k == "text"), "{kinds:?}");
     }
 
     #[test]

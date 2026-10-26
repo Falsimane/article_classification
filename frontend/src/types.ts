@@ -66,6 +66,8 @@ export interface IocRow {
   kind: string;
   value: string;
   algo: string | null;
+  name?: string | null; // fichier : nom donné avec ses hachages
+  hashes?: Record<string, string>; // fichier : tous ses hachages (MD5, SHA-1, SHA-256)
   role: string;
   roles: string[];
   confidence: number | null;
@@ -76,6 +78,20 @@ export interface IocRow {
   article_ids: number[];
   attached_to: { id: string; name: string; type: string }[];
   evidence: Evidence[];
+}
+
+export type RuleKind = "yara" | "sigma";
+
+/** Règle de détection (backend/stix_dashboard.py `_rule_row`) : `source` est le texte exact de l'article. */
+export interface RuleRow {
+  id: string;
+  kind: RuleKind;
+  name: string;
+  description: string | null;
+  source: string;
+  confidence: number | null;
+  article_ids: number[];
+  detects: { id: string; name: string; type: string }[];
 }
 
 export interface ActorRow extends GraphNode { relations: number; reports: number }

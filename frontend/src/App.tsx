@@ -6,13 +6,14 @@ import { api } from "./lib/api";
 import { useAsync } from "./lib/useAsync";
 
 export default function App() {
-  const [view, setView] = useState<View>(() => (location.pathname.startsWith("/actors") ? "actors" : "reports"));
+  const viewOfPath = (): View => (location.pathname.startsWith("/actors") ? "actors" : "reports");
+  const [view, setView] = useState<View>(viewOfPath);
   const changeView = (v: View) => {
-    history.pushState(null, "", v === "actors" ? "/actors" : "/");
+    history.pushState(null, "", v === "reports" ? "/" : `/${v}`);
     setView(v);
   };
   useEffect(() => {
-    const onPop = () => setView(location.pathname.startsWith("/actors") ? "actors" : "reports");
+    const onPop = () => setView(viewOfPath());
     addEventListener("popstate", onPop);
     return () => removeEventListener("popstate", onPop);
   }, []);
