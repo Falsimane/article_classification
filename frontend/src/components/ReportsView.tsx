@@ -7,6 +7,7 @@ import { FamilyFilter } from "./FamilyFilter";
 import { GraphCanvas } from "./GraphCanvas";
 import { IocTable } from "./IocTable";
 import { Inspector } from "./Inspector";
+import { RuleTable } from "./RuleTable";
 
 const Empty = ({ children }: { children: string }) => <div className="flex h-full items-center justify-center p-8 text-sm text-faint">{children}</div>;
 
@@ -15,11 +16,12 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
   const [family, setFamily] = useState<Family | "all">("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-  const [panel, setPanel] = useState<"graph" | "iocs">("graph");
+  const [panel, setPanel] = useState<"graph" | "iocs" | "rules">("graph");
 
   useEffect(() => { setSelected(null); }, [articleId]);
   const graph = useAsync(() => (articleId == null ? Promise.resolve(null) : api.graph(articleId, { type: family === "all" ? undefined : family, search: search || undefined })), [articleId, family, search]);
   const iocs = useAsync(() => (articleId == null ? Promise.resolve([]) : api.iocs(articleId)), [articleId]);
+  const rules = useAsync(() => (articleId == null ? Promise.resolve([]) : api.rules(articleId)), [articleId]);
   const current = graph.data;
   const node = useMemo(() => current?.nodes.find((n) => n.id === selected) ?? null, [current, selected]);
 
@@ -45,13 +47,18 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
 
       <section className="flex min-w-0 flex-col">
         <nav className="flex border-b border-line bg-panel px-3">
-          {([["graph", "Graphe"], ["iocs", "Indicateurs"]] as const).map(([id, label]) => (
+          {([["graph", "Graphe"], ["iocs", "Indicateurs"], ["rules", "Détection"]] as const).map(([id, label]) => (
             <button key={id} onClick={() => setPanel(id)} className={clsx("border-b-2 px-4 py-2 text-sm", panel === id ? "border-accent text-ink" : "border-transparent text-muted hover:text-ink")}>
-              {label}{id === "iocs" && <span className="ml-1.5 font-mono text-xs text-faint">{iocs.data?.length ?? 0}</span>}
+              {label}
+              {id !== "graph" && <span className="ml-1.5 font-mono text-xs text-faint">{(id === "iocs" ? iocs : rules).data?.length ?? 0}</span>}
             </button>
           ))}
         </nav>
-        {panel === "iocs" ? (
+        {panel === "rules" ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {rules.error ? <Empty>{rules.error}</Empty> : <RuleTable rows={rules.data ?? []} empty="Aucune règle YARA ou Sigma valide dans cet article." />}
+          </div>
+        ) : panel === "iocs" ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
             {iocs.error ? <Empty>{iocs.error}</Empty> : <IocTable rows={iocs.data ?? []} empty="Aucun indicateur malveillant retenu dans cet article." />}
           </div>

@@ -1,0 +1,567 @@
+{
+  "type": "bundle",
+  "id": "bundle--c8e42606-a5ec-5c1b-aa16-8787f853b5db",
+  "objects": [
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "id": "report--77420455-c6b3-53b7-bc7f-a7baeec33d14",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "STARDUST CHOLLIMA Likely Compromises Axios npm Package",
+      "description": "CrowdStrike attribue avec une confiance modérée à STARDUST CHOLLIMA la compromission du paquet npm Axios (identifiants de mainteneur volés) pour déployer des variantes multiplateformes de ZshBucket. Recoupements d'infrastructure avec FAMOUS CHOLLIMA (IOCs hors périmètre).",
+      "published": "2026-04-01T00:00:00.000Z",
+      "report_types": [
+        "threat-report",
+        "campaign",
+        "malware",
+        "attack-pattern"
+      ],
+      "object_refs": [
+        "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+        "intrusion-set--fe3d6d03-a863-5719-a3a0-022934f409b7",
+        "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+        "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+        "malware--6e54deab-00bf-55c0-9471-5ec9f2f1790d",
+        "software--521335b8-c72b-5bdf-aa79-0883ee3488a4",
+        "identity--d122180d-2731-5cd6-815a-d47782d25711",
+        "identity--c21f478e-368a-5c9c-8b23-f73163d8f91f",
+        "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
+        "attack-pattern--191cc6af-1bb2-4344-ab5f-28e496638720",
+        "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+        "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+        "attack-pattern--7385dfaf-6886-4229-9ecd-6fd678040830",
+        "attack-pattern--7bc57495-ea59-4380-be31-a64af124ef18",
+        "relationship--75baa755-4b6d-5b3d-bce3-9a42425909f1",
+        "relationship--83b5f03d-526f-54f1-b516-b79808772a6a",
+        "relationship--0f46cbda-5e4d-512d-975f-7ec048455fbe",
+        "relationship--33ee106b-094c-5b63-bee3-5af98c350096",
+        "relationship--9d207e1e-e184-5f94-80de-8452e0b7ce58",
+        "relationship--bfb3d5b9-3d40-5c4f-9be9-24fd2104abdc",
+        "relationship--4f6ce8a3-98c0-5889-9e03-bd4986ab885f",
+        "relationship--e9391218-0300-50fc-9a0b-1fc20be59405",
+        "relationship--e686ef9e-53e0-5024-be9b-35b04bd03d81",
+        "relationship--78fcd361-e967-5079-9dce-97795f6adb98",
+        "relationship--ea412c84-fe20-53a2-83f0-05bcd2eeb6a8",
+        "relationship--d3018cec-ae9b-5e32-9339-5ef0d3dbfe69",
+        "relationship--f2884ab1-fa45-54e5-999c-cfeedabb5654"
+      ],
+      "external_references": [
+        {
+          "source_name": "CrowdStrike",
+          "url": "https://www.crowdstrike.com/en-us/blog/stardust-chollima-likely-compromises-axios-npm-package/"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_attack_version": "20.0",
+      "x_gold_evidence_quote": "STARDUST CHOLLIMA Likely Compromises Axios npm Package"
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "STARDUST CHOLLIMA",
+      "description": "Adversaire auquel CrowdStrike attribue, avec une confiance modérée, la compromission du paquet npm Axios. Ses opérations visent la génération de devises et ciblent régulièrement les détenteurs de cryptomonnaies.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "G0082",
+          "url": "https://attack.mitre.org/groups/G0082"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "CrowdStrike Intelligence attributes this activity to STARDUST CHOLLIMA with moderate confidence",
+      "x_gold_context": "Nom canonique ATT&CK : APT38 (G0082), qui liste « Stardust Chollima » parmi ses alias. Rattachement par la table d'alias, pas par le texte."
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--fe3d6d03-a863-5719-a3a0-022934f409b7",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "FAMOUS CHOLLIMA",
+      "description": "Adversaire nexus RPDC dont l'infrastructure recoupe celle de l'incident ; l'article l'envisage comme auteur alternatif, sans le retenir.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "FAMOUS CHOLLIMA has historically deployed DPRK-associated tooling"
+    },
+    {
+      "type": "campaign",
+      "spec_version": "2.1",
+      "id": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Compromission du paquet npm Axios (31 mars 2026)",
+      "description": "Compromission du paquet npm Axios au moyen d'identifiants de mainteneur volés, pour déployer des variantes de ZshBucket propres à chaque plateforme (Linux, macOS, Windows).",
+      "first_seen": "2026-03-31T00:00:00.000Z",
+      "x_gold_sequence": [
+        {
+          "order": 1,
+          "summary": "Utilisation d'identifiants de mainteneur volés.",
+          "techniques": [
+            "T1078"
+          ]
+        },
+        {
+          "order": 2,
+          "summary": "Compromission du paquet npm Axios (bibliothèque client HTTP).",
+          "techniques": [
+            "T1195.001"
+          ]
+        },
+        {
+          "order": 3,
+          "summary": "Déploiement de variantes de ZshBucket propres à chaque plateforme.",
+          "techniques": []
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "On March 31, 2026, a threat actor used stolen maintainer credentials to compromise the widely used HTTP client library Axios Node Package Manager (npm) package and deploy platform-specific _ZshBucket_ variants."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "ZshBucket",
+      "is_family": true,
+      "description": "Malware attribué exclusivement à STARDUST CHOLLIMA. Jusqu'ici observé sur macOS seulement, il existe désormais en variantes Linux, macOS et Windows partageant un protocole de messagerie JSON. Profile l'utilisateur et l'hôte ; commandes : injection de charges binaires, exécution de scripts et de commandes, énumération du système de fichiers, arrêt à distance de l'implant.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "_ZshBucket_ can be used to target Linux, macOS, and Windows systems"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--6e54deab-00bf-55c0-9471-5ec9f2f1790d",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "InvisibleFerret",
+      "is_family": true,
+      "description": "Malware de FAMOUS CHOLLIMA dont un ancien serveur C2 (mai 2025) partage un hash de bannière avec l'infrastructure de l'incident.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S1245",
+          "url": "https://attack.mitre.org/software/S1245"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "InvisibleFerret malware in May 2025"
+    },
+    {
+      "type": "software",
+      "spec_version": "2.1",
+      "id": "software--521335b8-c72b-5bdf-aa79-0883ee3488a4",
+      "name": "Axios",
+      "x_gold_description": "Bibliothèque client HTTP distribuée sous forme de paquet npm, compromise via les identifiants d'un mainteneur. Éditeur et versions affectées non précisés.",
+      "x_gold_name_variants": [
+        "axios",
+        "Axios npm package"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the widely used HTTP client library Axios Node Package Manager (npm) package"
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--d122180d-2731-5cd6-815a-d47782d25711",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Cryptocurrency holders",
+      "identity_class": "class",
+      "description": "Cible régulière des opérations de STARDUST CHOLLIMA, orientées vers la génération de devises.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "regularly target cryptocurrency holders"
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--c21f478e-368a-5c9c-8b23-f73163d8f91f",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Fintech companies",
+      "identity_class": "class",
+      "sectors": [
+        "financial-services"
+      ],
+      "description": "Entreprises fintech dont les dépôts npm et PyPI ont été touchés par des compromissions de la chaîne d'approvisionnement de STARDUST CHOLLIMA.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "widespread supply chain compromises impacting fintech companies"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Valid Accounts",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1078",
+          "url": "https://attack.mitre.org/techniques/T1078"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "used stolen maintainer credentials to compromise",
+      "x_gold_context": "Sous-technique non déterminable : le type de compte du mainteneur n'est pas précisé."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--191cc6af-1bb2-4344-ab5f-28e496638720",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Compromise Software Dependencies and Development Tools",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1195.001",
+          "url": "https://attack.mitre.org/techniques/T1195/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "compromise the widely used HTTP client library Axios Node Package Manager (npm) package"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "System Information Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1082",
+          "url": "https://attack.mitre.org/techniques/T1082"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "including how it profiles the user and host of the operating system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "System Owner/User Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1033",
+          "url": "https://attack.mitre.org/techniques/T1033"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "including how it profiles the user and host of the operating system"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--7385dfaf-6886-4229-9ecd-6fd678040830",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Command and Scripting Interpreter",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059",
+          "url": "https://attack.mitre.org/techniques/T1059"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "execute arbitrary scripts and commands",
+      "x_gold_context": "Interpréteur non précisé : technique parente."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--7bc57495-ea59-4380-be31-a64af124ef18",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "File and Directory Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1083",
+          "url": "https://attack.mitre.org/techniques/T1083"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "enumerate the file system"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--75baa755-4b6d-5b3d-bce3-9a42425909f1",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "target_ref": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "confidence": 50,
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "CrowdStrike Intelligence attributes this activity to STARDUST CHOLLIMA with moderate confidence"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--83b5f03d-526f-54f1-b516-b79808772a6a",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "target_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "malware uniquely attributed to STARDUST CHOLLIMA"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0f46cbda-5e4d-512d-975f-7ec048455fbe",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "target_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "deploy platform-specific _ZshBucket_ variants"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--33ee106b-094c-5b63-bee3-5af98c350096",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "target_ref": "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a threat actor used stolen maintainer credentials to compromise"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9d207e1e-e184-5f94-80de-8452e0b7ce58",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "target_ref": "attack-pattern--191cc6af-1bb2-4344-ab5f-28e496638720",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "compromise the widely used HTTP client library Axios Node Package Manager (npm) package"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bfb3d5b9-3d40-5c4f-9be9-24fd2104abdc",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "target_ref": "software--521335b8-c72b-5bdf-aa79-0883ee3488a4",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "compromise the widely used HTTP client library Axios Node Package Manager (npm) package",
+      "x_gold_context": "Axios est le paquet compromis (vecteur), non la victime finale ; l'article indique que les cibles visées restent inconnues."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4f6ce8a3-98c0-5889-9e03-bd4986ab885f",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "including how it profiles the user and host of the operating system",
+      "x_gold_context": "« it » renvoie à ZshBucket : le paragraphe décrit les caractéristiques conservées par toutes les variantes, dont celles déployées dans l'incident."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e9391218-0300-50fc-9a0b-1fc20be59405",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+      "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "including how it profiles the user and host of the operating system",
+      "x_gold_context": "« it » renvoie à ZshBucket : le paragraphe décrit les caractéristiques conservées par toutes les variantes, dont celles déployées dans l'incident."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e686ef9e-53e0-5024-be9b-35b04bd03d81",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+      "target_ref": "attack-pattern--7385dfaf-6886-4229-9ecd-6fd678040830",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "execute arbitrary scripts and commands",
+      "x_gold_context": "Liste des mises à jour de l'instance de ZshBucket déployée dans cet incident (« the _ZshBucket_ instance deployed in this incident »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--78fcd361-e967-5079-9dce-97795f6adb98",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+      "target_ref": "attack-pattern--7bc57495-ea59-4380-be31-a64af124ef18",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "enumerate the file system",
+      "x_gold_context": "Liste des mises à jour de l'instance de ZshBucket déployée dans cet incident (« the _ZshBucket_ instance deployed in this incident »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ea412c84-fe20-53a2-83f0-05bcd2eeb6a8",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "target_ref": "identity--d122180d-2731-5cd6-815a-d47782d25711",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "regularly target cryptocurrency holders",
+      "x_gold_context": "Sujet de la phrase : « STARDUST CHOLLIMA’s operations ». Ciblage général de l'acteur, pas de cette campagne."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d3018cec-ae9b-5e32-9339-5ef0d3dbfe69",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "target_ref": "identity--c21f478e-368a-5c9c-8b23-f73163d8f91f",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "widespread supply chain compromises impacting fintech companies",
+      "x_gold_context": "Sujet : « the adversary » (STARDUST CHOLLIMA), opérations antérieures à cette campagne."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f2884ab1-fa45-54e5-999c-cfeedabb5654",
+      "created": "2026-04-01T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--fe3d6d03-a863-5719-a3a0-022934f409b7",
+      "target_ref": "malware--6e54deab-00bf-55c0-9471-5ec9f2f1790d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "InvisibleFerret malware in May 2025",
+      "x_gold_context": "Possessif : « [FAMOUS CHOLLIMA](…)’s InvisibleFerret malware » (section Related Infrastructure)."
+    }
+  ]
+}

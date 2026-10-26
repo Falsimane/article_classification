@@ -19,6 +19,8 @@ dependencies = [
     "pydantic>=2.14.1",
     "neo4j>=6.4.1",
     "stix2>=3.0.2",
+    "yara-python>=4.5.4",
+    "pyyaml>=6.0.3",
 ]
 
 [tool.uv.sources]
@@ -26,7 +28,8 @@ cti-core = { path = "backend/cti_core", editable = true }
 
 [project.scripts]
 cti-classifier = "backend.preprocessing.cti_classifier:main"
-cti-extractor = "backend.extracting.cti_extractor:main"
+cti-agent = "backend.extracting.stix_agent:main"
+cti-eval = "backend.evaluation.cti_eval:main"
 cti-dashboard = "backend.server:main"
 cti-audit = "backend.preprocessing.audit_classifier:main"
 

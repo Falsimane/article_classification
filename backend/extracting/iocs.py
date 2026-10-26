@@ -18,17 +18,17 @@ from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from backend.ontology.stix.export import parse_date
-from backend.ontology.stix.iocs import HASH_ALGOS, ROLES, IocFinding
-from backend.ontology.stix.validate import mentions_prepared, prepare_text
+from backend.stix.iocs import HASH_ALGOS, HASH_PRIORITY, ROLES, IocFinding
+
+from .evidence import mentions_prepared, parse_date, prepare_text
 
 from . import llm
-from .segment import _CODE_KEYWORDS, _FILE_EXT, Unit
+from .segment import _FILE_EXT, Unit
 
-REFERENCE = Path(__file__).resolve().parents[1] / "ontology" / "stix" / "reference"
+REFERENCE = Path(__file__).resolve().parent / "reference"
 ATTACH_TYPES = frozenset({"malware", "tool", "threat-actor", "intrusion-set", "campaign", "infrastructure", "incident"})
 MAX_ITEMS_PER_CALL = 10
-MAX_IOC_TOKENS = 420
+MAX_IOC_TOKENS = 24 * MAX_ITEMS_PER_CALL + 20  # une réponse {"item", "role", "to"} ≈ 22 tokens ; 180 tronquait un lot plein
 MAX_ATTACH_CANDIDATES = 6
 NARRATIVE_SPLIT = 4  # une phrase qui cite plus d'IOC que cela forme UN seul élément (même rôle pour tous)
 MAX_SHOWN_VALUES = 5
@@ -56,6 +56,11 @@ def popular_domains() -> frozenset[str]:
 # liste d'indicateurs
 _CODE_EXTENSIONS = _FILE_EXT | frozenset("py pl rs go rb php java cs cpp md h c asp aspx jsp cgi gz tar sql yml yaml toml html htm css png jpg gif svg pdf".split())
 _DOCUMENTATION_DOMAINS = frozenset({"example.com", "example.org", "example.net"})
+# Liens d'un tweet cité : raccourcisseur et images de Twitter, jamais l'indicateur lui-même (l'IOC est derrière, ou dans l'image)
+_SOCIAL_LINK_HOSTS = frozenset({"t.co", "pic.twitter.com", "pbs.twimg.com"})
+# Hébergeurs de code : un lien vers un dépôt est une référence, sauf dans une liste d'indicateurs ou s'il télécharge un fichier
+_CODE_HOSTS = frozenset({"github.com", "gist.github.com", "gitlab.com", "bitbucket.org"})
+_CODE_DOWNLOAD = re.compile(r"/(?:releases/download|raw|archive)/|\.(?:exe|dll|zip|rar|7z|iso|js|ps1|vbs|bat|hta|msi|lnk|sh|bin)(?:[?#]|$)", re.I)
 _INDICATOR_HEADING = re.compile(r"indicator|\bioc|compromise|network|domain|\bc2\b|c&c|infrastructure|\bip\b|address|hash|artifact|observable", re.I)
 
 # --- Motifs ---------------------------------------------------------------------------------------------------------------
@@ -68,6 +73,12 @@ _HASH = re.compile(r"(?<![A-Za-z0-9])(?:[A-Fa-f0-9]{64}|[A-Fa-f0-9]{40}|[A-Fa-f0
 _VERSION_BEFORE = re.compile(r"(?:\bv|\bversion\s|\bver\.?\s|\bbuild\s|\brelease\s)\s*$|[A-Za-z]/$", re.I)  # « v1.2.3.4 », « Chrome/118.0.0.0 »
 _RULE_OR_DOC_URL = re.compile(r"\.(?:ya?ra?|ya?ml|sigma|rules?|md|rst|txt)(?:[?#]|$)", re.I)
 _MD_LINK_TARGET = re.compile(r"\]\($")
+_QUOTE_LINE = re.compile(r"^\s*>")  # ligne d'une citation Markdown (tweet, extrait d'un autre rapport)
+# Empreinte TLS ou de certificat, de même longueur qu'un MD5 ou un SHA-1 : « JA3: 72a5… », « JA3S: … », « Thumbprint: … »
+_FINGERPRINT_LABEL = re.compile(r"\b(?:JA3S?|JA4S?|JARM|imphash|thumbprint|fingerprint|serial(?:\s+number)?|cert(?:ificate)?|x509)\b[^\n]{0,24}$", re.I)
+_FINGERPRINT_AFTER = re.compile(r"^[*`'\"\s]*\|\s*(?:JA3S?|JA4S?|JARM)\b", re.I)  # table « **72a5…** | JA3 | Cobalt Strike »
+_FILE_NAME_EXTENSIONS = _CODE_EXTENSIONS | frozenset("xlsm xlsb docm dotm one img vhd vhdx cab apk elf jse wsf psm1 chm rtf".split())
+_FILE_NAME = re.compile(rf"^[\w\-.()\[\]{{}}$~@+]{{1,200}}\.(?:{'|'.join(sorted(_FILE_NAME_EXTENSIONS))})$", re.I)
 
 _MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec"
 _DATE_PATTERNS = (
@@ -80,11 +91,14 @@ _DATE_PATTERNS = (
 @dataclass
 class Candidate:
     kind: str
-    value: str
+    value: str  # pour un fichier : son hachage le plus fort
     algo: str | None
     uids: list[int] = field(default_factory=list)
     observed: datetime | None = None
     popular_subdomain: bool = False
+    hashes: dict[str, str] = field(default_factory=dict)  # fichier : tous ses hachages connus, par algorithme
+    name: str | None = None  # fichier : nom donné à côté de ses hachages (« info_1805.xls »)
+    record: str = ""  # fichier : le paragraphe ou la ligne de table qui le décrit (preuve)
 
 
 @dataclass(frozen=True)
@@ -143,13 +157,70 @@ def _observed(text: str, published: datetime | None) -> datetime | None:
 
 
 # --- Extraction des valeurs ---------------------------------------------------------------------------------------------
+# Mots-clés d'une règle YARA ou Sigma, sensibles à la casse (les deux langages les écrivent en minuscules) : la ligne « Strings: »
+# d'une configuration de malware déchiffrée n'est pas une règle, et ses adresses C2 sont des IOC
+_RULE_KEYWORDS = re.compile(r"\b(?:condition|strings|meta)\s*:|\brule\s+\w+\s*\{|\bselection\s*:|\bdetection\s*:")
+
+
 def _unit_scan_text(unit: Unit) -> str | None:
-    """Texte à fouiller : les règles YARA et Sigma sont du contenu de détection, pas une liste d'IOC."""
+    """Texte à fouiller : les règles YARA et Sigma sont du contenu de détection, pas une liste d'IOC (voir rules.py)."""
     if unit.is_reference:
         return None
-    if unit.kind in ("code", "table") and _CODE_KEYWORDS.search(unit.text):
+    if unit.kind in ("code", "table") and _RULE_KEYWORDS.search(unit.text):
         return None
     return unit.text
+
+
+def _line_before(text: str, pos: int) -> str:
+    return text[text.rfind("\n", 0, pos) + 1 : pos]
+
+
+def _on_quote_line(text: str, pos: int) -> bool:
+    return bool(_QUOTE_LINE.match(_line_before(text, pos)))
+
+
+def _records(text: str, kind: str) -> list[str]:
+    """Enregistrements d'un bloc d'indicateurs : une ligne de table, ou un paragraphe (séparé par une ligne vide), lui-même coupé
+    à chaque nom de fichier qui suit des hachages (listes « nom / MD5 / SHA-1 / SHA-256 » sans ligne vide)."""
+    if kind == "table":
+        return text.splitlines()
+    out: list[str] = []
+    for chunk in re.split(r"\n\s*\n", text):
+        current: list[str] = []
+        for line in chunk.splitlines():
+            if current and _file_name(line) and any(_HASH.search(l) for l in current):
+                out.append("\n".join(current))
+                current = []
+            current.append(line)
+        if current:
+            out.append("\n".join(current))
+    return out
+
+
+def _file_name(record: str) -> str | None:
+    """Nom de fichier unique d'un enregistrement, sinon None (deux noms : on ne sait pas lequel porte les hachages)."""
+    names = {t for t in re.split(r"[\s|,;`'\"]+", record) if _FILE_NAME.match(t) and not _HASH.fullmatch(t.rsplit(".", 1)[0])}
+    return names.pop() if len(names) == 1 else None
+
+
+def _merge_files(cands: list[Candidate]) -> list[Candidate]:
+    """Un hachage cité seul (dans le récit) et le fichier complet qui le contient (annexe) sont un seul fichier."""
+    files = sorted((c for c in cands if c.kind == "file"), key=lambda c: -len(c.hashes))
+    kept: list[Candidate] = []
+    by_hash: dict[str, list[Candidate]] = {}  # hachage -> fichiers retenus qui le contiennent
+    for c in files:
+        values = set(c.hashes.values())
+        host = next((k for k in by_hash.get(next(iter(values)), ()) if values <= set(k.hashes.values())), None)
+        if host is None:
+            kept.append(c)
+            for v in values:
+                by_hash.setdefault(v, []).append(c)
+            continue
+        host.uids += [u for u in c.uids if u not in host.uids]
+        host.observed = host.observed or c.observed
+        host.name, host.record = host.name or c.name, host.record or c.record
+    kept_ids = {id(k) for k in kept}
+    return [c for c in cands if c.kind != "file" or id(c) in kept_ids]
 
 
 def _refang(text: str) -> str:
@@ -167,11 +238,20 @@ def find_iocs(units: list[Unit], *, publishers: frozenset[str] = frozenset(), pu
     tld_set = tlds()
     ambiguous_tlds = tld_set & _CODE_EXTENSIONS
 
-    def keep(kind: str, value: str, unit: Unit, algo: str | None = None, popular_subdomain: bool = False, observed: datetime | None = None) -> None:
+    def keep(kind: str, value: str, unit: Unit, algo: str | None = None, popular_subdomain: bool = False, observed: datetime | None = None) -> Candidate:
         cand = by_key.setdefault((kind, value), Candidate(kind, value, algo, popular_subdomain=popular_subdomain))
         if unit.uid not in cand.uids:
             cand.uids.append(unit.uid)
         cand.observed = cand.observed or observed
+        return cand
+
+    def keep_file(hashes: dict[str, str], unit: Unit, observed: datetime | None, name: str | None = None, record: str = "") -> None:
+        algo = next(a for a in HASH_PRIORITY if a in hashes)
+        cand = by_key.setdefault(("file", "|".join(hashes[a] for a in HASH_PRIORITY if a in hashes)), Candidate("file", hashes[algo], algo, hashes=dict(hashes)))
+        if unit.uid not in cand.uids:
+            cand.uids.append(unit.uid)
+        cand.observed = cand.observed or observed
+        cand.name, cand.record = cand.name or name, cand.record or record
 
     def drop(kind: str, value: str, reason: str) -> None:
         dropped.setdefault((kind, value, reason), Dropped(kind, value, reason))
@@ -182,7 +262,8 @@ def find_iocs(units: list[Unit], *, publishers: frozenset[str] = frozenset(), pu
             continue
         text = _refang(raw)
         observed = _observed(text, published)
-        indicator_context = unit.is_indicators or unit.kind in ("code", "table") or bool(_INDICATOR_HEADING.search(unit.heading_path))
+        indicator_list = unit.is_indicators or bool(_INDICATOR_HEADING.search(unit.heading_path))
+        indicator_context = indicator_list or unit.kind in ("code", "table")
 
         # URL : leurs hôtes ne sont pas comptés à part (l'URL est l'indicateur), et on les retire du texte avant la suite
         for m in _URL.finditer(text):
@@ -194,10 +275,16 @@ def find_iocs(units: list[Unit], *, publishers: frozenset[str] = frozenset(), pu
             popular, _ = _popular_parent(host)
             if _is_publisher(host, publishers):
                 drop("url", url, "publisher")
+            elif host in _SOCIAL_LINK_HOSTS:
+                drop("url", url, "social-media-link")
             elif _RULE_OR_DOC_URL.search(urlsplit(url).path if "[" not in url else url):
                 drop("url", url, "detection-rule-or-document")
+            elif _on_quote_line(text, m.start()) and (popular or _popular_parent(host)[1]):
+                drop("url", url, "quoted-citation")  # un service connu cité dans un tweet ou un autre rapport
             elif is_md_link and (popular or _popular_parent(host)[1]):
                 drop("url", url, "reference-link")
+            elif host in _CODE_HOSTS and not indicator_list and not _CODE_DOWNLOAD.search(url):
+                drop("url", url, "code-repository-reference")
             elif popular and not indicator_context and not re.search(r"\.(?:exe|dll|zip|rar|7z|iso|js|ps1|vbs|bat|hta|msi|lnk|sh|py|bin|dat)\b|/[^/\s]{24,}", url, re.I):
                 drop("url", url, "popular-host-without-payload")  # lien vers un site connu cité dans le récit
             else:
@@ -216,12 +303,26 @@ def find_iocs(units: list[Unit], *, publishers: frozenset[str] = frozenset(), pu
                 keep("email-addr", email, unit, observed=observed)
         text = _EMAIL.sub(" ", text)
 
-        for m in _HASH.finditer(text):
-            digest = m.group(0).lower()
-            if len(set(digest)) <= 2 or (len(digest) < 64 and (digest.isdigit() or digest.isalpha())):
-                drop("file", digest, "not-a-hash")
-                continue
-            keep("file", digest, unit, algo=HASH_ALGOS[len(digest)], observed=observed)
+        # Hachages. Dans un bloc ou une table d'indicateurs, un enregistrement qui donne au plus un hachage par algorithme décrit UN
+        # fichier : un seul observable, un seul indicateur. Une phrase ou un élément de liste aussi, mais seulement s'il nomme le fichier
+        # (« Samples: <md5>, <sha256> » peut citer deux échantillons). Sinon, ou si un algorithme se répète : un fichier par hachage.
+        for record in _records(text, unit.kind) if indicator_context else [text]:
+            digests: list[tuple[str, str]] = []
+            for m in _HASH.finditer(record):
+                digest = m.group(0).lower()
+                if len(set(digest)) <= 2 or (len(digest) < 64 and (digest.isdigit() or digest.isalpha())):
+                    drop("file", digest, "not-a-hash")
+                elif _FINGERPRINT_LABEL.search(_line_before(record, m.start())) or _FINGERPRINT_AFTER.match(record[m.end() :]):
+                    drop("file", digest, "tls-or-certificate-fingerprint")  # empreinte réseau, pas un fichier
+                else:
+                    digests.append((HASH_ALGOS[len(digest)], digest))
+            algos = [a for a, _ in digests]
+            if indicator_context and digests and len(set(algos)) == len(algos) and (unit.kind in ("code", "table") or _file_name(record)):
+                lines = [l.strip(" |`") for l in record.splitlines() if l.strip(" |`")]
+                keep_file(dict(digests), unit, observed, _file_name(record), " ".join(lines))
+            else:
+                for algo, digest in digests:
+                    keep_file({algo: digest}, unit, observed)
         text = _HASH.sub(" ", text)
 
         for m in _IPV4.finditer(text):
@@ -258,13 +359,17 @@ def find_iocs(units: list[Unit], *, publishers: frozenset[str] = frozenset(), pu
             labels = domain.split(".")
             if tld not in tld_set or not (tld_text.islower() or tld_text.isupper()) or all(l.isdigit() for l in labels[:-1]):
                 continue  # « fin.Il » (espace oubliée), « 10.0.19041.dll », mot quelconque
-            if tld in ambiguous_tlds and not indicator_context:
+            if tld in ambiguous_tlds and not indicator_list:  # dans du code, « OgnlValueStack.java » ou « libhax.so » est un fichier
                 drop("domain-name", domain, "file-name-or-ambiguous")
                 continue
             host = domain.removeprefix("www.")
             popular, sub = _popular_parent(host)
             if _is_publisher(host, publishers):
                 drop("domain-name", domain, "publisher")
+            elif host in _SOCIAL_LINK_HOSTS:
+                drop("domain-name", domain, "social-media-link")
+            elif _on_quote_line(text, m.start()) and (popular or sub):
+                drop("domain-name", domain, "quoted-citation")
             elif host in _DOCUMENTATION_DOMAINS:
                 drop("domain-name", domain, "documentation")
             elif popular:
@@ -272,7 +377,7 @@ def find_iocs(units: list[Unit], *, publishers: frozenset[str] = frozenset(), pu
             else:
                 keep("domain-name", domain, unit, popular_subdomain=sub, observed=observed)
 
-    return list(by_key.values()), list(dropped.values())
+    return _merge_files(list(by_key.values())), list(dropped.values())
 
 
 # --- Éléments soumis au modèle ------------------------------------------------------------------------------------------
@@ -316,16 +421,34 @@ def build_items(candidates: list[Candidate], units: list[Unit], entities: list[A
         section_units.setdefault(u.heading_path, []).append(u)
 
     def narrative(cand: Candidate) -> Unit | None:
-        return next((by_uid[i] for i in cand.uids if by_uid[i].kind in ("sentence", "item") and not by_uid[i].is_indicators), None)
+        """Phrase du récit qui cite la valeur ou, pour un fichier nommé de l'annexe, son nom (« find.bat a lancé AdFind ») : c'est
+        elle qui dit à quel logiciel ou acteur l'IOC appartient."""
+        unit = next((by_uid[i] for i in cand.uids if by_uid[i].kind in ("sentence", "item") and not by_uid[i].is_indicators), None)
+        if unit is None and cand.name:
+            named = re.compile(rf"(?<![\w.\\/-]){re.escape(cand.name)}(?![\w-])", re.I)  # « 1.dll », pas « x1.dll »
+            unit = next((u for u in units if u.is_evidence_eligible and named.search(u.text)), None)
+        return unit
+
+    def lead(unit: Unit) -> Unit | None:
+        """Phrase qui annonce un bloc d'indicateurs (« Cobalt Strike: » puis le bloc) : sans elle, tous les blocs d'une section
+        recevraient le même rattachement."""
+        siblings = section_units[unit.heading_path]
+        pos = next(i for i, u in enumerate(siblings) if u.uid == unit.uid)
+        prev = siblings[pos - 1] if pos else None
+        return prev if prev is not None and unit.kind in ("code", "table") and prev.is_evidence_eligible else None
 
     groups: dict[tuple, list[Candidate]] = {}
     contexts: dict[tuple, Unit] = {}
+    leads: dict[tuple, Unit | None] = {}
     for cand in candidates:
         family = "file" if cand.kind == "file" else "network"
         unit = narrative(cand)
-        key = ("u", unit.uid, family) if unit else ("s", by_uid[cand.uids[0]].heading_path, family)
+        block = by_uid[cand.uids[0]]
+        intro = None if unit else lead(block)
+        key = ("u", unit.uid, family) if unit else ("s", block.heading_path, intro.uid if intro else None, family)
         groups.setdefault(key, []).append(cand)
-        contexts.setdefault(key, unit or by_uid[cand.uids[0]])
+        contexts.setdefault(key, unit or block)
+        leads.setdefault(key, intro)
 
     incident = next((e for e in entities if e.stix_type == "incident"), None)
     items: list[Item] = []
@@ -339,12 +462,21 @@ def build_items(candidates: list[Candidate], units: list[Unit], entities: list[A
                 prose.insert(0, siblings[pos - 1].text)  # la phrase précédente porte souvent le sujet
             context = _trim(" ".join(prose))
             splits = [[c] for c in cands] if len(cands) <= NARRATIVE_SPLIT else [cands]
+        elif leads[key] is not None:
+            context = _trim(leads[key].text)
+            splits = [cands]
         else:
             intro = [u.text for u in section_units.get(first.heading_path, []) if u.is_evidence_eligible][:2]
             context = _trim(" ".join(intro)) if intro else ""
             splits = [cands]
-        scope = prepare_text(f"{first.heading_path} {context}")
-        mentioned = [e for e in entities if e.stix_type != "incident" and mentions_prepared(scope, e.terms)][:MAX_ATTACH_CANDIDATES]
+        # Le titre de l'article (« … An Emotet Story ») est en tête de chaque chemin de titres : ce qu'il nomme n'est proposé que si rien
+        # de plus proche (section, phrase) ne nomme de sujet. Sinon Emotet était proposé, et choisi, pour find.bat lancé avec AdFind.
+        title, _, below = first.heading_path.partition(" > ")
+        mentioned = []
+        for scope in (prepare_text(f"{below} {context}"), prepare_text(title)):
+            mentioned = [e for e in entities if e.stix_type != "incident" and mentions_prepared(scope, e.terms)][:MAX_ATTACH_CANDIDATES]
+            if mentioned:
+                break
         ids = [e.eid for e in mentioned] + ([incident.eid] if incident else [])
         for part in splits:
             items.append(Item(0, "file" if part[0].kind == "file" else "network", part, first.heading_path, context, ids))
@@ -379,7 +511,7 @@ def ioc_user(title: str, items: list[Item], entities: list[Attachable]) -> str:
     by_eid = {e.eid: e for e in entities}
     lines = [f"Rapport : {title}", ""]
     for it in items:
-        shown = [c.value + (" (sous-domaine d'un domaine populaire)" if c.popular_subdomain else "") for c in it.cands[:MAX_SHOWN_VALUES]]
+        shown = [(f"{c.name} ({c.value})" if c.name else c.value) + (" (sous-domaine d'un domaine populaire)" if c.popular_subdomain else "") for c in it.cands[:MAX_SHOWN_VALUES]]
         more = f" (+ {len(it.cands) - MAX_SHOWN_VALUES} autres)" if len(it.cands) > MAX_SHOWN_VALUES else ""
         who = " ; ".join(f"{eid} {by_eid[eid].name} ({by_eid[eid].stix_type})" for eid in it.attach_ids) or "aucune"
         lines += [
@@ -442,19 +574,29 @@ class IocResult:
 
 
 def _quote_for(cand: Candidate, unit_by_uid: dict[int, Unit]) -> str:
-    """Preuve : la phrase (unité narrative) ou la ligne exacte qui contient la valeur."""
+    """Preuve : la phrase (unité narrative) qui contient la valeur, l'enregistrement d'un fichier (nom et hachages), ou la ligne exacte."""
     unit = next((unit_by_uid[i] for i in cand.uids if unit_by_uid[i].kind in ("sentence", "item") and not unit_by_uid[i].is_indicators), unit_by_uid[cand.uids[0]])
     if unit.kind in ("sentence", "item") and not unit.is_indicators:
         return _trim(unit.text, 500)
+    if cand.record:
+        return _trim(cand.record, 300)
     line = next((l for l in unit.text.splitlines() if cand.value.lower() in l.lower() or (cand.kind != "file" and cand.value in l)), unit.text)
     return _trim(line.strip("|` "), 300)
 
 
-def extract_iocs(title: str, units: list[Unit], entities: list[dict], *, url: str | None = None, published: datetime | None = None) -> IocResult:
+def extract_iocs(
+    title: str,
+    units: list[Unit],
+    entities: list[dict],
+    *,
+    url: str | None = None,
+    published: datetime | None = None,
+) -> IocResult:
     """IOC d'un article, avec rôle et rattachement. `entities` : entités finales de l'article (avec leur identifiant STIX).
 
     Un élément que le modèle n'a pas classé (réponse tronquée) reste `unknown` : conservé comme observable, jamais
-    présenté comme malveillant."""
+    présenté comme malveillant. Un élément jugé `not-malicious` est conservé sans rattachement, pour être audité : il devient
+    un indicateur `benign` (voir `build_ioc_objects`), jamais une infrastructure de l'attaquant."""
     result = IocResult()
     candidates, result.dropped = find_iocs(units, publishers=publisher_hosts(url), published=published)
     result.n_candidates = len(candidates)
@@ -466,32 +608,35 @@ def extract_iocs(title: str, units: list[Unit], entities: list[dict], *, url: st
     result.n_items = len(items)
     unit_by_uid = {u.uid: u for u in units}
     system = ioc_system()
-    answers: dict[int, tuple[str, str | None]] = {}
-    for start in range(0, len(items), MAX_ITEMS_PER_CALL):
-        batch = items[start : start + MAX_ITEMS_PER_CALL]
+    batches = [items[start : start + MAX_ITEMS_PER_CALL] for start in range(0, len(items), MAX_ITEMS_PER_CALL)]
+
+    def classify_batch(batch: list[Item]) -> tuple[llm.LLMResult, dict[int, tuple[str, str | None]]]:
         used = sorted({eid for it in batch for eid in it.attach_ids})
-        res = llm.generate(system, ioc_user(title, batch, attach), ioc_schema(batch, [by_eid[e] for e in used]), max_output_tokens=MAX_IOC_TOKENS)
+        res = llm.try_generate(system, ioc_user(title, batch, attach), ioc_schema(batch, [by_eid[e] for e in used]), max_output_tokens=MAX_IOC_TOKENS)
+        return res, parse_ioc_answers(res.parsed, batch)
+
+    answers: dict[int, tuple[str, str | None]] = {}
+    for res, parsed in map(classify_batch, batches):  # Ollama traite les requêtes l'une après l'autre
         result.calls.append(res)
-        answers.update(parse_ioc_answers(res.parsed, batch))
+        answers.update(parsed)
 
     for it in items:
         role, to = answers.get(it.index, ("unknown", None))
         if role == "not-malicious":
             result.n_not_malicious += len(it.cands)
-            result.dropped += [Dropped(c.kind, c.value, "judged-not-malicious") for c in it.cands]
-            continue
-        if it.family == "file" and role not in ("unknown", "malware-sample"):
+            to = None
+        if it.family == "file" and role not in ("unknown", "not-malicious", "malware-sample"):
             role = "malware-sample"  # un fichier n'est ni un C2 ni un relais : la nature de l'objet prime
         if it.family == "network" and role == "malware-sample":
             role = "other-malicious"
         target = by_eid.get(to) if to else None
-        if target is None and role != "unknown":
+        if target is None and role not in ("unknown", "not-malicious"):
             target = next((a for a in attach if a.stix_type == "incident"), None)  # IOC sans sujet explicite : ceux de l'intrusion décrite
         confidence = 35 if role == "unknown" else 75 if target and target.stix_type != "incident" else 55
         for cand in it.cands:
             result.findings.append(
                 IocFinding(
-                    kind=cand.kind, value=cand.value, algo=cand.algo, role=role, quote=_quote_for(cand, unit_by_uid), heading=it.heading,
+                    kind=cand.kind, value=cand.value, algo=cand.algo, hashes=cand.hashes or None, name=cand.name, role=role, quote=_quote_for(cand, unit_by_uid), heading=it.heading,
                     attach_id=target.stix_id if target else None, attach_type=target.stix_type if target else None, attach_name=target.name if target else None,
                     observed=cand.observed, confidence=confidence,
                 )

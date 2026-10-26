@@ -4,7 +4,7 @@ import type { Stats } from "../types";
 
 export type View = "reports" | "actors";
 const NAV: { id: View; label: string }[] = [
-  { id: "reports", label: "Rapports" },
+  { id: "reports", label: "Graphe de connaissance" },
   { id: "actors", label: "Acteurs" },
 ];
 

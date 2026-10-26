@@ -1,0 +1,555 @@
+{
+  "type": "bundle",
+  "id": "bundle--9d0f3e2a-d013-5168-a055-8e287890beb0",
+  "objects": [
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "id": "report--3c21c4d3-0149-5e22-8336-929517814c3f",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Recent ISMAgent Samples and Infrastructure by Iranian Threat Group GreenBug",
+      "description": "ClearSky décrit une nouvelle campagne diffusant ISMAgent, trojan de GreenBug : document .dot exploitant CVE-2017-0199, PowerShell qui télécharge un fichier déguisé en certificat base64, décodé par certutil. Annexe d'IOCs (hors périmètre).",
+      "published": "2017-08-28T00:00:00.000Z",
+      "report_types": [
+        "threat-report",
+        "campaign",
+        "malware",
+        "attack-pattern"
+      ],
+      "object_refs": [
+        "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+        "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+        "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+        "vulnerability--c8ea031e-7c99-56a7-b275-f0d74a21d834",
+        "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+        "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37",
+        "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+        "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+        "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+        "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
+        "attack-pattern--0d91b3c0-5e50-47c3-949a-2a796f04d144",
+        "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+        "relationship--fd12a21b-f82d-5467-b43c-0228a3972084",
+        "relationship--c7cddcd6-caea-50c8-bb64-c66c46f4a28e",
+        "relationship--883d11d9-21cc-5b9c-a32a-a38f130a56db",
+        "relationship--21b3a669-3a2d-557b-934f-1dd1f25dfd5d",
+        "relationship--f60fa260-046a-5bb7-9eda-2d140089dea6",
+        "relationship--0f1ecc44-34e8-5fc0-b018-d9c93dca6ee5",
+        "relationship--61ae72d4-afd7-5678-9159-b718b26d113d",
+        "relationship--0cc69368-ae05-58a7-9993-242e9cac7f7b",
+        "relationship--288ad00e-4713-5a94-96e8-853438e72e79",
+        "relationship--24f9192c-7646-5fd4-a005-73105f76b774",
+        "relationship--6e8e24ff-dd7e-5772-ba43-7d89c91d3570",
+        "relationship--d7737333-3fde-5637-924f-55621220ef1a",
+        "relationship--d3b4c59a-d405-5094-831e-794f198e903f",
+        "relationship--ff9d6a93-381f-57c5-ac7c-7d8a5bf54db6"
+      ],
+      "external_references": [
+        {
+          "source_name": "ClearSky Cybersecurity",
+          "url": "https://www.clearskysec.com/ismagent/"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_attack_version": "20.0",
+      "x_gold_evidence_quote": "This post describes the new campaign."
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "GreenBug",
+      "description": "Groupe de menace iranien auquel l'article attribue le trojan ISMAgent et les nouveaux échantillons et infrastructures décrits.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a trojan in use by Iranian Threat Group GreenBug"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "ISMAgent",
+      "is_family": true,
+      "malware_types": [
+        "trojan"
+      ],
+      "description": "Trojan utilisé par GreenBug. Charge finale de la chaîne décrite : livré encodé en base64 sous l'apparence d'un certificat numérique, puis décodé par certutil.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "ISMagent"
+      ],
+      "x_gold_evidence_quote": "Recent ISMAgent Samples and Infrastructure by Iranian Threat Group GreenBug"
+    },
+    {
+      "type": "campaign",
+      "spec_version": "2.1",
+      "id": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "description": "Campagne de diffusion d'ISMAgent : document .dot exploitant CVE-2017-0199, commande PowerShell téléchargeant un fichier déguisé en certificat base64, décodé par certutil en échantillon ISMAgent.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This post describes the new campaign.",
+      "x_gold_sequence": [
+        {
+          "order": 1,
+          "summary": "L'échantillon .dot exploite CVE-2017-0199 et appelle une URL distante (template.rtf).",
+          "techniques": [
+            "T1203"
+          ]
+        },
+        {
+          "order": 2,
+          "summary": "Exécution d'une commande PowerShell en fenêtre masquée qui télécharge un fichier texte et l'écrit dans AppData\\Roaming.",
+          "techniques": [
+            "T1059.001",
+            "T1105"
+          ],
+          "techniques_acceptable": [
+            "T1564.003"
+          ]
+        },
+        {
+          "order": 3,
+          "summary": "Le fichier, déguisé en certificat numérique base64, est décodé par certutil -decode en exécutable : un échantillon ISMAgent.",
+          "techniques": [
+            "T1027.013",
+            "T1140"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--c8ea031e-7c99-56a7-b275-f0d74a21d834",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "CVE-2017-0199",
+      "description": "Vulnérabilité exploitée par l'échantillon .dot de la campagne ; son exploitation conduit à l'appel d'une URL distante puis à l'exécution d'une commande PowerShell.",
+      "external_references": [
+        {
+          "source_name": "cve",
+          "external_id": "CVE-2017-0199"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "exploits CVE-2017-0199 and calls the following URL"
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "certutil",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S0160",
+          "url": "https://attack.mitre.org/software/S0160"
+        }
+      ],
+      "description": "Utilitaire Windows employé pour décoder le fichier base64 en échantillon ISMAgent (certutil.exe -decode).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "certutil.exe"
+      ],
+      "x_gold_evidence_quote": "the malware is disguised as a base64 digital certificate and decoded via certutil.exe"
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "PowerShell",
+      "description": "Interpréteur lancé après l'exploitation de CVE-2017-0199 pour télécharger le fichier encodé (WebClient.DownloadString).",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_name_variants": [
+        "powershell.exe"
+      ],
+      "x_gold_evidence_quote": "“C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe” -nologo -WindowStyle Hidden",
+      "x_gold_context": "Artefact : la commande citée dans la section « change managment.dot ». Recouvre la technique requise T1059.001 ; PowerShell n'est pas un logiciel ATT&CK."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Exploitation for Client Execution",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1203",
+          "url": "https://attack.mitre.org/techniques/T1203"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "exploits CVE-2017-0199 and calls the following URL"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "PowerShell",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.001",
+          "url": "https://attack.mitre.org/techniques/T1059/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "“C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe” -nologo -WindowStyle Hidden $webClient = New-Object"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Ingress Tool Transfer",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1105",
+          "url": "https://attack.mitre.org/techniques/T1105"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The command downloads  _ntluca.txt_ from"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Hidden Window",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1564.003",
+          "url": "https://attack.mitre.org/techniques/T1564/003"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "-nologo -WindowStyle Hidden",
+      "x_gold_context": "Artefact : option -WindowStyle Hidden de la commande PowerShell (section « change managment.dot »). Le texte ne commente pas cette option."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--0d91b3c0-5e50-47c3-949a-2a796f04d144",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Encrypted/Encoded File",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1027.013",
+          "url": "https://attack.mitre.org/techniques/T1027/013"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Disguised as a base64 digital certificate, the file actually decodes to an ISMagent sample"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Deobfuscate/Decode Files or Information",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1140",
+          "url": "https://attack.mitre.org/techniques/T1140"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "decoded via certutil.exe"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--fd12a21b-f82d-5467-b43c-0228a3972084",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Recent ISMAgent Samples and Infrastructure by Iranian Threat Group GreenBug",
+      "x_gold_context": "Le titre attribue les échantillons et l'infrastructure à GreenBug ; l'article présente ces échantillons comme la nouvelle campagne. Niveau de confiance non précisé."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c7cddcd6-caea-50c8-bb64-c66c46f4a28e",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "target_ref": "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a trojan in use by Iranian Threat Group GreenBug",
+      "x_gold_context": "« a trojan » est l'apposition d'ISMAgent (texte du lien qui précède, première phrase)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--883d11d9-21cc-5b9c-a32a-a38f130a56db",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the file actually decodes to an ISMagent sample",
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). La chaîne aboutit à un échantillon ISMAgent."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--21b3a669-3a2d-557b-934f-1dd1f25dfd5d",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "vulnerability--c8ea031e-7c99-56a7-b275-f0d74a21d834",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "exploits CVE-2017-0199 and calls the following URL",
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f60fa260-046a-5bb7-9eda-2d140089dea6",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+      "target_ref": "vulnerability--c8ea031e-7c99-56a7-b275-f0d74a21d834",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "exploits CVE-2017-0199 and calls the following URL",
+      "x_gold_context": "Recouvrement avec la relation requise campagne → CVE-2017-0199 : T1203 représente cette exploitation."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0f1ecc44-34e8-5fc0-b018-d9c93dca6ee5",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the malware is disguised as a base64 digital certificate and decoded via certutil.exe",
+      "x_gold_context": "Première phrase, à propos du mécanisme de livraison de la campagne ; détaillé par la commande certutil -decode de la section « change managment.dot »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--61ae72d4-afd7-5678-9159-b718b26d113d",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "“C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe” -nologo -WindowStyle Hidden",
+      "x_gold_context": "Artefact : commande lancée après l'exploitation (« which in turn runs this command »). Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0cc69368-ae05-58a7-9993-242e9cac7f7b",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "certutil.exe” -decode",
+      "x_gold_context": "Artefact : commande certutil -decode qui transforme le fichier base64 en exécutable ISMAgent."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--288ad00e-4713-5a94-96e8-853438e72e79",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "exploits CVE-2017-0199 and calls the following URL",
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). L'exploitation du document conduit à l'exécution d'une commande (« which in turn runs this command »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--24f9192c-7646-5fd4-a005-73105f76b774",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "which in turn runs this command:",
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). La commande citée est un appel à powershell.exe."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6e8e24ff-dd7e-5772-ba43-7d89c91d3570",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The command downloads  _ntluca.txt_ from",
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d7737333-3fde-5637-924f-55621220ef1a",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "-nologo -WindowStyle Hidden",
+      "x_gold_context": "Artefact : option de la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d3b4c59a-d405-5094-831e-794f198e903f",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "attack-pattern--0d91b3c0-5e50-47c3-949a-2a796f04d144",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Disguised as a base64 digital certificate, the file actually decodes to an ISMagent sample",
+      "x_gold_context": "« the file » renvoie à ntluca.txt, téléchargé par la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ff9d6a93-381f-57c5-ac7c-7d8a5bf54db6",
+      "created": "2017-08-28T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the malware is disguised as a base64 digital certificate and decoded via certutil.exe",
+      "x_gold_context": "Première phrase, mécanisme de livraison de la campagne ; commande certutil -decode dans la section « change managment.dot »."
+    }
+  ]
+}

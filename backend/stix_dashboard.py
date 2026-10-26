@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from backend.database.stix_store import StixStore
-from backend.ontology.stix.iocs import ioc_status
+from backend.stix.iocs import ioc_status
 
 # Familles de types STIX regroupées par les filtres du frontend
 TYPE_FAMILIES: dict[str, frozenset[str]] = {
@@ -156,6 +156,7 @@ def _ioc_row(rec: dict, now: datetime) -> dict[str, Any]:
     labels = ind.get("labels") or []
     return {
         "id": ind["id"], "kind": obs["type"], "value": obs.get("value", ""), "algo": obs.get("hash_algo"),
+        "name": obs.get("name"), "hashes": json.loads(obs["hashes_json"]) if obs.get("hashes_json") else {},
         "role": labels[0] if labels else "unknown", "roles": labels, "confidence": ind.get("confidence"),
         "first_seen": min(firsts).date().isoformat() if firsts else None,
         "last_seen": last_seen.date().isoformat() if last_seen else None,
@@ -171,6 +172,22 @@ def iocs_of_article(article_id: int, store: StixStore | None = None, now: dateti
     now = now or datetime.now(timezone.utc)
     rows = [_ioc_row(r, now) for r in store.article_iocs(article_id)]
     return {"article_id": article_id, "iocs": rows, "count": len(rows)}
+
+
+def _rule_row(rec: dict) -> dict[str, Any]:
+    """Une règle de détection : son texte exact (`pattern`, validé à l'extraction, jamais réécrit) et l'entité détectée."""
+    r = rec["rule"]
+    return {
+        "id": r["id"], "kind": r.get("pattern_type", ""), "name": r.get("name", ""), "description": r.get("description"),
+        "source": r.get("pattern", ""), "confidence": r.get("confidence"), "article_ids": r.get("article_ids", []),
+        "detects": [{"id": t["id"], "name": t["name"], "type": t["type"]} for t in rec["targets"] if t.get("id")],
+    }  # fmt: skip
+
+
+def rules_of_article(article_id: int, store: StixStore | None = None) -> dict[str, Any]:
+    store = store or StixStore()
+    rows = [_rule_row(r) for r in store.article_rules(article_id)]
+    return {"article_id": article_id, "rules": rows, "count": len(rows)}
 
 
 def articles(store: StixStore | None = None) -> dict[str, Any]:

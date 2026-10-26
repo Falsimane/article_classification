@@ -31,7 +31,8 @@ export function filterIocs(rows: IocRow[], { activeOnly, search }: IocFilter): I
   const q = search.trim().toLowerCase();
   return rows.filter((r) => {
     if (activeOnly && r.status !== "active") return false;
-    return !q || r.value.toLowerCase().includes(q) || r.role.includes(q) || r.attached_to.some((t) => t.name.toLowerCase().includes(q));
+    const values = [r.value, r.name ?? "", ...Object.values(r.hashes ?? {})].map((v) => v.toLowerCase());
+    return !q || values.some((v) => v.includes(q)) || r.role.includes(q) || r.attached_to.some((t) => t.name.toLowerCase().includes(q));
   });
 }
 

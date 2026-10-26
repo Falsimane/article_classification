@@ -19,3 +19,6 @@ frontend/legacy/
 neo4j_data/
 neo4j_logs/
 neo4j_plugins/
+# Index ATT&CK v20.0 (construit par `python -m backend.ontology.stix.attack_kb`) et bundle officiel (52 Mo)
+backend/ontology/stix/reference/attack_v20.sqlite
+backend/ontology/stix/reference/enterprise-attack-*.json

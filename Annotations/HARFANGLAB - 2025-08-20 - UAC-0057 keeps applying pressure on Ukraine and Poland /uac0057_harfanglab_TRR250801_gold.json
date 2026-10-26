@@ -1,0 +1,3198 @@
+{
+  "type": "bundle",
+  "id": "bundle--4ff1b1fb-f5ec-5c07-b670-455a142397af",
+  "objects": [
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "id": "report--52e0472f-3d77-51ab-aebe-e823f901790b",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "UAC-0057 keeps applying pressure on Ukraine and Poland",
+      "description": "HarfangLab TRR250801. Deux campagnes (Ukraine mai-juillet 2025, Pologne avril-mai 2025) : XLS à macro VBA, downloaders C# et C++, C2 HTTP et Slack, une variante menant à Cobalt Strike. Rapprochement avec UAC-0057, sans attribution de haute confiance.",
+      "published": "2025-08-20T00:00:00.000Z",
+      "report_types": [
+        "threat-report",
+        "campaign",
+        "attack-pattern"
+      ],
+      "object_refs": [
+        "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+        "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+        "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+        "attack-pattern--045d0922-2310-4e60-b5e4-3302302cb3c5",
+        "attack-pattern--04fd5427-79c7-44ea-ae13-11b24778ff1c",
+        "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+        "attack-pattern--24bfaeba-cb0d-4525-b3dc-507c77ecec41",
+        "attack-pattern--2f6b4ed7-fef1-44ba-bcb8-1b4beb610b64",
+        "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+        "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+        "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
+        "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+        "attack-pattern--799ace7f-e227-4411-baa0-8868704f2a69",
+        "attack-pattern--88d31120-5bc7-4ce3-a9c0-7cf147be8e54",
+        "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+        "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+        "attack-pattern--a2fdce72-04b2-409a-ac10-cc1695f4fce0",
+        "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+        "attack-pattern--b97f1d35-4249-4486-a6b5-ee60ccf24fab",
+        "attack-pattern--be055942-6e63-49d7-9fa1-9cb7d8a8f3f4",
+        "attack-pattern--cba37adb-d6fb-4610-b069-dd04c0643384",
+        "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+        "attack-pattern--deb98323-e13f-4b0c-8d94-175379069062",
+        "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+        "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+        "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+        "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+        "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+        "intrusion-set--4a4be33a-2644-5033-8027-072d15b4ac3d",
+        "location--67f998ac-2c9a-5b70-9459-63fb55c949d5",
+        "location--a889ef92-b9f5-5f60-a215-6845c45e7d25",
+        "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+        "malware--a7881f21-e978-4fe4-af56-92c9416a2616",
+        "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+        "tool--001dd508-e3b5-5fc4-b8cf-df83a4a00044",
+        "tool--11fba9bf-4d88-5ef0-a1cd-0286dc15faae",
+        "tool--2a668b3b-def6-54ad-8cd6-91ee5054e348",
+        "relationship--011a7831-b367-5260-8c0f-c023199db63e",
+        "relationship--04a2de66-f7a3-5479-b7d0-3c5ee029a4cc",
+        "relationship--05b93277-437d-518f-9d76-03976baa26fc",
+        "relationship--05bd6427-ef42-5cd6-bd80-f72bb95ee2ed",
+        "relationship--07d7baa2-9d51-5266-8751-1b12a4b4fecb",
+        "relationship--0b51236b-c32f-5834-a259-4f5302b0a78f",
+        "relationship--0bc16830-accc-54d8-afd3-4e95e52df25b",
+        "relationship--0ef51dbc-96aa-5fe7-8592-53199b1a9c92",
+        "relationship--12041340-7a93-5dd9-b87d-8568d7f51ab6",
+        "relationship--1a2b08a5-0b19-5f79-928f-4baa24764f5a",
+        "relationship--1b8b0308-781c-5a0f-a864-2b730d314888",
+        "relationship--1cbb38ce-9c8e-55b1-a8b0-38f10ca06380",
+        "relationship--24a0f23d-805d-5dae-b1f5-ece26e864556",
+        "relationship--26f378f6-66ba-5924-93df-3ccdd22f4962",
+        "relationship--2a4c4fde-713e-52aa-ae9e-0bbf19f2d7bf",
+        "relationship--2eaf26b8-92a0-586f-a071-21451b33c259",
+        "relationship--323f83ea-c349-56c8-8ccf-7cbd93630bed",
+        "relationship--345df735-0f2b-58ef-872e-bbc436ef80cf",
+        "relationship--38902e9e-6cc0-5b9b-86f2-c72e8add3af4",
+        "relationship--394160e0-8c90-5385-bc4a-372041f3f083",
+        "relationship--3c03738e-6961-576a-a298-d15703648515",
+        "relationship--3cbd8375-b448-5756-a674-14dfa4dee0da",
+        "relationship--3dee7a13-8090-5d28-8dbc-7d9a84300074",
+        "relationship--3f611943-4340-5cab-99e4-7fed0b931ab3",
+        "relationship--40958397-de2d-5085-b697-0f18bbbb4bd7",
+        "relationship--420bafb4-1b18-5f7b-820f-905782640914",
+        "relationship--491541bb-6149-586a-b313-77c52e34da38",
+        "relationship--4f3a1f0f-7696-5666-b3ba-aeb77be87e30",
+        "relationship--51a76f64-761c-520d-8f0e-fd807ee9e8a9",
+        "relationship--53b9ae5a-fa51-505f-8a25-11358fa57ec9",
+        "relationship--5f865a21-66ab-5f2c-9e9e-12b447a7c082",
+        "relationship--5f922487-2941-597d-bebf-0e57618be9f2",
+        "relationship--6165b051-692b-5271-88f4-db1b7ec0af48",
+        "relationship--630b96ed-2df9-528e-bf98-57aeb0988c0e",
+        "relationship--641e1417-b8b9-5ee1-8bea-a407ccb69c65",
+        "relationship--650a0c5f-9818-5c40-bcab-bee6ae942ff1",
+        "relationship--6878aa90-c21e-5994-aede-e81a79899f58",
+        "relationship--6b7754c4-7e3a-5fe5-8722-10696dd549b7",
+        "relationship--6c77fbfb-6be1-55ef-b9c8-d5af73cb2f19",
+        "relationship--6d5211dd-c419-5d6e-b9a3-6b6fb9d88e46",
+        "relationship--6d99fc2e-c379-5be1-a187-159fcb71a197",
+        "relationship--6db037dc-d435-5d25-894f-6dd9982c8b5f",
+        "relationship--710ac479-a40c-5caf-8a53-5940b62399d8",
+        "relationship--7331dff0-1355-5afb-a3cb-89449b184d6d",
+        "relationship--7805a888-a6f6-539b-a696-85f8af26f766",
+        "relationship--788f7648-9522-51ba-a5aa-cb4d49c395c1",
+        "relationship--7db183a6-d824-5ebd-92c8-cff9b959ff23",
+        "relationship--7fab943a-cd22-5535-88c8-5a1ce0329187",
+        "relationship--846113b1-b35a-554c-a701-a72aac463e81",
+        "relationship--888ed563-07f4-53d1-8ab9-bd8624bdf884",
+        "relationship--9573c4ac-d3c3-50b0-89ec-b7456a8d5a1b",
+        "relationship--971f2cd1-2986-527a-b939-0f3c97351887",
+        "relationship--989cf783-dd87-5bc6-b9c8-c77bee342cf6",
+        "relationship--9a265468-a437-57c3-ab1b-644b20edaa46",
+        "relationship--9d8b649f-3fef-5e81-9431-063e204c4644",
+        "relationship--a104544e-1c37-511e-bd35-61f934d0bf93",
+        "relationship--a48efc60-ee71-5321-aa5a-bd28616f6b6f",
+        "relationship--a57028e9-f27e-538f-aa03-c394dd699a8f",
+        "relationship--abf14b40-f202-5be3-a6c9-d5349b9b0beb",
+        "relationship--ad29871a-80b1-501f-ad2c-a7569280d84b",
+        "relationship--b130d48a-335e-57a9-a8cf-ff6800c0672b",
+        "relationship--b15ca514-65e1-5ed2-8de8-96a32128fb95",
+        "relationship--b1ded065-f1b7-5836-9f8a-3b02f9cc9caa",
+        "relationship--b316d655-b20e-5aa9-a9c1-d9c4cd9fefaf",
+        "relationship--b453fb84-5caa-5674-a6ca-a9b57956b079",
+        "relationship--bca52e00-c8fa-5b70-a133-732bd9ebbe66",
+        "relationship--bdb448c2-1825-5f01-a4f1-362bffb6da54",
+        "relationship--bdec48a5-ba4c-5424-ab6f-43931e47a2ef",
+        "relationship--c08eca65-8d6d-5441-96b9-524eba925c0e",
+        "relationship--c226e780-cd94-5ab0-8b0b-170192a11b08",
+        "relationship--c3920638-6b67-52e0-878d-d02e9feec2da",
+        "relationship--c3c08cae-5cef-5002-babd-c87322845cae",
+        "relationship--c57c4d3b-afbd-5ed7-93ef-dc0915186d3a",
+        "relationship--c83c1008-d998-599f-a239-419f49c54563",
+        "relationship--c859b8d8-ec0a-5388-b059-7624087b0282",
+        "relationship--c940446c-4eac-5893-941f-63d5638e2b60",
+        "relationship--cc3316c0-d602-5967-9b07-ee7606e17dde",
+        "relationship--cc556b2a-e478-5d97-9704-3144558cd654",
+        "relationship--cd19695d-709d-5d40-95da-ffd99a81fa8b",
+        "relationship--d119e3b4-d0ff-5579-b28c-a3e0b69e70d0",
+        "relationship--d360bcf3-a0f4-5e74-9e4d-85cb6221358c",
+        "relationship--db3d4f77-66f6-5c00-8ed2-f277f6149065",
+        "relationship--db885ea8-ac0e-554e-b2b1-fc18599b3c80",
+        "relationship--de592489-e8fd-5d7e-adb3-1a5c3c991aa3",
+        "relationship--e05d3379-e6ee-5bde-ad6b-b05eec8136e8",
+        "relationship--e0defe9a-3571-5d52-a78e-26d761dbfe85",
+        "relationship--e11db69a-7e7f-5b07-9e6a-50637924be2f",
+        "relationship--e5ce2671-358c-5ec9-8960-07b485616a2d",
+        "relationship--e81fce64-4040-5eaf-9855-58d16293fbb4",
+        "relationship--eca8e8bd-1389-526e-bd92-a74c84e51c5b",
+        "relationship--f0bf0db8-5b47-5a60-982b-1f16be16a740",
+        "relationship--fde969cb-a1be-5a31-a70f-7674592ca638",
+        "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+        "relationship--9012a816-524a-52db-8c06-268d685dc8f4",
+        "relationship--07ee4667-f4ac-5373-8f76-07d8a4f3de8e",
+        "attack-pattern--4eeaf8a9-c86b-4954-a663-9555fb406466",
+        "relationship--e409ff2a-fbb6-5e39-a398-945f01a166df",
+        "relationship--494e4b9e-3b82-5dd1-b52c-f7e14b97f751",
+        "attack-pattern--43f2776f-b4bd-4118-94b8-fee47e69676d",
+        "relationship--1c1c4431-4ee2-5cbb-a1b3-9647c7bdb564",
+        "relationship--3e567e1e-6aea-514c-82c2-edd48af45572",
+        "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+        "malware--b7570bd3-502a-5407-90f4-0809bc66e6d5",
+        "relationship--5140d053-6605-5fa2-b75d-3788fc516796",
+        "relationship--66c64ff8-d593-5413-ad7b-043267a29468",
+        "relationship--915e92a5-3631-5993-bd95-35bf4b4f379d",
+        "relationship--c6dee7c0-1959-5c9b-a3a3-afb5be76b3fc",
+        "relationship--27f3008c-face-59f1-8f07-a54c82cf1a76",
+        "relationship--a6df153d-786d-57a5-be60-d44c2f4db156",
+        "relationship--c0dedecf-de08-53a4-8217-dbdcdce10dd3",
+        "tool--de4a3421-21bf-5bac-a43c-b36cac6b9a7e",
+        "tool--1a6b0a1c-05a7-590a-a5e2-0ea9a11afcae",
+        "tool--ca656c25-44f1-471b-9d9f-e2a3bbb84973",
+        "tool--bba595da-b73a-4354-aa6c-224d4de7cb4e",
+        "relationship--5725ca2f-ffcc-5a02-b370-6ee4236e3497",
+        "relationship--f483dcb6-2d5c-54f4-afd9-4cd019ed325c",
+        "relationship--718008ca-d990-5c66-9860-f4d370e413bc",
+        "relationship--960c1fa6-2775-57d4-87bc-e244bef6b432",
+        "relationship--f94b261b-c302-5748-9203-4c4c03b5cd64",
+        "relationship--a0e177e7-a209-544a-9979-e9b5dc411f91",
+        "relationship--9ca566f8-947b-525c-bdc1-a9e115031117",
+        "relationship--1b48ec91-6d7a-5715-bffb-5f804ab2a566",
+        "relationship--11d7a727-9fe9-53f7-bc31-8de3798c5e97",
+        "relationship--2bb325b3-feb8-5fd2-8c2c-6e54f2b6222c",
+        "relationship--fd8288fa-8c34-50e5-81b7-0e6d8506fa35",
+        "relationship--36731b87-9ac6-5632-9740-03a882f40b9e",
+        "relationship--f350ba40-d299-51bf-aace-3fb2854d5774",
+        "relationship--c991c6ca-69af-5e9d-9c63-6ddb32152e2d",
+        "infrastructure--f5eb6385-5320-5605-9880-e70a4d9c3039",
+        "relationship--03222065-f1e0-5c44-9b4e-0fd2c3256baf",
+        "relationship--9f32c61b-bce6-59ca-8fc5-5da45e9c7adc"
+      ],
+      "external_references": [
+        {
+          "source_name": "HarfangLab",
+          "external_id": "TRR250801",
+          "url": "https://harfanglab.io/insidethelab/uac-0057-pressure-ukraine-poland/"
+        }
+      ],
+      "x_gold_attack_version": "20.0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "_Identifier: TRR250801_."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Scheduled Task",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1053.005",
+          "url": "https://attack.mitre.org/techniques/T1053/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "registering a scheduled task named `\\UpdateSDX` which runs the following command at user logon"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Windows Management Instrumentation",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1047",
+          "url": "https://attack.mitre.org/techniques/T1047"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "CPU name (using a WMI query);"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "System Owner/User Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1033",
+          "url": "https://attack.mitre.org/techniques/T1033"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "current user name;"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--045d0922-2310-4e60-b5e4-3302302cb3c5",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Rundll32",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1218.011",
+          "url": "https://attack.mitre.org/techniques/T1218/011"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "and run using the following command: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--04fd5427-79c7-44ea-ae13-11b24778ff1c",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Standard Encoding",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1132.001",
+          "url": "https://attack.mitre.org/techniques/T1132/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This information is arranged in a JSON-formatted structure, Base64-encoded"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Match Legitimate Resource Name or Location",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1036.005",
+          "url": "https://attack.mitre.org/techniques/T1036/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "For the retrieved next stage, it creates `MicrosoftDefender` with the value: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--24bfaeba-cb0d-4525-b3dc-507c77ecec41",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Symmetric Cryptography",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1573.001",
+          "url": "https://attack.mitre.org/techniques/T1573/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This data is concatenated, RC4-encrypted with a 256 bytes key, and Base64-encoded prior to being sent to the C2 server"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--2f6b4ed7-fef1-44ba-bcb8-1b4beb610b64",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Component Object Model",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1559.001",
+          "url": "https://attack.mitre.org/techniques/T1559/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "run the next stage using a `WScript.Shell` object instantiated via the COM API"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "System Information Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1082",
+          "url": "https://attack.mitre.org/techniques/T1082"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "collects the following pieces of information about the compromised system: OS platform identifier and version; hostname;"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Deobfuscate/Decode Files or Information",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1140",
+          "url": "https://attack.mitre.org/techniques/T1140"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In this sample, the VBA macro decrypts the DLL and ultimately writes it to `%LOCALAPPDATA%\\Serv\\0x00bac729fe.log`."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Domains",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1583.001",
+          "url": "https://attack.mitre.org/techniques/T1583/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "resource-development"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The following table lists the C2 domains used for both the campaign targeting Ukraine and the campaign targeting Poland, since April 2025."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "System Network Configuration Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1016",
+          "url": "https://attack.mitre.org/techniques/T1016"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "information about the IP address which is used to browse on the Internet"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--799ace7f-e227-4411-baa0-8868704f2a69",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Indicator Removal",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1070",
+          "url": "https://attack.mitre.org/techniques/T1070"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "and launches an instance of this scheduled task before deleting it."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--88d31120-5bc7-4ce3-a9c0-7cf147be8e54",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Web Services",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1583.006",
+          "url": "https://attack.mitre.org/techniques/T1583/006"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "resource-development"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Associated Slack teams IDs appear to match Slack “free subscription” offer"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Exfiltration Over C2 Channel",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1041",
+          "url": "https://attack.mitre.org/techniques/T1041"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "exfiltration"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sends that information to the C2 server"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Registry Run Keys / Startup Folder",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1547.001",
+          "url": "https://attack.mitre.org/techniques/T1547/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It establishes persistence using the current user’s “Run” registry key"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--a2fdce72-04b2-409a-ac10-cc1695f4fce0",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Tool",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1588.002",
+          "url": "https://attack.mitre.org/techniques/T1588/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "resource-development"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The toolset we analyzed notably relies on readily available tools for obfuscation or packing purposes."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Obfuscated Files or Information",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1027",
+          "url": "https://attack.mitre.org/techniques/T1027"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The obfuscation in this sample is consistent with the use of _MacroPack_ with all options for obfuscation being enabled"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--b97f1d35-4249-4486-a6b5-ee60ccf24fab",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Regsvr32",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1218.010",
+          "url": "https://attack.mitre.org/techniques/T1218/010"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once executed, the macro drops a DLL which is loaded using `regsvr32.exe`."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--be055942-6e63-49d7-9fa1-9cb7d8a8f3f4",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Bidirectional Communication",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1102.002",
+          "url": "https://attack.mitre.org/techniques/T1102/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These downloaders use Slack as a C2 server, leveraging the webhook mechanism to upload data. Once the data is uploaded, they immediately attempt to download a next stage from a download URL ending with `.jpg`",
+      "x_gold_context": "Bidirectionnel : les données sont envoyées par webhook Slack, puis le stade suivant est téléchargé. L'annexe IOC donne des URL files.slack[.]com comme « C2 URL (Slack) », donc le téléchargement passe aussi par Slack."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--cba37adb-d6fb-4610-b069-dd04c0643384",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Security Software Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1518.001",
+          "url": "https://attack.mitre.org/techniques/T1518/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "installed antivirus product name and installation date (using a WMI query);"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Windows Command Shell",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.003",
+          "url": "https://attack.mitre.org/techniques/T1059/003"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the implant saves the payload to that path and runs it using the provided command (spawned via `cmd.exe /c`)"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--deb98323-e13f-4b0c-8d94-175379069062",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Software Packing",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1027.002",
+          "url": "https://attack.mitre.org/techniques/T1027/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "has been packed with _UPX_"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Web Protocols",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1071.001",
+          "url": "https://attack.mitre.org/techniques/T1071/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sent as a cookie (`mod0api`) value to the C2 server via an HTTP POST request"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Visual Basic",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.005",
+          "url": "https://attack.mitre.org/techniques/T1059/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These archives contain XLS spreadsheets with a VBA macro that drops and loads a DLL."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Ingress Tool Transfer",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1105",
+          "url": "https://attack.mitre.org/techniques/T1105"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "periodically attempts to retrieve a next stage from the C2"
+    },
+    {
+      "type": "campaign",
+      "spec_version": "2.1",
+      "id": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Campagne ciblant la Pologne (avril-mai 2025)",
+      "description": "XLS à macro VBA obfusquée par MacroPack déposant un downloader C# (C2 Slack, avril 2025), un downloader C++ (mai 2025) ou une chaîne menant à Cobalt Strike (mai 2025).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In this section, we describe infection chains targeting Poland in April and May 2025.",
+      "x_gold_sequence": [
+        {
+          "order": 1,
+          "summary": "Ouverture du XLS : la macro VBA obfusquée (MacroPack) dépose un CAB ou une DLL chiffrée, puis l'extrait ou la déchiffre.",
+          "techniques": [
+            "T1059.005",
+            "T1027",
+            "T1140"
+          ],
+          "techniques_acceptable": [
+            "T1204.002"
+          ]
+        },
+        {
+          "order": 2,
+          "summary": "Chargement de la DLL par rundll32, via un LNK lancé par ShellExec_RunDLL ou via ShellExecute.",
+          "techniques": [
+            "T1218.011"
+          ]
+        },
+        {
+          "order": 3,
+          "summary": "Downloader C++ uniquement : persistance par la tâche planifiée \\UpdateSDX (TaskScheduler COM). Le downloader C# n'a pas de persistance.",
+          "techniques": [
+            "T1053.005",
+            "T1559.001"
+          ]
+        },
+        {
+          "order": 4,
+          "summary": "Collecte d'informations système (OS, hôte, utilisateur, antivirus via WMI, IP externe).",
+          "techniques": [
+            "T1082",
+            "T1033",
+            "T1518.001",
+            "T1047",
+            "T1016"
+          ]
+        },
+        {
+          "order": 5,
+          "summary": "Envoi au C2 : webhook Slack (données chiffrées RC4 et encodées Base64) ou HTTP POST (JSON Base64).",
+          "techniques": [
+            "T1102.002",
+            "T1071.001",
+            "T1573.001",
+            "T1132.001",
+            "T1041"
+          ],
+          "techniques_acceptable": [
+            "T1567.004"
+          ]
+        },
+        {
+          "order": 6,
+          "summary": "Téléchargement et déchiffrement (RC4 ou XOR) du stade suivant, exécuté via WScript.Shell (COM) ou via une tâche planifiée RuntimeBroker supprimée ensuite.",
+          "techniques": [
+            "T1105",
+            "T1140",
+            "T1559.001",
+            "T1053.005",
+            "T1218.011"
+          ],
+          "techniques_acceptable": [
+            "T1070",
+            "T1036.005"
+          ]
+        },
+        {
+          "order": 7,
+          "summary": "Variante (mai 2025) : DiagnExp.dll (UPX) écrit DiagnosticComponents.dll, l'exécute par la tâche planifiée \\ExpDiagnosticDataSettings et charge un Beacon Cobalt Strike.",
+          "techniques": [
+            "T1027.002",
+            "T1053.005"
+          ],
+          "concurrent": true
+        }
+      ]
+    },
+    {
+      "type": "campaign",
+      "spec_version": "2.1",
+      "id": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Campagne ciblant l'Ukraine (mai-juillet 2025)",
+      "description": "Archives contenant des XLS à macro VBA qui déposent et chargent un downloader C# (regsvr32), de fin mai à fin juillet 2025.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "We identified a cluster of compressed archive files which were likely intended to be delivered to Ukrainian targets between late May 2025 and late July 2025.",
+      "x_gold_sequence": [
+        {
+          "order": 1,
+          "summary": "Ouverture du XLS (archive RAR/ZIP) : la macro VBA, partiellement obfusquée (MacroPack), écrit la DLL, en clair, déchiffrée ou via un CAB extrait par expand.exe.",
+          "techniques": [
+            "T1059.005",
+            "T1027",
+            "T1140"
+          ],
+          "techniques_acceptable": [
+            "T1204.002"
+          ]
+        },
+        {
+          "order": 2,
+          "summary": "Chargement de la DLL par regsvr32 /u /s, directement (ShellExecute) ou via un LNK « Protection overview.lnk ».",
+          "techniques": [
+            "T1218.010"
+          ]
+        },
+        {
+          "order": 3,
+          "summary": "Le downloader C# s'installe en persistance dans la clé Run de l'utilisateur.",
+          "techniques": [
+            "T1547.001"
+          ],
+          "techniques_acceptable": [
+            "T1036.005"
+          ]
+        },
+        {
+          "order": 4,
+          "summary": "Collecte d'informations système (OS, hôte, utilisateur, antivirus via WMI, IP externe).",
+          "techniques": [
+            "T1082",
+            "T1033",
+            "T1518.001",
+            "T1047",
+            "T1016"
+          ]
+        },
+        {
+          "order": 5,
+          "summary": "Envoi des informations, encodées en Base64, au C2 par HTTP POST.",
+          "techniques": [
+            "T1071.001",
+            "T1132.001",
+            "T1041"
+          ],
+          "techniques_acceptable": [
+            "T1029"
+          ]
+        },
+        {
+          "order": 6,
+          "summary": "Récupération périodique du stade suivant, exécuté via rundll32 ou cmd.exe /c, avec persistance Run optionnelle.",
+          "techniques": [
+            "T1105",
+            "T1218.011",
+            "T1059.003",
+            "T1547.001"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--4a4be33a-2644-5033-8027-072d15b4ac3d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "UAC-0057",
+      "aliases": [
+        "UNC1151",
+        "FrostyNeighbor",
+        "Ghostwriter"
+      ],
+      "description": "Acteur de cyberespionnage auquel l'article rapproche les deux campagnes, sans attribution de haute confiance.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "associated with _UAC-0057_ (also known as _UNC1151_ , _FrostyNeighbor_ or _Ghostwriter_), a cyber espionage actor"
+    },
+    {
+      "type": "location",
+      "spec_version": "2.1",
+      "id": "location--67f998ac-2c9a-5b70-9459-63fb55c949d5",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Ukraine",
+      "country": "UA",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we believe that organisations or individuals in Ukraine and in Poland were the intended targets"
+    },
+    {
+      "type": "location",
+      "spec_version": "2.1",
+      "id": "location--a889ef92-b9f5-5f60-a215-6845c45e7d25",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Poland",
+      "country": "PL",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we believe that organisations or individuals in Ukraine and in Poland were the intended targets"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "C++ downloader",
+      "is_family": true,
+      "malware_types": [
+        "downloader"
+      ],
+      "description": "Implant de premier stade C++ (SDXHelp.dll) packé avec UPX ; persistance par tâche planifiée, collecte d'informations système, téléchargement d'une DLL chiffrée par XOR. Campagne ciblant la Pologne (mai 2025).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "SDXHelp.dll",
+        "First stage C++ DLL implant"
+      ],
+      "x_gold_evidence_quote": "The implant is a C++ DLL which has a single export named `Start` and has been packed with _UPX_."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--a7881f21-e978-4fe4-af56-92c9416a2616",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Cobalt Strike",
+      "is_family": true,
+      "description": "Beacon chargé par DiagnosticComponents.dll dans une variante de la chaîne d'infection ciblant la Pologne.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S0154",
+          "url": "https://attack.mitre.org/software/S0154"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "Cobalt Strike Beacon",
+        "Beacon"
+      ],
+      "x_gold_type_alternatives": [
+        "tool"
+      ],
+      "x_gold_evidence_quote": "acts as a loader for a _Cobalt Strike Beacon_"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "C# downloader",
+      "is_family": true,
+      "malware_types": [
+        "downloader"
+      ],
+      "description": "Implant de premier stade .NET (C#) obfusqué avec ConfuserEx, chargé depuis le XLS ; collecte d'informations système, envoi au C2 (HTTP ou Slack), récupération d'un stade suivant. Utilisé dans les deux campagnes.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "InfoUploader.dll",
+        "Downloader.dll",
+        "jkyhrgkek30.dll",
+        "first stage C# DLL implant",
+        "C# downloaders"
+      ],
+      "x_gold_evidence_quote": "They serve as downloaders for an unidentified next stage, and have the ability to collect information about the compromised system."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--001dd508-e3b5-5fc4-b8cf-df83a4a00044",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "UPX",
+      "description": "Packer appliqué aux DLL C++ (SDXHelp.dll, DiagnExp.dll).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "has been packed with _UPX_"
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--11fba9bf-4d88-5ef0-a1cd-0286dc15faae",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "ConfuserEx",
+      "description": "Obfuscateur .NET appliqué aux downloaders C#.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "is written in C# and obfuscated using _ConfuserEx_"
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--2a668b3b-def6-54ad-8cd6-91ee5054e348",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "MacroPack",
+      "description": "Outil offensif public utilisé pour obfusquer les macros VBA.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "_MacroPack_ (an offensive security tool which is available on GitHub)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--011a7831-b367-5260-8c0f-c023199db63e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--04fd5427-79c7-44ea-ae13-11b24778ff1c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This information is arranged in a JSON-formatted structure, Base64-encoded",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : le sujet est l'implant C# sdw9gobh0n.log. Les downloaders C# de la Pologne encodent aussi en Base64."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--04a2de66-f7a3-5479-b7d0-3c5ee029a4cc",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "For the retrieved next stage, it creates `MicrosoftDefender` with the value: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : c'est l'implant de la campagne Ukraine qui crée la valeur Run « MicrosoftDefender » ; la macro de роз'яснення.xls écrit aussi la DLL sous %TEMP%\\DefenderProtectionScope.log. Artefact : la valeur Run « MicrosoftDefender » (et le fichier DefenderProtectionScope.log) reprend un nom légitime. L'article ne parle pas lui-même de masquerading."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--05b93277-437d-518f-9d76-03976baa26fc",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "OS install date (using a WMI query);",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la citation est un élément de la liste introduite par « Upon execution, it collects the following information about the host », dont le sujet est l'implant SDXHelp.dll. Les downloaders C# d'avril utilisent aussi des requêtes WMI."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--05bd6427-ef42-5cd6-bd80-f72bb95ee2ed",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "tool--2a668b3b-def6-54ad-8cd6-91ee5054e348",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Both samples contain a very similar VBA macro, obfuscated with _MacroPack_",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « XLS spreadsheets » : « Both samples » désigne 2_39ZO ZGWRP_program.xls et pks_250422325349_01.xls, XLS des archives envoyées depuis la Pologne en avril 2025."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--07d7baa2-9d51-5266-8751-1b12a4b4fecb",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "tool--11fba9bf-4d88-5ef0-a1cd-0286dc15faae",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The dropped implants are C# .NET DLL assemblies, obfuscated with _ConfuserEx_ and internally named `jkyhrgkek30.dll`.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : implants déposés par les XLS d'avril de la campagne Pologne."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0b51236b-c32f-5834-a259-4f5302b0a78f",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "has an obfuscated VBA macro that decrypts and drops a DLL to `%LOCALAPPDATA%\\SDXHelp\\SDXHelp.dll`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « XLS spreadsheet » : XLS commun à BHP.zip et Z-15a.rar, rattachés à la campagne Pologne. Même comportement ailleurs : extraction du CAB par expand.exe, déchiffrement RC4 et XOR du stade suivant."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0bc16830-accc-54d8-afd3-4e95e52df25b",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant is a C++ DLL which has a single export named `Start` and has been packed with _UPX_.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls). Le downloader C++ n'apparaît que dans la campagne Pologne (« C# downloaders only for Ukraine but C++ downloaders for Poland »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0ef51dbc-96aa-5fe7-8592-53199b1a9c92",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These archives contain XLS spreadsheets with a VBA macro that drops and loads a DLL.",
+      "x_gold_context": "« These archives » renvoie au cluster de la phrase précédente (section « Infection chains »), « likely intended to be delivered to Ukrainian targets between late May 2025 and late July 2025 ». La campagne Pologne n'est introduite qu'au paragraphe suivant."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--12041340-7a93-5dd9-b87d-8568d7f51ab6",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "location--67f998ac-2c9a-5b70-9459-63fb55c949d5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "which were likely intended to be delivered to Ukrainian targets"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1a2b08a5-0b19-5f79-928f-4baa24764f5a",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "CPU name (using a WMI query);"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1b8b0308-781c-5a0f-a864-2b730d314888",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "current user name;"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1cbb38ce-9c8e-55b1-a8b0-38f10ca06380",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sent as a cookie (`mod0api`) value to the C2 server via an HTTP POST request",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : le sujet est l'implant C# sdw9gobh0n.log."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--24a0f23d-805d-5dae-b1f5-ece26e864556",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the implant saves the payload to that path and runs it using the provided command (spawned via `cmd.exe /c`)",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : le downloader C# déposé par les XLS ukrainiens exécute la charge reçue du C2 via cmd.exe /c. Les downloaders C# de la Pologne lancent leur stade suivant via WScript.Shell, pas via cmd."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--26f378f6-66ba-5924-93df-3ccdd22f4962",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--799ace7f-e227-4411-baa0-8868704f2a69",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "and launches an instance of this scheduled task before deleting it.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : c'est SDXHelp.dll qui enregistre puis supprime la tâche RuntimeBroker. Le downloader C++ n'apparaît que dans la campagne Pologne (« C# downloaders only for Ukraine but C++ downloaders for Poland »). Artefact : la tâche planifiée « RuntimeBroker » est supprimée après exécution. Le but (effacement de traces) n'est pas énoncé ; T1070.009 est non retenue car la tâche ne servait pas à la persistance."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2a4c4fde-713e-52aa-ae9e-0bbf19f2d7bf",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "current user name;",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : la citation est un élément de la liste introduite par « `DefenderProtectionScope.log` (internal name: `InfoUploader.dll`) collects the following pieces of information about the compromised system ». Les trois occurrences de cette ligne (Variant 1, Variant 2, implants C# de la Pologne) décrivent toutes le downloader C# ; le downloader C++ écrit « username »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2eaf26b8-92a0-586f-a071-21451b33c259",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sent as a cookie (`mod0api`) value to the C2 server via an HTTP POST request",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : l'implant sdw9gobh0n.log envoie les données au C2 par HTTP POST. Variant 1 fait de même (« sent as form data [...] via an HTTP POST request »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--323f83ea-c349-56c8-8ccf-7cbd93630bed",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--be055942-6e63-49d7-9fa1-9cb7d8a8f3f4",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These downloaders use Slack as a C2 server, leveraging the webhook mechanism to upload data. Once the data is uploaded, they immediately attempt to download a next stage from a download URL ending with `.jpg`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : « These downloaders » renvoie aux implants C# d'avril. La section « Slack teams » le confirme : « Other first stage samples that we associate with a campaign targeting Poland use Slack as a C2 channel »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--345df735-0f2b-58ef-872e-bbc436ef80cf",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "intrusion-set--4a4be33a-2644-5033-8027-072d15b4ac3d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "led us to consider an attribution of reported activities to UAC-0057",
+      "x_gold_context": "Niveau non précisé (seule la haute confiance est explicitement exclue) : confidence absent."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--38902e9e-6cc0-5b9b-86f2-c72e8add3af4",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The following table lists the C2 domains used for both the campaign targeting Ukraine and the campaign targeting Poland, since April 2025.",
+      "x_gold_context": "Section « Infrastructure » > « C2 domains » : le tableau couvre les deux campagnes. L'annexe IOC rattache punandjokes, kitchengardenseeds et sweetgeorgiayarns à la campagne Ukraine ; ces domaines sont enregistrés chez PublicDomainRegistry en février-mars 2025 et imitent des domaines légitimes. Table des C2 avec registrar et date d'enregistrement, et domaines imitant des domaines légitimes."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--394160e0-8c90-5385-bc4a-372041f3f083",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "For the retrieved next stage, it creates `MicrosoftDefender` with the value: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : c'est l'implant C# DefenderProtectionScope.log qui crée la valeur Run « MicrosoftDefender ». Artefact : la valeur Run « MicrosoftDefender » reprend un nom légitime."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3c03738e-6961-576a-a298-d15703648515",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The decrypted DLL is written to `%LOCALAPPDATA%\\Runtime\\RuntimeBroker.dll`.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : DLL et tâche planifiée RuntimeBroker créées par SDXHelp.dll ; en avril, la macro écrit aussi %PROGRAMDATA%\\OfficeRuntimeBroker.xlam et OfficeRuntimeBroker.lnk. Artefacts : noms RuntimeBroker.dll / tâche RuntimeBroker / OfficeRuntimeBroker imitant des composants Windows. L'article ne parle pas lui-même de masquerading."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3cbd8375-b448-5756-a674-14dfa4dee0da",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sends that information to the C2 server",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : le sujet de la phrase est « The dropped DLL, which we will later refer to as the first stage implant », c'est-à-dire la DLL déposée par les XLS de la campagne Ukraine."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3dee7a13-8090-5d28-8dbc-7d9a84300074",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Upon execution, they collect the following information from the compromised system: OS platform identifier and version; hostname;",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : « they » désigne les implants C# d'avril. SDXHelp.dll (mai) collecte aussi ces informations."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3f611943-4340-5cab-99e4-7fed0b931ab3",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "collects the following pieces of information about the compromised system: OS platform identifier and version; hostname;",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : le sujet de la phrase est DefenderProtectionScope.log (internal name: InfoUploader.dll), downloader C#."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--40958397-de2d-5085-b697-0f18bbbb4bd7",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "registering a scheduled task named `\\UpdateSDX` which runs the following command at user logon",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : tâche \\UpdateSDX enregistrée par SDXHelp.dll. La variante Cobalt Strike (même section Pologne) enregistre aussi la tâche \\ExpDiagnosticDataSettings."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--420bafb4-1b18-5f7b-820f-905782640914",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "tool--001dd508-e3b5-5fc4-b8cf-df83a4a00044",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant is a C++ DLL which has a single export named `Start` and has been packed with _UPX_.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls). La variante Cobalt Strike de la même campagne (DiagnExp.dll) est aussi packée avec UPX."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--491541bb-6149-586a-b313-77c52e34da38",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the implant saves the payload to that path and runs it using the provided command (spawned via `cmd.exe /c`)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4f3a1f0f-7696-5666-b3ba-aeb77be87e30",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--24bfaeba-cb0d-4525-b3dc-507c77ecec41",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This data is concatenated, RC4-encrypted with a 256 bytes key, and Base64-encoded prior to being sent to the C2 server",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : « This data » désigne les informations collectées par les implants C# d'avril."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--51a76f64-761c-520d-8f0e-fd807ee9e8a9",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--a2fdce72-04b2-409a-ac10-cc1695f4fce0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The toolset we analyzed notably relies on readily available tools for obfuscation or packing purposes.",
+      "x_gold_context": "Résumé de l'article : « The toolset » désigne celui des deux clusters (Ukraine et Pologne). Pour la campagne Pologne, les outils publics sont MacroPack, ConfuserEx et UPX."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--53b9ae5a-fa51-505f-8a25-11358fa57ec9",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--deb98323-e13f-4b0c-8d94-175379069062",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "has been packed with _UPX_"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--5f865a21-66ab-5f2c-9e9e-12b447a7c082",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--04fd5427-79c7-44ea-ae13-11b24778ff1c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This information is arranged in a JSON-formatted structure, Base64-encoded",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : l'implant sdw9gobh0n.log encode en Base64 les informations collectées avant l'envoi au C2."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--5f922487-2941-597d-bebf-0e57618be9f2",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "username;",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la citation est un élément de la liste introduite par « Upon execution, it collects the following information about the host », dont le sujet est l'implant SDXHelp.dll. Seule la liste du C++ écrit « username » ; les listes C# écrivent « current user name »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6165b051-692b-5271-88f4-db1b7ec0af48",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "information about the IP address which is used to browse on the Internet (retrieved by sending an HTTP GET request to",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : la citation est un élément de la liste introduite par « `DefenderProtectionScope.log` (internal name: `InfoUploader.dll`) collects the following pieces of information about the compromised system ». La fin de la ligne, « (retrieved by sending an HTTP GET request to », n'apparaît que dans Variant 1."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--630b96ed-2df9-528e-bf98-57aeb0988c0e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "intrusion-set--4a4be33a-2644-5033-8027-072d15b4ac3d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "led us to consider an attribution of reported activities to UAC-0057",
+      "x_gold_context": "Niveau non précisé (seule la haute confiance est explicitement exclue) : confidence absent."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--641e1417-b8b9-5ee1-8bea-a407ccb69c65",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This file contains yet another instance of a _MacroPack_ obfuscated VBA macro",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : le XLS STAN NA ELEWATORZE 2024.xls a été « submitted from Poland » et la variante est décrite dans la section Pologne. Les XLS d'avril et de mai ont aussi une macro obfusquée."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--650a0c5f-9818-5c40-bcab-bee6ae942ff1",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "registering a scheduled task named `\\UpdateSDX` which runs the following command at user logon",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : c'est SDXHelp.dll qui enregistre la tâche \\UpdateSDX via l'interface COM TaskScheduler (« The implant makes use of the TaskScheduler COM interface »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6878aa90-c21e-5994-aede-e81a79899f58",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "OS install date (using a WMI query);",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la citation est un élément de la liste introduite par « Upon execution, it collects the following information about the host », dont le sujet est l'implant SDXHelp.dll."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6b7754c4-7e3a-5fe5-8722-10696dd549b7",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--be055942-6e63-49d7-9fa1-9cb7d8a8f3f4",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These downloaders use Slack as a C2 server, leveraging the webhook mechanism to upload data. Once the data is uploaded, they immediately attempt to download a next stage from a download URL ending with `.jpg`"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6c77fbfb-6be1-55ef-b9c8-d5af73cb2f19",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--cba37adb-d6fb-4610-b069-dd04c0643384",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "installed antivirus product name and installation date (using a WMI query);",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : la citation est un élément de la liste introduite par « `DefenderProtectionScope.log` (internal name: `InfoUploader.dll`) collects the following pieces of information about the compromised system »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6d5211dd-c419-5d6e-b9a3-6b6fb9d88e46",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "tool--11fba9bf-4d88-5ef0-a1cd-0286dc15faae",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The following samples are .NET DLL assemblies written in C# and obfuscated with _ConfuserEx_.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » : le tableau qui suit la citation donne comme XLS parents les trois XLS de la campagne Ukraine."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6d99fc2e-c379-5be1-a187-159fcb71a197",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "via an HTTP POST request as body",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : SDXHelp.dll envoie les informations au C2 par HTTP POST."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6db037dc-d435-5d25-894f-6dd9982c8b5f",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--cba37adb-d6fb-4610-b069-dd04c0643384",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the antivirus names and install dates (using a WMI query).",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la citation est un élément de la liste introduite par « Upon execution, it collects the following information about the host », dont le sujet est l'implant SDXHelp.dll."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--710ac479-a40c-5caf-8a53-5940b62399d8",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "(C2 server) via an HTTP POST request as body",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : SDXHelp.dll envoie les informations collectées au C2 dans le corps d'une requête HTTP POST."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7331dff0-1355-5afb-a3cb-89449b184d6d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--04fd5427-79c7-44ea-ae13-11b24778ff1c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This data is concatenated, RC4-encrypted with a 256 bytes key, and Base64-encoded prior to being sent to the C2 server",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : données des implants C# d'avril encodées en Base64 avant l'envoi. SDXHelp.dll (mai) encode aussi en Base64."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7805a888-a6f6-539b-a696-85f8af26f766",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "location--a889ef92-b9f5-5f60-a215-6845c45e7d25",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "but which belong to a different campaign targeting Poland"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--788f7648-9522-51ba-a5aa-cb4d49c395c1",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "information about the IP address which is used to browse on the Internet",
+      "x_gold_context": "Découverte de l'IP externe via un service tiers ; sous-technique T1016.001 non retenue (vérification de connectivité)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7db183a6-d824-5ebd-92c8-cff9b959ff23",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "before decrypting that next stage using RC4 and the same key used to encrypt the information collected on the system",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : les downloaders C# d'avril déchiffrent en RC4 le stade suivant récupéré."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7fab943a-cd22-5535-88c8-5a1ce0329187",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "To persist, the implant adds an `Audio Driver` value to the user’s “Run” registry key"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--846113b1-b35a-554c-a701-a72aac463e81",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "collects the following pieces of information about the compromised system: OS platform identifier and version; hostname;",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : le sujet de la phrase est DefenderProtectionScope.log, implant de la campagne Ukraine."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--888ed563-07f4-53d1-8ab9-bd8624bdf884",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "information about the IP address which is used to browse on the Internet"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9573c4ac-d3c3-50b0-89ec-b7456a8d5a1b",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--2a668b3b-def6-54ad-8cd6-91ee5054e348",
+      "target_ref": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The obfuscation in this sample is consistent with the use of _MacroPack_ with all options for obfuscation being enabled"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--971f2cd1-2986-527a-b939-0f3c97351887",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In this sample, the VBA macro decrypts the DLL and ultimately writes it to `%LOCALAPPDATA%\\Serv\\0x00bac729fe.log`.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « XLS spreadsheets » > ПЛАН наповнення СФ_ЗМІНЕНИЙ.xls, l'un des trois XLS du cluster ukrainien. Déchiffrement de la DLL par la macro ; même comportement : extraction de la DLL du CAB par expand.exe."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--989cf783-dd87-5bc6-b9c8-c77bee342cf6",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "it decrypts it using a byte-wise XOR with a 128 bytes key",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : « it » désigne l'implant SDXHelp.dll, qui déchiffre la DLL récupérée du C2."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9a265468-a437-57c3-ab1b-644b20edaa46",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--045d0922-2310-4e60-b5e4-3302302cb3c5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "and run using the following command: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : c'est l'implant C# qui lance le stade suivant téléchargé avec rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9d8b649f-3fef-5e81-9431-063e204c4644",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "tool--2a668b3b-def6-54ad-8cd6-91ee5054e348",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The obfuscation is consistent with the result of _MacroPack_ (an offensive security tool which is available on GitHub) when executed with the `--obfuscate-names` parameter.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « XLS spreadsheets » > ПЛАН наповнення СФ_ЗМІНЕНИЙ.xls ; Список на перевірку 2025-2026.xls est aussi « consistent with the use of MacroPack ». L'article conclut seulement à une obfuscation « consistent with » MacroPack pour les échantillons ukrainiens. L'artefact est le paramètre --obfuscate-names."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a104544e-1c37-511e-bd35-61f934d0bf93",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "they immediately attempt to download a next stage from a download URL ending with `.jpg`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : « they » désigne les downloaders C# d'avril, qui récupèrent le stade suivant après l'envoi via Slack."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a48efc60-ee71-5321-aa5a-bd28616f6b6f",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "via an HTTP POST request as body",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : SDXHelp.dll envoie les informations au C2 par HTTP POST. Le downloader C++ n'apparaît que dans la campagne Pologne (« C# downloaders only for Ukraine but C++ downloaders for Poland »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a57028e9-f27e-538f-aa03-c394dd699a8f",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--2f6b4ed7-fef1-44ba-bcb8-1b4beb610b64",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "run the next stage using a `WScript.Shell` object instantiated via the COM API",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : les downloaders C# d'avril lancent le stade suivant via un objet WScript.Shell instancié par COM."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--abf14b40-f202-5be3-a6c9-d5349b9b0beb",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The following table lists the C2 domains used for both the campaign targeting Ukraine and the campaign targeting Poland, since April 2025."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ad29871a-80b1-501f-ad2c-a7569280d84b",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--2f6b4ed7-fef1-44ba-bcb8-1b4beb610b64",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "run the next stage using a `WScript.Shell` object instantiated via the COM API",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : les implants C# d'avril lancent le stade suivant via WScript.Shell (COM). SDXHelp.dll (mai) utilise aussi l'interface COM TaskScheduler."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b130d48a-335e-57a9-a8cf-ff6800c0672b",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--a2fdce72-04b2-409a-ac10-cc1695f4fce0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The toolset we analyzed notably relies on readily available tools for obfuscation or packing purposes.",
+      "x_gold_context": "Résumé de l'article : « The toolset » désigne celui des deux clusters (Ukraine et Pologne). Pour la campagne Ukraine, les outils publics sont MacroPack (« available on GitHub ») et ConfuserEx."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b15ca514-65e1-5ed2-8de8-96a32128fb95",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--cba37adb-d6fb-4610-b069-dd04c0643384",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the antivirus names and install dates (using a WMI query).",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la citation est un élément de la liste introduite par « Upon execution, it collects the following information about the host », dont le sujet est l'implant SDXHelp.dll."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b1ded065-f1b7-5836-9f8a-3b02f9cc9caa",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--24bfaeba-cb0d-4525-b3dc-507c77ecec41",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This data is concatenated, RC4-encrypted with a 256 bytes key, and Base64-encoded prior to being sent to the C2 server",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : données des implants C# d'avril chiffrées en RC4 avant l'envoi au C2."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b316d655-b20e-5aa9-a9c1-d9c4cd9fefaf",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "operating system install date (using a WMI query);",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : la citation est un élément de la liste introduite par « `DefenderProtectionScope.log` (internal name: `InfoUploader.dll`) collects the following pieces of information about the compromised system ». La ligne apparaît aussi dans Variant 2 et pour les implants C# de la Pologne ; le downloader C++ écrit « OS install date »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b453fb84-5caa-5674-a6ca-a9b57956b079",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant attempts to send the collected information to the C2 server every 10 minutes."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bca52e00-c8fa-5b70-a133-732bd9ebbe66",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "periodically attempts to retrieve a next stage from the C2",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : même phrase que la persistance et l'envoi au C2 ; le sujet est la DLL déposée par les XLS de la campagne Ukraine (« The dropped DLL, which we will later refer to as the first stage implant »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bdb448c2-1825-5f01-a4f1-362bffb6da54",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--88d31120-5bc7-4ce3-a9c0-7cf147be8e54",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Associated Slack teams IDs appear to match Slack “free subscription” offer",
+      "x_gold_context": "Section « Infrastructure » > « Slack teams » : « Other first stage samples that we associate with a campaign targeting Poland use Slack as a C2 channel ». Les équipes ont été créées les 15 et 22 avril 2025, au moment des archives d'avril. Artefact : table des Slack team IDs (Cakybo, Fbfubao) avec dates de création d'avril 2025. L'article ne dit pas explicitement que l'acteur les a créés."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bdec48a5-ba4c-5424-ab6f-43931e47a2ef",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--04fd5427-79c7-44ea-ae13-11b24778ff1c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This information is Base64-encoded, arranged in a JSON structure",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : « This information » désigne les informations collectées par SDXHelp.dll."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c08eca65-8d6d-5441-96b9-524eba925c0e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Contrary to the first sample, this VBA macro is partially obfuscated (strings remain in cleartext).",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « XLS spreadsheets » > ПЛАН наповнення СФ_ЗМІНЕНИЙ.xls (« Contrary to the first sample » renvoie à роз'яснення.xls). Список на перевірку 2025-2026.xls est obfusqué avec toutes les options de MacroPack."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c226e780-cd94-5ab0-8b0b-170192a11b08",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The dropped implants are C# .NET DLL assemblies, obfuscated with _ConfuserEx_ and internally named `jkyhrgkek30.dll`.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : implants déposés par les XLS d'avril de la campagne Pologne. L'annexe IOC le confirme (« C# downloader, campaign targeting Poland, April 2025 »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c3920638-6b67-52e0-878d-d02e9feec2da",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once sent, it then tries to download a next stage from the C2 server every 30 minutes.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : « it » désigne l'implant C# (« The implant attempts to send the collected information [...] »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c3c08cae-5cef-5002-babd-c87322845cae",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--799ace7f-e227-4411-baa0-8868704f2a69",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "and launches an instance of this scheduled task before deleting it.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : c'est SDXHelp.dll qui enregistre, lance puis supprime la tâche RuntimeBroker. Artefact : suppression de la tâche planifiée « RuntimeBroker » après exécution."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c57c4d3b-afbd-5ed7-93ef-dc0915186d3a",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--045d0922-2310-4e60-b5e4-3302302cb3c5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "which loads the next stage using `C:\\Windows\\system32\\rundll32.exe %LOCALAPPDATA%\\Runtime\\RuntimeBroker.dll,#1`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la tâche RuntimeBroker créée par SDXHelp.dll lance le stade suivant avec rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c83c1008-d998-599f-a239-419f49c54563",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--2f6b4ed7-fef1-44ba-bcb8-1b4beb610b64",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant makes use of the TaskScheduler COM interface to achieve persistence"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c859b8d8-ec0a-5388-b059-7624087b0282",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The following samples are .NET DLL assemblies written in C# and obfuscated with _ConfuserEx_.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » : phrase d'ouverture de la section consacrée aux downloaders C#."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c940446c-4eac-5893-941f-63d5638e2b60",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "current user name;"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--cc3316c0-d602-5967-9b07-ee7606e17dde",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Every 20 minutes, the implant attempts to download a DLL from the C2 server by sending an HTTP GET request to the previous URL."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--cc556b2a-e478-5d97-9704-3144558cd654",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The dropped DLL, which we will later refer to as the first stage implant, is written in C# and obfuscated using _ConfuserEx_.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : la DLL déposée par les XLS du cluster ukrainien est le downloader C#. L'annexe IOC le confirme (« C# downloader, campaign targeting Ukraine »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--cd19695d-709d-5d40-95da-ffd99a81fa8b",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "information about the IP address which is used to browse on the Internet",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la citation est un élément de la liste introduite par « Upon execution, it collects the following information about the host », dont le sujet est l'implant SDXHelp.dll. La même ligne figure dans les listes des downloaders C#."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d119e3b4-d0ff-5579-b28c-a3e0b69e70d0",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It establishes persistence using the current user’s “Run” registry key",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : le sujet est la DLL déposée par les XLS de la campagne Ukraine ; les valeurs Run (SytemProtectionService, Audio Driver) sont détaillées dans Variant 1 et Variant 2."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d360bcf3-a0f4-5e74-9e4d-85cb6221358c",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--11fba9bf-4d88-5ef0-a1cd-0286dc15faae",
+      "target_ref": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "is written in C# and obfuscated using _ConfuserEx_"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--db3d4f77-66f6-5c00-8ed2-f277f6149065",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Both samples contain a very similar VBA macro, obfuscated with _MacroPack_",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « XLS spreadsheets » : « Both samples » désigne les deux XLS d'avril de la campagne Pologne."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--db885ea8-ac0e-554e-b2b1-fc18599b3c80",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The decrypted DLL is written to `%LOCALAPPDATA%\\Runtime\\RuntimeBroker.dll`.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : c'est SDXHelp.dll qui écrit RuntimeBroker.dll et crée la tâche RuntimeBroker. Artefact : nom RuntimeBroker.dll / tâche RuntimeBroker imitant un composant Windows."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--de592489-e8fd-5d7e-adb3-1a5c3c991aa3",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--deb98323-e13f-4b0c-8d94-175379069062",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant is a C++ DLL which has a single export named `Start` and has been packed with _UPX_."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e05d3379-e6ee-5bde-ad6b-b05eec8136e8",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "(C2 server) via an HTTP POST request as body",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : SDXHelp.dll envoie les informations collectées au C2 dans le corps d'une requête HTTP POST. Les downloaders C# d'avril les envoient via le webhook Slack."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e0defe9a-3571-5d52-a78e-26d761dbfe85",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--045d0922-2310-4e60-b5e4-3302302cb3c5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "runs the LNK file using `rundll32.exe shell32.dll,ShellExec_RunDLL %PROGRAMDATA%\\OfficeRuntimeBroker.lnk` to load the DLL",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « XLS spreadsheets » : macro de 2_39ZO ZGWRP_program.xls. SDXHelp.dll (mai) et mrasp86.dll (variante Cobalt Strike) sont aussi chargées par rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e11db69a-7e7f-5b07-9e6a-50637924be2f",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--b97f1d35-4249-4486-a6b5-ee60ccf24fab",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once executed, the macro drops a DLL which is loaded using `regsvr32.exe`.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : « All of these » renvoie aux trois archives du tableau précédent, toutes rattachées à la campagne Ukraine."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e5ce2671-358c-5ec9-8960-07b485616a2d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--045d0922-2310-4e60-b5e4-3302302cb3c5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "and run using the following command: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : l'implant de la campagne Ukraine lance le stade suivant récupéré du C2 avec rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e81fce64-4040-5eaf-9855-58d16293fbb4",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--cba37adb-d6fb-4610-b069-dd04c0643384",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "installed antivirus product names, current states and install dates (using a WMI query);",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : la citation est un élément de la liste introduite par « It then proceeds to collect the following information about the compromised system », dont le sujet est l'implant sdw9gobh0n.log (internal name: Downloader.dll)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--eca8e8bd-1389-526e-bd92-a74c84e51c5b",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "malware--a7881f21-e978-4fe4-af56-92c9416a2616",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "acts as a loader for a _Cobalt Strike Beacon_",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : variante sous la section Pologne, XLS « submitted from Poland ». L'annexe IOC confirme : « C++ loader (Cobalt Strike beacon), campaign targeting Poland, May 2025 »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f0bf0db8-5b47-5a60-982b-1f16be16a740",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Upon execution, it collects the following information about the host: hostname; CPU name; available memory; Windows build;",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : le sujet « it » est l'implant SDXHelp.dll."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--fde969cb-a1be-5a31-a70f-7674592ca638",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--001dd508-e3b5-5fc4-b8cf-df83a4a00044",
+      "target_ref": "attack-pattern--deb98323-e13f-4b0c-8d94-175379069062",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "has been packed with _UPX_"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Malicious File",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1204.002",
+          "url": "https://attack.mitre.org/techniques/T1204/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Initial access: consistent use of weaponized XLS spreadsheets with VBA macros"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9012a816-524a-52db-8c06-268d685dc8f4",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "also displays decoy content (a likely list of contracts) once the macro is executed",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « Decoy documents » : роз'яснення.xls, XLS d'une archive du cluster ukrainien, affiche un leurre à l'exécution de la macro. Artefact : XLS piégés à macro VBA livrés en archive ; l'exécution de la macro suppose l'ouverture du fichier par la victime, qui n'est pas décrite explicitement."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--07ee4667-f4ac-5373-8f76-07d8a4f3de8e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Initial access: consistent use of weaponized XLS spreadsheets with VBA macros",
+      "x_gold_context": "Section « Similarities across the different campaigns » : la liste porte sur les deux campagnes ; côté Pologne, ce sont les XLS d'avril (2_39ZO ZGWRP_program.xls), de mai (BHP.xls, Z-15a.xls) et la variante Cobalt Strike. Artefact : XLS piégés à macro VBA livrés en archive ; l'exécution de la macro suppose l'ouverture du fichier par la victime, qui n'est pas décrite explicitement."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--4eeaf8a9-c86b-4954-a663-9555fb406466",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Scheduled Transfer",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1029",
+          "url": "https://attack.mitre.org/techniques/T1029"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "exfiltration"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The implant attempts to send the collected information to the C2 server every 10 minutes."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e409ff2a-fbb6-5e39-a398-945f01a166df",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--4eeaf8a9-c86b-4954-a663-9555fb406466",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The implant attempts to send the collected information to the C2 server every 10 minutes.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : « The implant » désigne l'implant C# DefenderProtectionScope.log. Les downloaders C# de la Pologne n'envoient qu'une fois (« the described logic is run only once »). Artefact : envoi des informations collectées au C2 à intervalle fixe (toutes les 10 minutes). L'article ne qualifie pas cet envoi d'exfiltration programmée."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--494e4b9e-3b82-5dd1-b52c-f7e14b97f751",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "attack-pattern--4eeaf8a9-c86b-4954-a663-9555fb406466",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The implant attempts to send the collected information to the C2 server every 10 minutes.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : implant déposé par роз'яснення.xls, XLS de la campagne Ukraine. Artefact : envoi des informations collectées au C2 à intervalle fixe (toutes les 10 minutes). L'article ne qualifie pas cet envoi d'exfiltration programmée."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--43f2776f-b4bd-4118-94b8-fee47e69676d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Exfiltration Over Webhook",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1567.004",
+          "url": "https://attack.mitre.org/techniques/T1567/004"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "exfiltration"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "These downloaders use Slack as a C2 server, leveraging the webhook mechanism to upload data."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1c1c4431-4ee2-5cbb-a1b3-9647c7bdb564",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "attack-pattern--43f2776f-b4bd-4118-94b8-fee47e69676d",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "These downloaders use Slack as a C2 server, leveraging the webhook mechanism to upload data.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : « These downloaders » désigne les downloaders C# d'avril ; « data » désigne les informations collectées, chiffrées en RC4 et encodées en Base64 (paragraphe précédent). Recouvrement avec T1102.002 (required) : les informations collectées sur le système sont envoyées vers un webhook Slack. T1567.004 (webhook) est la sous-technique la plus précise de T1567."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3e567e1e-6aea-514c-82c2-edd48af45572",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "attack-pattern--43f2776f-b4bd-4118-94b8-fee47e69676d",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "These downloaders use Slack as a C2 server, leveraging the webhook mechanism to upload data.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : downloaders C# déposés par les XLS d'avril de la campagne Pologne ; section « Slack teams » : « a campaign targeting Poland use Slack as a C2 channel ». Recouvrement avec T1102.002 (required) : les informations collectées sur le système sont envoyées vers un webhook Slack. T1567.004 (webhook) est la sous-technique la plus précise de T1567."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "DiagnExp.dll",
+      "is_family": false,
+      "malware_types": [
+        "dropper"
+      ],
+      "description": "Dropper C++ (mrasp86.dll) packé avec UPX : écrit DiagnosticComponents.dll et l'exécute via une tâche planifiée. Variante Cobalt Strike de la campagne ciblant la Pologne (mai 2025).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "mrasp86.dll",
+        "C++ dropper"
+      ],
+      "x_gold_evidence_quote": "internal name: `DiagnExp.dll`) is written in C++, has a single export, `Start`, and has been packed with _UPX_"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--b7570bd3-502a-5407-90f4-0809bc66e6d5",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "DiagnosticComponents.dll",
+      "is_family": false,
+      "malware_types": [
+        "loader"
+      ],
+      "description": "Loader C++ d'un Beacon Cobalt Strike, déposé par DiagnExp.dll. Campagne ciblant la Pologne (mai 2025).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "inj_p.dll",
+        "C++ loader"
+      ],
+      "x_gold_evidence_quote": "internal name: `inj_p.dll`) also has a single export named `Start`, and acts as a loader for a _Cobalt Strike Beacon_"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--5140d053-6605-5fa2-b75d-3788fc516796",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "internal name: `DiagnExp.dll`) is written in C++, has a single export, `Start`, and has been packed with _UPX_",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : le XLS STAN NA ELEWATORZE 2024.xls a été « submitted from Poland » ; annexe IOC : « C++ dropper, campaign targeting Poland, May 2025 »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--66c64ff8-d593-5413-ad7b-043267a29468",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "malware--b7570bd3-502a-5407-90f4-0809bc66e6d5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "internal name: `inj_p.dll`) also has a single export named `Start`, and acts as a loader for a _Cobalt Strike Beacon_",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : le XLS STAN NA ELEWATORZE 2024.xls a été « submitted from Poland » ; annexe IOC : « C++ loader (Cobalt Strike beacon), campaign targeting Poland, May 2025 »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--915e92a5-3631-5993-bd95-35bf4b4f379d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "drops",
+      "source_ref": "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+      "target_ref": "malware--b7570bd3-502a-5407-90f4-0809bc66e6d5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant writes another DLL to `%APPDATA%\\DiagnosticComponents\\DiagnosticComponents.dll`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : « The implant » désigne DiagnExp.dll, sujet de la phrase précédente."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c6dee7c0-1959-5c9b-a3a3-afb5be76b3fc",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--b7570bd3-502a-5407-90f4-0809bc66e6d5",
+      "target_ref": "malware--a7881f21-e978-4fe4-af56-92c9416a2616",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "internal name: `inj_p.dll`) also has a single export named `Start`, and acts as a loader for a _Cobalt Strike Beacon_",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : le sujet de la phrase est DiagnosticComponents.dll (internal name: inj_p.dll)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--27f3008c-face-59f1-8f07-a54c82cf1a76",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+      "target_ref": "attack-pattern--deb98323-e13f-4b0c-8d94-175379069062",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "and has been packed with _UPX_ , similarly to the previously described `SDXHelp.dll` sample",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : le sujet de la phrase est la DLL déposée par le XLS, DiagnExp.dll."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a6df153d-786d-57a5-be60-d44c2f4db156",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+      "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "leverages the Task Scheduler COM interface to register a scheduled task (`\\ExpDiagnosticDataSettings`) and to trigger the execution of `DiagnosticComponents.dll`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : « The implant » désigne DiagnExp.dll."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c0dedecf-de08-53a4-8217-dbdcdce10dd3",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+      "target_ref": "attack-pattern--2f6b4ed7-fef1-44ba-bcb8-1b4beb610b64",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "leverages the Task Scheduler COM interface to register a scheduled task (`\\ExpDiagnosticDataSettings`) and to trigger the execution of `DiagnosticComponents.dll`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection chain variant leading to Cobalt Strike » : « The implant » désigne DiagnExp.dll."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--de4a3421-21bf-5bac-a43c-b36cac6b9a7e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "regsvr32",
+      "description": "Binaire Windows légitime chargeant les DLL des downloaders C# (regsvr32 /u /s).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "regsvr32.exe"
+      ],
+      "x_gold_evidence_quote": "Once executed, the macro drops a DLL which is loaded using `regsvr32.exe`."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--1a6b0a1c-05a7-590a-a5e2-0ea9a11afcae",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "rundll32",
+      "description": "Binaire Windows légitime chargeant les DLL et les stades suivants (rundll32 <dll>,#1).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "rundll32.exe"
+      ],
+      "x_gold_evidence_quote": "runs the LNK file using `rundll32.exe shell32.dll,ShellExec_RunDLL %PROGRAMDATA%\\OfficeRuntimeBroker.lnk` to load the DLL"
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--ca656c25-44f1-471b-9d9f-e2a3bbb84973",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Expand",
+      "description": "Utilitaire Windows d'extraction des fichiers CAB, lancé via un LNK pour extraire la DLL.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S0361",
+          "url": "https://attack.mitre.org/software/S0361"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "expand.exe"
+      ],
+      "x_gold_evidence_quote": "creates an LNK file (`%APPDATA%\\Microsoft\\Windows\\Protection overview past.lnk`) that uses `expand.exe` to extract the DLL from the CAB file"
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--bba595da-b73a-4354-aa6c-224d4de7cb4e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "cmd",
+      "description": "Interpréteur de commandes Windows lançant la charge reçue du C2 (cmd.exe /c).",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S0106",
+          "url": "https://attack.mitre.org/software/S0106"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_name_variants": [
+        "cmd.exe"
+      ],
+      "x_gold_evidence_quote": "runs it using the provided command (spawned via `cmd.exe /c`)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--5725ca2f-ffcc-5a02-b370-6ee4236e3497",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "tool--de4a3421-21bf-5bac-a43c-b36cac6b9a7e",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once executed, the macro drops a DLL which is loaded using `regsvr32.exe`.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : « All of these » renvoie aux trois archives de la campagne Ukraine."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f483dcb6-2d5c-54f4-afd9-4cd019ed325c",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "tool--1a6b0a1c-05a7-590a-a5e2-0ea9a11afcae",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "and run using the following command: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : l'implant lance le stade suivant avec rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--718008ca-d990-5c66-9860-f4d370e413bc",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "tool--ca656c25-44f1-471b-9d9f-e2a3bbb84973",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "creates an LNK file (`%APPDATA%\\Microsoft\\Windows\\Protection overview past.lnk`) that uses `expand.exe` to extract the DLL from the CAB file",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « XLS spreadsheets » > Список на перевірку 2025-2026.xls."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--960c1fa6-2775-57d4-87bc-e244bef6b432",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "target_ref": "tool--bba595da-b73a-4354-aa6c-224d4de7cb4e",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "runs it using the provided command (spawned via `cmd.exe /c`)",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : l'implant exécute la charge reçue du C2 via cmd.exe /c."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f94b261b-c302-5748-9203-4c4c03b5cd64",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "tool--1a6b0a1c-05a7-590a-a5e2-0ea9a11afcae",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "runs the LNK file using `rundll32.exe shell32.dll,ShellExec_RunDLL %PROGRAMDATA%\\OfficeRuntimeBroker.lnk` to load the DLL",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « XLS spreadsheets » : macro de 2_39ZO ZGWRP_program.xls. SDXHelp.dll et mrasp86.dll sont aussi chargées par rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a0e177e7-a209-544a-9979-e9b5dc411f91",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "tool--ca656c25-44f1-471b-9d9f-e2a3bbb84973",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "creates the `OfficeRuntimeBroker.lnk` file in `%PROGRAMDATA%` with `C:\\Windows\\System32\\expand.exe` as a target",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « XLS spreadsheets » : macro de 2_39ZO ZGWRP_program.xls."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9ca566f8-947b-525c-bdc1-a9e115031117",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "tool--de4a3421-21bf-5bac-a43c-b36cac6b9a7e",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "For the implant itself, it creates `SytemProtectionService` with the value: `regsvr32 /u /s <current-implant-file-path>`",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : l'implant C# inscrit dans la clé Run une commande regsvr32 qui le recharge à chaque ouverture de session."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1b48ec91-6d7a-5715-bffb-5f804ab2a566",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "tool--1a6b0a1c-05a7-590a-a5e2-0ea9a11afcae",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "and run using the following command: `rundll32 %APPDATA%\\Microsoft\\System\\ProtectedCertSystem.dll,#1`",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 1 (DefenderProtectionScope.log, déposé par роз'яснення.xls) : l'implant C# lance le stade suivant avec rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--11d7a727-9fe9-53f7-bc31-8de3798c5e97",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "tool--bba595da-b73a-4354-aa6c-224d4de7cb4e",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "runs it using the provided command (spawned via `cmd.exe /c`)",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : l'implant C# exécute la charge reçue du C2 via cmd.exe /c."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2bb325b3-feb8-5fd2-8c2c-6e54f2b6222c",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--6e968be9-4620-57b6-8a6e-e51992137374",
+      "target_ref": "tool--1a6b0a1c-05a7-590a-a5e2-0ea9a11afcae",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "which loads the next stage using `C:\\Windows\\system32\\rundll32.exe %LOCALAPPDATA%\\Runtime\\RuntimeBroker.dll,#1`",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from May 2025 » > « First stage C++ DLL implant » (SDXHelp.dll, déposé par BHP.xls / Z-15a.xls) : la tâche RuntimeBroker créée par SDXHelp.dll lance le stade suivant avec rundll32."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--fd8288fa-8c34-50e5-81b7-0e6d8506fa35",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--de4a3421-21bf-5bac-a43c-b36cac6b9a7e",
+      "target_ref": "attack-pattern--b97f1d35-4249-4486-a6b5-ee60ccf24fab",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once executed, the macro drops a DLL which is loaded using `regsvr32.exe`.",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : regsvr32 sert de proxy pour charger la DLL déposée par la macro."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--36731b87-9ac6-5632-9740-03a882f40b9e",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--1a6b0a1c-05a7-590a-a5e2-0ea9a11afcae",
+      "target_ref": "attack-pattern--045d0922-2310-4e60-b5e4-3302302cb3c5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "runs the LNK file using `rundll32.exe shell32.dll,ShellExec_RunDLL %PROGRAMDATA%\\OfficeRuntimeBroker.lnk` to load the DLL",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » : rundll32 sert de proxy pour charger la DLL extraite."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f350ba40-d299-51bf-aace-3fb2854d5774",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--ca656c25-44f1-471b-9d9f-e2a3bbb84973",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "creates an LNK file (`%APPDATA%\\Microsoft\\Windows\\Protection overview past.lnk`) that uses `expand.exe` to extract the DLL from the CAB file",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » : expand.exe extrait la DLL du fichier CAB écrit par la macro."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c991c6ca-69af-5e9d-9c63-6ddb32152e2d",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "tool--bba595da-b73a-4354-aa6c-224d4de7cb4e",
+      "target_ref": "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "runs it using the provided command (spawned via `cmd.exe /c`)",
+      "x_gold_context": "Section « Infection chain which targeted Ukraine » > « First stage C# DLL implants » > Variant 2 (sdw9gobh0n.log, 0x00bac729fe.log, déposés par les XLS de juillet) : la commande reçue du C2 est lancée par cmd.exe /c."
+    },
+    {
+      "type": "infrastructure",
+      "spec_version": "2.1",
+      "id": "infrastructure--f5eb6385-5320-5605-9880-e70a4d9c3039",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "name": "Slack",
+      "infrastructure_types": [
+        "command-and-control"
+      ],
+      "description": "Équipes Slack en offre gratuite (Cakybo, Fbfubao), créées en avril 2025 et utilisées comme C2 par webhook par les downloaders C# de la campagne ciblant la Pologne.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Other first stage samples that we associate with a campaign targeting Poland use Slack as a C2 channel."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--03222065-f1e0-5c44-9b4e-0fd2c3256baf",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "target_ref": "infrastructure--f5eb6385-5320-5605-9880-e70a4d9c3039",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Other first stage samples that we associate with a campaign targeting Poland use Slack as a C2 channel.",
+      "x_gold_context": "Section « Infrastructure » > « Slack teams »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9f32c61b-bce6-59ca-8fc5-5da45e9c7adc",
+      "created": "2025-08-20T00:00:00.000Z",
+      "modified": "2026-10-26T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--e3420770-ee1b-596d-b94d-34e1c2370b9d",
+      "target_ref": "infrastructure--f5eb6385-5320-5605-9880-e70a4d9c3039",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These downloaders use Slack as a C2 server, leveraging the webhook mechanism to upload data.",
+      "x_gold_context": "Section « Infection chain which targeted Poland » > « Infection files from April 2025 » > « First stage C# DLL implants » (~OfficeRuntimeBroker.dat, ~DF20BC61C6277A354A.dat) : « These downloaders » désigne les downloaders C# d'avril."
+    }
+  ]
+}

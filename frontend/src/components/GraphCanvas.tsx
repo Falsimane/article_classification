@@ -75,7 +75,7 @@ function border(n: InternalNode, toward: { x: number; y: number }, gap = 3) {
   return { x: c.x + (dx / len) * (reach + gap), y: c.y + (dy / len) * (reach + gap), c };
 }
 
-function FloatingEdge({ id, source, target, markerEnd, style, label, labelStyle }: EdgeProps) {
+export function FloatingEdge({ id, source, target, markerEnd, style, label, labelStyle }: EdgeProps) {
   const s = useInternalNode(source);
   const t = useInternalNode(target);
   if (!s || !t) return null;
