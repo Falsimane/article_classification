@@ -1,0 +1,83 @@
+{
+  "type": "bundle",
+  "id": "bundle--39c69454-66be-50a1-a9ad-0765132f7459",
+  "objects": [
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "id": "report--39c69454-66be-50a1-a9ad-0765132f7459",
+      "created": "2016-04-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Cyber Skirmish: Russia v. Turkey",
+      "published": "2016-04-13T00:00:00.000Z",
+      "report_types": [
+        "threat-report"
+      ],
+      "description": "CrowdStrike décrit des cyberattaques de style hacktiviste entre la Russie et la Turquie après la destruction d'un Su-24 le 24 novembre 2015 : DDoS contre des cibles turques, attaques contre des banques russes et le FSB, fuite de données personnelles. Aucun acteur nommé.",
+      "object_refs": [
+        "attack-pattern--d74c4a7e-ffbf-432f-9365-7ebf1f787cab",
+        "location--6fe98dec-5cb2-54f8-83ba-6b2ff163c56d",
+        "relationship--ccad3e93-ed8f-51eb-8b30-ede071653236"
+      ],
+      "external_references": [
+        {
+          "source_name": "CrowdStrike",
+          "url": "https://www.crowdstrike.com/en-us/blog/cyber-skirmish-russia-v-turkey/"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_attack_version": "20.0",
+      "x_gold_evidence_quote": "Cyber Skirmish: Russia v. Turkey"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--d74c4a7e-ffbf-432f-9365-7ebf1f787cab",
+      "created": "2016-04-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Network Denial of Service",
+      "description": "DDoS contre des banques publiques, sites gouvernementaux et forums de hacking turcs. Sous-technique (flood/reflection) non déterminable : technique parente.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1498",
+          "url": "https://attack.mitre.org/techniques/T1498"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "CrowdStrike observed Distributed Denial of Service (DDoS) attacks targeting Turkish state-owned banks, government sites, and hacking forums"
+    },
+    {
+      "type": "location",
+      "spec_version": "2.1",
+      "id": "location--6fe98dec-5cb2-54f8-83ba-6b2ff163c56d",
+      "created": "2016-04-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Turkey",
+      "country": "TR",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "CrowdStrike observed Distributed Denial of Service (DDoS) attacks targeting Turkish state-owned banks, government sites, and hacking forums"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ccad3e93-ed8f-51eb-8b30-ede071653236",
+      "created": "2016-04-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "attack-pattern--d74c4a7e-ffbf-432f-9365-7ebf1f787cab",
+      "target_ref": "location--6fe98dec-5cb2-54f8-83ba-6b2ff163c56d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "CrowdStrike observed Distributed Denial of Service (DDoS) attacks targeting Turkish state-owned banks, government sites, and hacking forums",
+      "x_gold_context": "Les attaques DDoS observées visent des cibles turques ; aucun acteur nommé n'est attribué, d'où l'absence de relation intrusion-set."
+    }
+  ]
+}

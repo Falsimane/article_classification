@@ -1,0 +1,1675 @@
+{
+  "type": "bundle",
+  "id": "bundle--91b15e30-c373-5fd3-810b-67afb8978239",
+  "objects": [
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "id": "report--7341a2d4-c7c2-53ca-a298-ee160c2bdebc",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Gamaredon's infection chain: Spoofed emails, GammaDrop and GammaLoad",
+      "description": "HarfangLab TRR260501. Campagne de Gamaredon (attribution à haute confiance) contre des institutions de l'État ukrainien, de septembre 2025 à mai 2026 : spearphishing depuis des comptes compromis ou usurpés, archives exploitant CVE-2025-8088 (WinRAR), downloaders VBScript GammaDrop et GammaLoad, infrastructure Cloudflare Workers, fast flux et DDNS.",
+      "published": "2026-05-13T00:00:00.000Z",
+      "report_types": [
+        "threat-report"
+      ],
+      "object_refs": [
+        "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+        "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+        "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+        "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+        "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7",
+        "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+        "infrastructure--366afff2-62e5-5fc2-841b-884903d619f7",
+        "vulnerability--a9e3f038-a67b-5b28-9c04-f3a50a046527",
+        "software--0819b5eb-92b8-56c8-8fb6-50d2c2dd675e",
+        "identity--18bbefb9-3446-5cbd-a06b-ca8252e0c5d6",
+        "identity--52f54e14-7f05-5c5d-892d-e310d2068587",
+        "location--fa01a667-6579-59eb-ae7b-705c97698ad2",
+        "attack-pattern--2e34237d-8574-43f6-aace-ae2915de8597",
+        "attack-pattern--3dc8c101-d4db-4f4d-8150-1b5a76ca5f1b",
+        "attack-pattern--fcf5bccf-be7a-48ff-b7a7-8d6019279301",
+        "attack-pattern--f9cc4d06-775f-4ee1-b401-4e2cc0da30ba",
+        "attack-pattern--04a5a8ab-3bc8-4c83-95c9-55274a89786d",
+        "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
+        "attack-pattern--29ba5a15-3b7b-4732-b817-65ea8f6468e6",
+        "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+        "attack-pattern--208884f1-7b83-4473-ac22-4e1cf6c41471",
+        "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+        "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+        "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+        "attack-pattern--840a987a-99bd-4a80-a5c9-0cb2baa6cade",
+        "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
+        "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+        "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+        "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+        "attack-pattern--f24faf46-3b26-4dbb-98f2-63460498e433",
+        "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+        "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+        "attack-pattern--671cd17f-a765-48fd-adc4-dad1941b1ae3",
+        "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+        "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+        "relationship--7defbdbc-4132-599f-b1b8-49f2e3c1ea17",
+        "relationship--a0ed63cd-fc69-552e-a852-f43cdc5e2758",
+        "relationship--b2463721-d1e3-56db-956b-a19241ba9d95",
+        "relationship--e9a4d636-806d-56a9-be9e-73e98fc8620f",
+        "relationship--739fb653-9d83-59c9-b846-2b0fed2dbbc9",
+        "relationship--b2839f14-3649-562c-b326-ea8fadb5a277",
+        "relationship--9a7a0894-a543-5ed0-a582-63547c63b27b",
+        "relationship--32d22a92-0152-590b-8fa8-b5a21fcdd73d",
+        "relationship--ac0adc7b-1ddf-5d83-90da-ab026ca78b44",
+        "relationship--eb4bfe29-64a7-53b3-8186-65a14cb816a3",
+        "relationship--76053061-af19-58b4-815a-155d9718c328",
+        "relationship--0c7f34aa-cbe7-5197-9d14-f4f417df5f6a",
+        "relationship--220210af-43a2-5190-8b0d-17eadcd37ce5",
+        "relationship--10bce3ec-f655-5693-a0d2-165820389e56",
+        "relationship--c8c2e14b-2d66-58e1-ba90-46b1c19d42a1",
+        "relationship--bc1ade22-d113-510d-96ba-e57f0a1d591e",
+        "relationship--8e7cc81d-931f-57c8-a996-23ba6d9ae9ae",
+        "relationship--a6f23f7a-f115-5d96-8d9a-68e309bac890",
+        "relationship--3ee22ef4-d51f-5c28-9a29-810fdec0e026",
+        "relationship--d7221275-ea7c-51c5-b977-30e830524f41",
+        "relationship--f3d08e35-1dd7-55f8-b77d-73da6a432a35",
+        "relationship--09154117-f631-53bf-a6a8-e75e6cdb73f3",
+        "relationship--c5f58069-d3b0-56f1-916c-62a4b0527a72",
+        "relationship--4a359f1b-c661-5c50-88f2-47a449ff7edb",
+        "relationship--b670716a-da93-57a1-903b-3a738e7dd9f7",
+        "relationship--39dfdd87-080c-55b8-889c-d27c00f39b29",
+        "relationship--925a597e-8b12-5515-a1ec-8bed13c1b067",
+        "relationship--faabae1d-2970-5ce6-a2f0-bedd12cccaf3",
+        "relationship--90ea3830-bbc5-5bba-b63b-f0d4dfb0e4e7",
+        "relationship--dfe53f1d-addf-568a-933d-469cdf627d60",
+        "relationship--ccbdd2ea-5452-5a2f-adcb-0a3674cffdf1",
+        "relationship--0e8fa9ea-2cb6-5e7a-904c-dac959b340dc",
+        "relationship--0e387def-9990-52bf-b485-77358b0bb2b8",
+        "relationship--f437185c-4073-5ec0-8dff-2d1e68814b19",
+        "relationship--1b5d12a1-b033-5f29-82af-1ec647e632f7",
+        "relationship--e9bd9b15-9367-5b0b-92e3-68891189ae58",
+        "relationship--ebc346ad-db25-5323-b548-6c58aa550177",
+        "relationship--648ce8f1-15c5-559f-9774-f48d5a9a87bc",
+        "relationship--a8386f06-ea11-5f9e-9a06-fee3ae1bcc44",
+        "relationship--6b0c7373-f5c7-5232-8709-8505d7cf5ee3",
+        "relationship--f94fdc47-9c3c-597e-9dc8-954282df01cd",
+        "relationship--6b2887fd-ad88-5886-8740-41bb927586d7",
+        "relationship--74c174ef-68ff-5baf-9097-d602ce32e1c8",
+        "relationship--dcabc4ab-0886-5917-87c3-75b2a2488d6d",
+        "relationship--1c95df55-efb6-51e1-92f1-066e36de9a1b",
+        "relationship--8de8faca-f779-5812-98cc-3c23ba7a9cc1",
+        "relationship--cb8befb8-5bf9-5270-8679-91586eecc8da",
+        "relationship--3536bc94-9a71-50a6-9d94-7517b339a40a"
+      ],
+      "external_references": [
+        {
+          "source_name": "HarfangLab",
+          "external_id": "TRR260501",
+          "url": "https://harfanglab.io/insidethelab/gamaredon-gammadrop-gammaload/"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_attack_version": "20.0",
+      "x_gold_evidence_quote": "this report documents Gamaredon’s _GammaDrop_ and _GammaLoad_ downloader variants, the infrastructure behind them, and the methods used to deliver the spearphishing emails"
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Gamaredon",
+      "description": "Acteur ciblant presque exclusivement l'Ukraine depuis 2013 ; auteur des downloaders VBScript GammaDrop et GammaLoad.",
+      "aliases": [
+        "Gamaredon",
+        "Aqua Blizzard",
+        "Primitive Bear",
+        "Shuckworm",
+        "UAC-0010"
+      ],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "G0047",
+          "url": "https://attack.mitre.org/groups/G0047"
+        }
+      ],
+      "x_gold_name_variants": [
+        "Gamaredon Group",
+        "Gammaredon"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "We attribute this activity to Gamaredon (UAC-0010) with high confidence"
+    },
+    {
+      "type": "campaign",
+      "spec_version": "2.1",
+      "id": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "description": "Douze vagues d'e-mails (environ une par mois), envoyés depuis des comptes gouvernementaux compromis ou usurpés via des relais, avec des archives RAR (puis ARJ en mai 2026) exploitant CVE-2025-8088 pour déposer GammaDrop dans le dossier Startup ; GammaDrop télécharge GammaLoad, balise C2 qui reçoit une charge choisie par l'opérateur.",
+      "objective": "Compromission d'institutions de l'État ukrainien (SSU, justice, forces de l'ordre, administration).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we identified a dozen waves of spearphishing emails against Ukrainian state institutions in a campaign that is still active, dating back to September 2025",
+      "x_gold_sequence": [
+        {
+          "order": null,
+          "summary": "Préparation de l'infrastructure : sous-domaines Cloudflare Workers provisionnés avant chaque vague, domaines de repli .ru/.online enregistrés via REG.RU, domaine joymobile.com.ua détourné, domaines fast flux résolus via check-host.",
+          "techniques": [
+            "T1583.007",
+            "T1583.001",
+            "T1584.001",
+            "T1568.001"
+          ]
+        },
+        {
+          "order": 1,
+          "summary": "E-mail de spearphishing envoyé depuis un compte gouvernemental compromis, ou usurpé (en-tête From:) via un relais authentifié avec des identifiants volés, avec une archive RAR jointe (ARJ déguisée en .rar/.zip en mai 2026).",
+          "techniques": [
+            "T1586.002",
+            "T1684.002",
+            "T1566.001",
+            "T1036.008"
+          ]
+        },
+        {
+          "order": 2,
+          "summary": "Extraction de l'archive : le PDF leurre est écrit normalement, et la traversée de chemin du flux ADS (CVE-2025-8088) écrit GammaDrop dans le dossier Startup.",
+          "techniques": [
+            "T1547.001"
+          ],
+          "techniques_acceptable": [
+            "T1203",
+            "T1204.002"
+          ]
+        },
+        {
+          "order": 3,
+          "summary": "GammaDrop (VBScript obfusqué) télécharge GammaLoad (HTA) depuis Cloudflare Workers dans %TEMP% et le lance via mshta.exe dans une fenêtre cachée.",
+          "techniques": [
+            "T1059.005",
+            "T1027",
+            "T1105",
+            "T1218.005",
+            "T1564.003"
+          ],
+          "techniques_acceptable": [
+            "T1027.016"
+          ]
+        },
+        {
+          "order": 4,
+          "summary": "Couche externe de GammaLoad : décodage Base64 de la couche interne dans %TEMP%, persistance par clé RunOnce, exécution par wscript.",
+          "techniques": [
+            "T1140",
+            "T1547.001",
+            "T1059.005"
+          ]
+        },
+        {
+          "order": 5,
+          "summary": "Couche interne de GammaLoad : collecte du nom d'ordinateur, du lecteur système et du numéro de série du volume, balise HTTP (identifiant victime dans le User-Agent) vers un C2 primaire puis de repli, exécution de la charge reçue.",
+          "techniques": [
+            "T1082",
+            "T1071.001",
+            "T1008",
+            "T1105"
+          ],
+          "techniques_acceptable": [
+            "T1047",
+            "T1041"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "GammaDrop",
+      "description": "Downloader VBScript de premier stade, lourdement obfusqué et paramétré par campagne ; écrit dans le dossier Startup par l'exploit CVE-2025-8088, il télécharge GammaLoad (HTA) depuis Cloudflare Workers et le lance via mshta. Fichiers .vbs, puis .vbe fin avril 2026, puis HTA dans les archives ARJ de mai 2026.",
+      "is_family": true,
+      "malware_types": [
+        "downloader"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This heavily obfuscated VBS payload fetches a remote HTA (GammaLoad) from a Cloudflare Workers C2 server, drops it to `%TEMP%\\brushedGpI.hta`, and executes it."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "GammaLoad",
+      "description": "Downloader HTA de second stade (VBScript à deux couches) : la couche externe décode en Base64 la couche interne, la rend persistante par une clé RunOnce et la lance via wscript ; la couche interne profile l'hôte, balise un C2 primaire et un C2 de repli en HTTP, puis exécute la charge reçue.",
+      "is_family": true,
+      "malware_types": [
+        "downloader"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Its purpose is to serve as a persistent C2 beacon that profiles the infected host, downloads a next-stage payload, and executes it."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "mshta",
+      "description": "Binaire Windows légitime exécutant le fichier HTA de GammaLoad, lancé par GammaDrop dans une fenêtre cachée.",
+      "x_gold_name_variants": [
+        "mshta.exe"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "wscript",
+      "description": "Windows Script Host : exécute la couche interne de GammaLoad (valeur RunOnce et lancement direct, //e:vbscript).",
+      "x_gold_name_variants": [
+        "wscript.exe"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once a payload is received, it is executed within the same `wscript.exe` process via VBScript’s _Execute_ statement."
+    },
+    {
+      "type": "infrastructure",
+      "spec_version": "2.1",
+      "id": "infrastructure--366afff2-62e5-5fc2-841b-884903d619f7",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Cloudflare Workers",
+      "description": "Sous-domaines workers.dev servant le stade suivant (GammaDrop -> GammaLoad) et de C2 primaire de GammaLoad ; provisionnés peu avant chaque vague, le second stade tourné une semaine plus tard.",
+      "infrastructure_types": [
+        "command-and-control"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure."
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--a9e3f038-a67b-5b28-9c04-f3a50a046527",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "CVE-2025-8088",
+      "description": "Traversée de répertoire dans WinRAR (jusqu'à la v7.13) : le nom d'un flux ADS contenant une séquence de traversée amène WinRAR à écrire la charge VBS dans le dossier Startup à l'extraction.",
+      "external_references": [
+        {
+          "source_name": "cve",
+          "external_id": "CVE-2025-8088"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Spearphishing emails containing weaponized RAR archives exploiting CVE-2025-8088"
+    },
+    {
+      "type": "software",
+      "spec_version": "2.1",
+      "id": "software--0819b5eb-92b8-56c8-8fb6-50d2c2dd675e",
+      "name": "WinRAR",
+      "x_gold_description": "Logiciel d'archivage visé par CVE-2025-8088 ; versions affectées : jusqu'à la v7.13. Éditeur non nommé par l'article.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a WinRAR directory traversal vulnerability (up to v7.13)"
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--18bbefb9-3446-5cbd-a06b-ca8252e0c5d6",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Ukrainian state institutions",
+      "description": "Institutions de l'État ukrainien (administration, sécurité, justice, forces de l'ordre), surtout des branches régionales et provinciales.",
+      "identity_class": "class",
+      "sectors": [
+        "government"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Every email in the analyzed dataset targets Ukrainian state institutions or individuals connected to them, spanning the state administration, security, justice and law enforcement sectors"
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--52f54e14-7f05-5c5d-892d-e310d2068587",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Security Service of Ukraine",
+      "description": "Institution la plus visée, à travers ses directions régionales (Louhansk, Lviv, Tchernivtsi) plutôt que son siège.",
+      "identity_class": "organization",
+      "sectors": [
+        "government"
+      ],
+      "x_gold_name_variants": [
+        "SSU"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the Security Service of Ukraine (SSU) was the most heavily targeted institution"
+    },
+    {
+      "type": "location",
+      "spec_version": "2.1",
+      "id": "location--fa01a667-6579-59eb-ae7b-705c97698ad2",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Ukraine",
+      "country": "UA",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Every email in the analyzed dataset targets Ukrainian state institutions or individuals connected to them"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--2e34237d-8574-43f6-aace-ae2915de8597",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Spearphishing Attachment",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1566.001",
+          "url": "https://attack.mitre.org/techniques/T1566/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The email contains a RAR archive as an attachment"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--3dc8c101-d4db-4f4d-8150-1b5a76ca5f1b",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Email Accounts",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1586.002",
+          "url": "https://attack.mitre.org/techniques/T1586/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "resource-development"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These emails originated from compromised governmental, law enforcement, and justice system accounts."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--fcf5bccf-be7a-48ff-b7a7-8d6019279301",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Email Spoofing",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1684.002",
+          "url": "https://attack.mitre.org/techniques/T1684/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sends an email whose `From:` header impersonates a Ukrainian government entity while the envelope sender reveals the true authenticated account",
+      "x_gold_context": "T1684.002 remplace T1672 Email Spoofing (révoquée en v20.0)."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--f9cc4d06-775f-4ee1-b401-4e2cc0da30ba",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Domains",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1584.001",
+          "url": "https://attack.mitre.org/techniques/T1584/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "resource-development"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "By hijacking a 5 year old domain, the operator passes SPF and DKIM checks and scored a completely clean rating."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--04a5a8ab-3bc8-4c83-95c9-55274a89786d",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Serverless",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1583.007",
+          "url": "https://attack.mitre.org/techniques/T1583/007"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "resource-development"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure.",
+      "x_gold_context": "Cloudflare Workers est une plateforme serverless ; l'infrastructure est provisionnée peu avant chaque vague (dates des certificats TLS)."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Domains",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1583.001",
+          "url": "https://attack.mitre.org/techniques/T1583/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "resource-development"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This dual TLD registration pattern (`.ru` and `.online`) is consistent across Gamaredon fallback C2 domains since at least September 2025",
+      "x_gold_context": "Domaines de repli enregistrés par paires .ru/.online le même jour via REG.RU (section Infrastructure)."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--29ba5a15-3b7b-4732-b817-65ea8f6468e6",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Fast Flux DNS",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1568.001",
+          "url": "https://attack.mitre.org/techniques/T1568/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "here too we found samples that leveraged `check-hosts[.]net` to resolve fast flux domains to their current IP address"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Registry Run Keys / Startup Folder",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1547.001",
+          "url": "https://attack.mitre.org/techniques/T1547/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "achieving persistence via the `Startup` folder"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--208884f1-7b83-4473-ac22-4e1cf6c41471",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Masquerade File Type",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1036.008",
+          "url": "https://attack.mitre.org/techniques/T1036/008"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the actor switched from RAR to ARJ archives disguised with a `.rar` or `.zip` extension"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Visual Basic",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.005",
+          "url": "https://attack.mitre.org/techniques/T1059/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This file contains a two-layered VBScript malware wrapped inside an HTML script"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Obfuscated Files or Information",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1027",
+          "url": "https://attack.mitre.org/techniques/T1027"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The script uses randomized variable names, junk functions and string building techniques consistent with Gamaredon’s auto-generated tooling.",
+      "x_gold_context": "Plusieurs procédés d'obfuscation combinés : technique parente."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Ingress Tool Transfer",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1105",
+          "url": "https://attack.mitre.org/techniques/T1105"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "fetches a remote HTA (GammaLoad) from a Cloudflare Workers C2 server, drops it to `%TEMP%\\brushedGpI.hta`, and executes it"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--840a987a-99bd-4a80-a5c9-0cb2baa6cade",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Mshta",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1218.005",
+          "url": "https://attack.mitre.org/techniques/T1218/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Hidden Window",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1564.003",
+          "url": "https://attack.mitre.org/techniques/T1564/003"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Deobfuscate/Decode Files or Information",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1140",
+          "url": "https://attack.mitre.org/techniques/T1140"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Decodes a Base64-encoded blob and writes it to disk at `%TEMP%\\casto0O.icl`."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "System Information Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1082",
+          "url": "https://attack.mitre.org/techniques/T1082"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "collects host information and beacons it to a set of C2 servers",
+      "x_gold_context": "Nom de l'ordinateur, lecteur système et numéro de série du volume (liste de la section Inner layer)."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Web Protocols",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1071.001",
+          "url": "https://attack.mitre.org/techniques/T1071/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The victim’s identity and check-in time are embedded in the `User-Agent` header, alongside a standard browser string"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--f24faf46-3b26-4dbb-98f2-63460498e433",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Fallback Channels",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1008",
+          "url": "https://attack.mitre.org/techniques/T1008"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant is configured with two C2 servers. The primary and fallback use different URL structures"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Exploitation for Client Execution",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1203",
+          "url": "https://attack.mitre.org/techniques/T1203"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The stream name contains a path traversal sequence that, upon extraction, causes WinRAR to write the VBS payload to the Windows Startup folder",
+      "x_gold_context": "Exploitation d'une vulnérabilité de WinRAR à l'extraction ; l'exploit écrit un fichier, l'exécution n'a lieu qu'à l'ouverture de session (Startup)."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Malicious File",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1204.002",
+          "url": "https://attack.mitre.org/techniques/T1204/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "it serves as the visible file the victim sees upon extraction",
+      "x_gold_context": "La chaîne suppose que la victime extraie l'archive jointe ; leurre PDF."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--671cd17f-a765-48fd-adc4-dad1941b1ae3",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Junk Code Insertion",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1027.016",
+          "url": "https://attack.mitre.org/techniques/T1027/016"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The script uses randomized variable names, junk functions and string building techniques",
+      "x_gold_context": "« junk functions » : recouvre T1027 retenue."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Windows Management Instrumentation",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1047",
+          "url": "https://attack.mitre.org/techniques/T1047"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Queries via WMI (`Select VolumeSerialNumber from Win32_LogicalDisk Where DeviceID = '<%SYSTEMDRIVE%>'`)",
+      "x_gold_context": "Moyen de la découverte (T1082) du numéro de série du volume."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Exfiltration Over C2 Channel",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1041",
+          "url": "https://attack.mitre.org/techniques/T1041"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "exfiltration"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "`<COMPUTERNAME>_<SERIAL>` | Unique victim identifier",
+      "x_gold_context": "Identifiant de la victime (nom de l'ordinateur et numéro de série) transmis dans le User-Agent de la balise C2."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7defbdbc-4132-599f-b1b8-49f2e3c1ea17",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "confidence": 85,
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "We attribute this activity to Gamaredon (UAC-0010) with high confidence"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a0ed63cd-fc69-552e-a852-f43cdc5e2758",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "target_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "this report documents Gamaredon’s _GammaDrop_ and _GammaLoad_ downloader variants"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b2463721-d1e3-56db-956b-a19241ba9d95",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "target_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "this report documents Gamaredon’s _GammaDrop_ and _GammaLoad_ downloader variants"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e9a4d636-806d-56a9-be9e-73e98fc8620f",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "target_ref": "location--fa01a667-6579-59eb-ae7b-705c97698ad2",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Historically, Gamaredon has maintained near exclusive focus on Ukraine since it first appeared in 2013"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--739fb653-9d83-59c9-b846-2b0fed2dbbc9",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "target_ref": "vulnerability--a9e3f038-a67b-5b28-9c04-f3a50a046527",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "has been exploiting [CVE-2025-8088]",
+      "x_gold_context": "Phrase d'introduction : « Gamaredon […] has been exploiting CVE-2025-8088 to target Ukrainian organizations »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b2839f14-3649-562c-b326-ea8fadb5a277",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The VBS payload, GammaDrop, stored as an ADS of the PDF.",
+      "x_gold_context": "Archive jointe à l'e-mail d'exemple du 18 mars 2026 (section Malicious attachment)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9a7a0894-a543-5ed0-a582-63547c63b27b",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In some cases, we observed the RAR archives skip GammaDrop entirely and deploy GammaLoad directly."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--32d22a92-0152-590b-8fa8-b5a21fcdd73d",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "infrastructure--366afff2-62e5-5fc2-841b-884903d619f7",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ac0adc7b-1ddf-5d83-90da-ab026ca78b44",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "vulnerability--a9e3f038-a67b-5b28-9c04-f3a50a046527",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Spearphishing emails containing weaponized RAR archives exploiting CVE-2025-8088"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--eb4bfe29-64a7-53b3-8186-65a14cb816a3",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "software--0819b5eb-92b8-56c8-8fb6-50d2c2dd675e",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "causes WinRAR to write the VBS payload to the Windows Startup folder"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--76053061-af19-58b4-815a-155d9718c328",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "identity--18bbefb9-3446-5cbd-a06b-ca8252e0c5d6",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Every email in the analyzed dataset targets Ukrainian state institutions or individuals connected to them"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0c7f34aa-cbe7-5197-9d14-f4f417df5f6a",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "identity--52f54e14-7f05-5c5d-892d-e310d2068587",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the Security Service of Ukraine (SSU) was the most heavily targeted institution"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--220210af-43a2-5190-8b0d-17eadcd37ce5",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "location--fa01a667-6579-59eb-ae7b-705c97698ad2",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Every email in the analyzed dataset targets Ukrainian state institutions or individuals connected to them"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--10bce3ec-f655-5693-a0d2-165820389e56",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "has",
+      "source_ref": "software--0819b5eb-92b8-56c8-8fb6-50d2c2dd675e",
+      "target_ref": "vulnerability--a9e3f038-a67b-5b28-9c04-f3a50a046527",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a WinRAR directory traversal vulnerability (up to v7.13)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c8c2e14b-2d66-58e1-ba90-46b1c19d42a1",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--2e34237d-8574-43f6-aace-ae2915de8597",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The email contains a RAR archive as an attachment"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bc1ade22-d113-510d-96ba-e57f0a1d591e",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--3dc8c101-d4db-4f4d-8150-1b5a76ca5f1b",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These emails originated from compromised governmental, law enforcement, and justice system accounts."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8e7cc81d-931f-57c8-a996-23ba6d9ae9ae",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--fcf5bccf-be7a-48ff-b7a7-8d6019279301",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sends an email whose `From:` header impersonates a Ukrainian government entity while the envelope sender reveals the true authenticated account"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a6f23f7a-f115-5d96-8d9a-68e309bac890",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--f9cc4d06-775f-4ee1-b401-4e2cc0da30ba",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "By hijacking a 5 year old domain, the operator passes SPF and DKIM checks and scored a completely clean rating.",
+      "x_gold_context": "Domaine joymobile.com.ua détourné via le compte Ukrnames compromis de son propriétaire (MX et SPF ajoutés)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3ee22ef4-d51f-5c28-9a29-810fdec0e026",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--04a5a8ab-3bc8-4c83-95c9-55274a89786d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--d7221275-ea7c-51c5-b977-30e830524f41",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This dual TLD registration pattern (`.ru` and `.online`) is consistent across Gamaredon fallback C2 domains since at least September 2025"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f3d08e35-1dd7-55f8-b77d-73da6a432a35",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--29ba5a15-3b7b-4732-b817-65ea8f6468e6",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "here too we found samples that leveraged `check-hosts[.]net` to resolve fast flux domains to their current IP address",
+      "x_gold_context": "Échantillons de la campagne non rattachés à une famille précise : relation portée par la campagne."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--09154117-f631-53bf-a6a8-e75e6cdb73f3",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "writing the VBS payload to `%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\`, achieving persistence via the `Startup` folder",
+      "x_gold_context": "C'est l'extraction de l'archive (exploit CVE-2025-8088), non GammaDrop lui-même, qui place la charge dans Startup."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c5f58069-d3b0-56f1-916c-62a4b0527a72",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--208884f1-7b83-4473-ac22-4e1cf6c41471",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the actor switched from RAR to ARJ archives disguised with a `.rar` or `.zip` extension",
+      "x_gold_context": "Vagues des 5, 7 et 8 mai 2026."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4a359f1b-c661-5c50-88f2-47a449ff7edb",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The stream name contains a path traversal sequence that, upon extraction, causes WinRAR to write the VBS payload to the Windows Startup folder"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b670716a-da93-57a1-903b-3a738e7dd9f7",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "target_ref": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "it serves as the visible file the victim sees upon extraction"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--39dfdd87-080c-55b8-889c-d27c00f39b29",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
+      "target_ref": "vulnerability--a9e3f038-a67b-5b28-9c04-f3a50a046527",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The stream name contains a path traversal sequence that, upon extraction, causes WinRAR to write the VBS payload"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--925a597e-8b12-5515-a1ec-8bed13c1b067",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This heavily obfuscated VBS payload fetches a remote HTA (GammaLoad)",
+      "x_gold_context": "Section GammaDrop – 1st stage."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--faabae1d-2970-5ce6-a2f0-bedd12cccaf3",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The script uses randomized variable names, junk functions and string building techniques consistent with Gamaredon’s auto-generated tooling.",
+      "x_gold_context": "Section GammaDrop – 1st stage."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--90ea3830-bbc5-5bba-b63b-f0d4dfb0e4e7",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "fetches a remote HTA (GammaLoad) from a Cloudflare Workers C2 server, drops it to `%TEMP%\\brushedGpI.hta`, and executes it"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--dfe53f1d-addf-568a-933d-469cdf627d60",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "attack-pattern--840a987a-99bd-4a80-a5c9-0cb2baa6cade",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ccbdd2ea-5452-5a2f-adcb-0a3674cffdf1",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0e8fa9ea-2cb6-5e7a-904c-dac959b340dc",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "attack-pattern--671cd17f-a765-48fd-adc4-dad1941b1ae3",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The script uses randomized variable names, junk functions and string building techniques",
+      "x_gold_context": "Section GammaDrop – 1st stage."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0e387def-9990-52bf-b485-77358b0bb2b8",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\1_13_4_1882_18.03.2026.vbs|GammaDrop",
+      "x_gold_context": "Annexe IOC (chemins) : GammaDrop réside dans Startup, où l'exploit l'a écrit ; persistance non mise en place par son propre code."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f437185c-4073-5ec0-8dff-2d1e68814b19",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "downloads",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "fetches a remote HTA (GammaLoad) from a Cloudflare Workers C2 server"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1b5d12a1-b033-5f29-82af-1ec647e632f7",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e9bd9b15-9367-5b0b-92e3-68891189ae58",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "target_ref": "infrastructure--366afff2-62e5-5fc2-841b-884903d619f7",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "fetches a remote HTA (GammaLoad) from a Cloudflare Workers C2 server"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ebc346ad-db25-5323-b548-6c58aa550177",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--dfd7cc1d-e1d8-4394-a198-97c4cab8aa67",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This file contains a two-layered VBScript malware wrapped inside an HTML script"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--648ce8f1-15c5-559f-9774-f48d5a9a87bc",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--b3d682b6-98f2-4fb0-aa3b-b4df007ca70a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The obfuscated VBScript spans roughly 4,000-5,000 lines, which reduce to approximately 130 after deobfuscation.",
+      "x_gold_context": "Section GammaLoad – 2nd stage."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a8386f06-ea11-5f9e-9a06-fee3ae1bcc44",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Decodes a Base64-encoded blob and writes it to disk at `%TEMP%\\casto0O.icl`.",
+      "x_gold_context": "Couche externe (Installer) de GammaLoad."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6b0c7373-f5c7-5232-8709-8505d7cf5ee3",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Establishes persistence via a _RunOnce_ registry key",
+      "x_gold_context": "Couche externe : HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce\\integralXk3."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f94fdc47-9c3c-597e-9dc8-954282df01cd",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "collects host information and beacons it to a set of C2 servers",
+      "x_gold_context": "Couche interne (C2 beacon) de GammaLoad."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6b2887fd-ad88-5886-8740-41bb927586d7",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The victim’s identity and check-in time are embedded in the `User-Agent` header, alongside a standard browser string",
+      "x_gold_context": "Balise HTTP GET via MSXML2.XMLHTTP (section C2 Communications)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--74c174ef-68ff-5baf-9097-d602ce32e1c8",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--f24faf46-3b26-4dbb-98f2-63460498e433",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The implant is configured with two C2 servers. The primary and fallback use different URL structures",
+      "x_gold_context": "Section GammaLoad – 2nd stage."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--dcabc4ab-0886-5917-87c3-75b2a2488d6d",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Its purpose is to serve as a persistent C2 beacon that profiles the infected host, downloads a next-stage payload, and executes it.",
+      "x_gold_context": "Section GammaLoad – 2nd stage."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1c95df55-efb6-51e1-92f1-066e36de9a1b",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--01a5a209-b94c-450b-b7f9-946497d91055",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Queries via WMI (`Select VolumeSerialNumber from Win32_LogicalDisk Where DeviceID = '<%SYSTEMDRIVE%>'`)",
+      "x_gold_context": "Section GammaLoad – 2nd stage."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8de8faca-f779-5812-98cc-3c23ba7a9cc1",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "`<COMPUTERNAME>_<SERIAL>` | Unique victim identifier",
+      "x_gold_context": "Segment du User-Agent de la balise GammaLoad."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--cb8befb8-5bf9-5270-8679-91586eecc8da",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once a payload is received, it is executed within the same `wscript.exe` process via VBScript’s _Execute_ statement.",
+      "x_gold_context": "La valeur RunOnce et le lancement de la couche interne passent aussi par wscript."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3536bc94-9a71-50a6-9d94-7517b339a40a",
+      "created": "2026-05-13T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "target_ref": "infrastructure--366afff2-62e5-5fc2-841b-884903d619f7",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Primary: `hxxps://a.cnbyvilkghx2a6p.workers[.]dev`, Cloudflare Workers proxy"
+    }
+  ]
+}

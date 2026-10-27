@@ -1,0 +1,635 @@
+{
+  "type": "bundle",
+  "id": "bundle--b15cc96f-39b9-5ff0-b8c4-0402d59b34e7",
+  "objects": [
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "name": "HijackLoader",
+      "is_family": true,
+      "malware_types": [
+        "loader"
+      ],
+      "description": "Loader déployé via la campagne fake CAPTCHA, qui télécharge et exécute Lumma Stealer.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a significant increase in “Lumma Stealer”1 malware deployments via the “HijackLoader”2 malicious loader"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "name": "Lumma Stealer",
+      "is_family": true,
+      "malware_types": [
+        "spyware"
+      ],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S1213",
+          "url": "https://attack.mitre.org/software/S1213"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a significant increase in “Lumma Stealer”1 malware deployments via the “HijackLoader”2 malicious loader"
+    },
+    {
+      "type": "campaign",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "name": "Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "description": "Faux CAPTCHA incitant à coller une charge PowerShell, téléchargement d'une archive ZIP puis exécution de HijackLoader (par DLL sideloading, ou binaire signé), qui déploie Lumma Stealer. Depuis mi-septembre 2024.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The so-called “fake CAPTCHA” campaign has already been extensively documented",
+      "x_gold_sequence": [
+        {
+          "order": 1,
+          "summary": "Page de faux CAPTCHA : le bouton « I’m not a robot » invite à saisir des raccourcis clavier qui ouvrent une ligne de commande où coller la charge PowerShell copiée dans le presse-papiers.",
+          "techniques": [
+            "T1204.004"
+          ]
+        },
+        {
+          "order": 2,
+          "summary": "Exécution de la charge PowerShell, selon trois variantes : mshta, iex (PowerShell brut) ou msiexec.",
+          "techniques": [
+            "T1059.001",
+            "T1218.005",
+            "T1218.007"
+          ]
+        },
+        {
+          "order": 3,
+          "summary": "Téléchargement d'une archive ZIP, décompression, exécution d'un binaire.",
+          "techniques": [
+            "T1105"
+          ]
+        },
+        {
+          "order": 4,
+          "summary": "Paquet de DLL sideloading : la DLL malveillante déchiffre et exécute le fichier chiffré qui dissimule l'étape finale de HijackLoader.",
+          "techniques": [
+            "T1574.001",
+            "T1027.013"
+          ]
+        },
+        {
+          "order": 5,
+          "summary": "HijackLoader télécharge et exécute Lumma Stealer.",
+          "techniques": [
+            "T1105"
+          ]
+        },
+        {
+          "order": null,
+          "summary": "Variante observée le 2 octobre 2024 : exécutable HijackLoader signé avec un certificat de signature de code authentique, hors paquet de DLL sideloading.",
+          "techniques": [
+            "T1553.002"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--e261a979-f354-41a8-963e-6cadac27c4bf",
+      "name": "Malicious Copy and Paste",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1204.004",
+          "url": "https://attack.mitre.org/techniques/T1204/004"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a pop-up invites targets to type a series of keyboard shortcuts so they open a command line interpreter, paste and execute a PowerShell payload"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+      "name": "PowerShell",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.001",
+          "url": "https://attack.mitre.org/techniques/T1059/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a PowerShell script is directly executed from a remote file"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--840a987a-99bd-4a80-a5c9-0cb2baa6cade",
+      "name": "Mshta",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1218.005",
+          "url": "https://attack.mitre.org/techniques/T1218/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The script leverages the Microsoft HTML Application Host to execute malicious code from a remote URL"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--365be77f-fc0e-42ee-bac8-4faf806d9336",
+      "name": "Msiexec",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1218.007",
+          "url": "https://attack.mitre.org/techniques/T1218/007"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The script also employs the Microsoft Windows Installer to silently download and execute a payload from a remote URL"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "name": "Ingress Tool Transfer",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1105",
+          "url": "https://attack.mitre.org/techniques/T1105"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "As a result of the PowerShell execution, a ZIP archive is downloaded, decompressed and a binary is executed from it."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--2fee9321-3e71-4cf4-af24-d4d40d355b34",
+      "name": "DLL",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1574.001",
+          "url": "https://attack.mitre.org/techniques/T1574/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "contained a DLL sideloading7 package, which led to HijackLoader execution"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--7007935a-a8a7-4c0b-bd98-4e85be8ed197",
+      "name": "Process Doppelgänging",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1055.013",
+          "url": "https://attack.mitre.org/techniques/T1055/013"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It implements several evasion techniques including Process Doppelgänging, DLL Search Order Hijacking, and Heaven’s Gate"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--0d91b3c0-5e50-47c3-949a-2a796f04d144",
+      "name": "Encrypted/Encoded File",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1027.013",
+          "url": "https://attack.mitre.org/techniques/T1027/013"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "decrypt and execute an encrypted file which is provided in the package. This file conceals the final HijackLoader stage"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--32901740-b42c-4fdd-bc02-345b5dc57082",
+      "name": "Code Signing",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1553.002",
+          "url": "https://attack.mitre.org/techniques/T1553/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "defense-impairment"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the malware sample was properly signed with a genuine code-signing certificate"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "name": "Match Legitimate Resource Name or Location",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1036.005",
+          "url": "https://attack.mitre.org/techniques/T1036/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we identified, and which is impersonating the “Firefox” browser"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--8abc877a-9200-58b4-92d2-0ec535f2d61b",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "contained a DLL sideloading7 package, which led to HijackLoader execution",
+      "x_gold_context": "Section « HijackLoader execution from DLL sideloading » : les archives ZIP viennent de la chaîne d'infection fake CAPTCHA."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--798c8621-b9c1-5063-89e7-4047344e3db9",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "which is aimed at downloading and executing a stealer implant (Lumma Stealer in our cases)",
+      "x_gold_context": "Section « HijackLoader execution from DLL sideloading » : dernière étape de HijackLoader dans les archives de la chaîne fake CAPTCHA."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--6fb5a2de-93a6-55bf-82ae-3138efdb9938",
+      "relationship_type": "downloads",
+      "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "target_ref": "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "which is aimed at downloading and executing a stealer implant (Lumma Stealer in our cases)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--d990abf2-a338-5a1f-8040-a71cf82b99f8",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "attack-pattern--e261a979-f354-41a8-963e-6cadac27c4bf",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a pop-up invites targets to type a series of keyboard shortcuts so they open a command line interpreter, paste and execute a PowerShell payload"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--cf4d316e-fbcd-565f-b075-71137e394854",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a PowerShell script is directly executed from a remote file",
+      "x_gold_context": "Section « Infection chain » : variante 2 du script PowerShell de la campagne fake CAPTCHA."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--b4cc426f-30b5-5e7a-9a05-a739d6fecedf",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "attack-pattern--840a987a-99bd-4a80-a5c9-0cb2baa6cade",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The script leverages the Microsoft HTML Application Host to execute malicious code from a remote URL",
+      "x_gold_context": "Section « Infection chain » : variante 1 du script PowerShell de la campagne fake CAPTCHA."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--029a48bd-0fb4-5eec-b537-fc0f9659249a",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "attack-pattern--365be77f-fc0e-42ee-bac8-4faf806d9336",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The script also employs the Microsoft Windows Installer to silently download and execute a payload from a remote URL",
+      "x_gold_context": "Section « Infection chain » : variante 3 du script PowerShell de la campagne fake CAPTCHA."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--5da82e3e-7106-5578-af01-3297d79ba95b",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "As a result of the PowerShell execution, a ZIP archive is downloaded, decompressed and a binary is executed from it."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--fdd27be3-b51a-5c91-8f22-44c7e5741392",
+      "relationship_type": "uses",
+      "source_ref": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "target_ref": "attack-pattern--2fee9321-3e71-4cf4-af24-d4d40d355b34",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "contained a DLL sideloading7 package, which led to HijackLoader execution",
+      "x_gold_context": "Technique T1574.002 (DLL Side-Loading) révoquée dans ATT&CK v20.0, remplacée par T1574.001 (DLL)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--131e69e3-154f-5f93-9af7-a7126d7424e6",
+      "relationship_type": "uses",
+      "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "target_ref": "attack-pattern--2fee9321-3e71-4cf4-af24-d4d40d355b34",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It implements several evasion techniques including Process Doppelgänging, DLL Search Order Hijacking, and Heaven’s Gate",
+      "x_gold_context": "Note de bas de page 2 de l'article (description générale de HijackLoader) ; T1574.001 regroupe le détournement de l'ordre de recherche des DLL et le sideloading dans ATT&CK v20.0."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--b1430307-bfb2-54c3-a07c-8152017f6c39",
+      "relationship_type": "uses",
+      "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "target_ref": "attack-pattern--7007935a-a8a7-4c0b-bd98-4e85be8ed197",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It implements several evasion techniques including Process Doppelgänging, DLL Search Order Hijacking, and Heaven’s Gate",
+      "x_gold_context": "Note de bas de page 2 de l'article (description générale de HijackLoader). Heaven’s Gate n'a pas de technique ATT&CK."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--111d7fac-a6f2-55ae-9a7d-d9c46e89a1e3",
+      "relationship_type": "uses",
+      "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "target_ref": "attack-pattern--0d91b3c0-5e50-47c3-949a-2a796f04d144",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "decrypt and execute an encrypted file which is provided in the package. This file conceals the final HijackLoader stage",
+      "x_gold_context": "Section « HijackLoader execution from DLL sideloading » : le fichier chiffré fournit l'étape finale de HijackLoader."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--96f220b7-8a4d-54b8-80c7-aa3c0fac7363",
+      "relationship_type": "uses",
+      "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "which is aimed at downloading and executing a stealer implant (Lumma Stealer in our cases)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--5a17ee4c-8772-56f1-a214-8e302bcccf62",
+      "relationship_type": "uses",
+      "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "target_ref": "attack-pattern--32901740-b42c-4fdd-bc02-345b5dc57082",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the malware sample was properly signed with a genuine code-signing certificate",
+      "x_gold_context": "Section « A wild signed HijackLoader appears! » : l'exécutable détecté le 2 octobre 2024 est « a signed HijackLoader sample »."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "relationship--15a9aec8-29c8-561c-81a0-1aa7693f5072",
+      "relationship_type": "uses",
+      "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+      "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we identified, and which is impersonating the “Firefox” browser",
+      "x_gold_context": "Section « A wild signed HijackLoader appears! » : l'échantillon cité est « another HijackLoader sample » signé qui se fait passer pour Firefox."
+    },
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "created": "2024-10-11T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "id": "report--b15cc96f-39b9-5ff0-b8c4-0402d59b34e7",
+      "name": "HijackLoader evolution: abusing genuine signing certificates",
+      "description": "HarfangLab, 2024-10-11. Campagne fake CAPTCHA déployant Lumma Stealer via HijackLoader, y compris des échantillons signés par des certificats de signature de code authentiques.",
+      "published": "2024-10-11T00:00:00.000Z",
+      "report_types": [
+        "threat-report"
+      ],
+      "object_refs": [
+        "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+        "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+        "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+        "attack-pattern--e261a979-f354-41a8-963e-6cadac27c4bf",
+        "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
+        "attack-pattern--840a987a-99bd-4a80-a5c9-0cb2baa6cade",
+        "attack-pattern--365be77f-fc0e-42ee-bac8-4faf806d9336",
+        "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+        "attack-pattern--2fee9321-3e71-4cf4-af24-d4d40d355b34",
+        "attack-pattern--7007935a-a8a7-4c0b-bd98-4e85be8ed197",
+        "attack-pattern--0d91b3c0-5e50-47c3-949a-2a796f04d144",
+        "attack-pattern--32901740-b42c-4fdd-bc02-345b5dc57082",
+        "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+        "relationship--8abc877a-9200-58b4-92d2-0ec535f2d61b",
+        "relationship--798c8621-b9c1-5063-89e7-4047344e3db9",
+        "relationship--6fb5a2de-93a6-55bf-82ae-3138efdb9938",
+        "relationship--d990abf2-a338-5a1f-8040-a71cf82b99f8",
+        "relationship--cf4d316e-fbcd-565f-b075-71137e394854",
+        "relationship--b4cc426f-30b5-5e7a-9a05-a739d6fecedf",
+        "relationship--029a48bd-0fb4-5eec-b537-fc0f9659249a",
+        "relationship--5da82e3e-7106-5578-af01-3297d79ba95b",
+        "relationship--fdd27be3-b51a-5c91-8f22-44c7e5741392",
+        "relationship--131e69e3-154f-5f93-9af7-a7126d7424e6",
+        "relationship--b1430307-bfb2-54c3-a07c-8152017f6c39",
+        "relationship--111d7fac-a6f2-55ae-9a7d-d9c46e89a1e3",
+        "relationship--96f220b7-8a4d-54b8-80c7-aa3c0fac7363",
+        "relationship--5a17ee4c-8772-56f1-a214-8e302bcccf62",
+        "relationship--15a9aec8-29c8-561c-81a0-1aa7693f5072"
+      ],
+      "external_references": [
+        {
+          "source_name": "HarfangLab",
+          "url": "https://harfanglab.io/insidethelab/hijackloader-abusing-genuine-certificates/"
+        }
+      ],
+      "x_gold_attack_version": "20.0"
+    }
+  ]
+}

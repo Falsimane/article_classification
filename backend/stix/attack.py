@@ -252,6 +252,24 @@ class AttackKB:
         hits = [h for h in hits if h and h["type"] in types]
         return sorted(hits, key=lambda h: (h["status"] != "active", h["attack_id"]))
 
+    def names_index(self, types: tuple[str, ...] = ("intrusion-set", "malware", "tool")) -> dict[str, tuple[str, ...]]:
+        """Nom ou alias normalisé -> identifiants ATT&CK actifs de ces types : tous les noms qu'ATT&CK documente, pour les repérer
+        dans un texte sans interroger l'index à chaque mot. Calculé une fois (quelques milliers de noms)."""
+        cache = self.__dict__.setdefault("_names_cache", {})
+        if types not in cache:
+            marks = ",".join("?" * len(types))
+            rows = self._db().execute(
+                f"SELECT n.norm, o.attack_id FROM names n JOIN objects o ON o.attack_id = n.attack_id "
+                f"WHERE o.status = 'active' AND o.type IN ({marks}) ORDER BY o.attack_id",
+                types,
+            )
+            index: dict[str, list[str]] = {}
+            for norm, attack_id in rows:
+                if norm and attack_id not in index.setdefault(norm, []):
+                    index[norm].append(attack_id)
+            cache[types] = {k: tuple(v) for k, v in index.items()}
+        return cache[types]
+
     def known_uses(self, attack_id: str, target_type: str = "attack-pattern", limit: int = 60) -> list[tuple[str, str]]:
         """Ce qu'ATT&CK documente comme employé par un groupe, un logiciel ou une campagne (identifiant, nom)."""
         rows = self._db().execute(

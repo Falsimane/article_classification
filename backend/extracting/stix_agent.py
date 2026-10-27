@@ -30,7 +30,7 @@ if str(root_dir) not in sys.path:
 from rich.console import Console  # noqa: E402
 from rich.table import Table  # noqa: E402
 
-from backend.config import OLLAMA_MODEL, OLLAMA_NUM_CTX, SOURCE_ARTICLES_DB  # noqa: E402
+from backend.config import LLM_MODEL, OLLAMA_NUM_CTX, SOURCE_ARTICLES_DB  # noqa: E402
 from backend.extracting import llm  # noqa: E402
 from backend.extracting.agent_tools import DraftGraph, get_attack, lookup_name, search_attack_many  # noqa: E402
 from backend.extracting.evidence import normalize_name, parse_date  # noqa: E402
@@ -309,9 +309,20 @@ def article_bundle(result: AgentResult, art: dict, objects: list, support: list 
     return bundle([rep, *objects, *support])
 
 
-def process_article(art: dict, *, out_dir: Path = STIX_BUNDLES_DIR, store=None, show_tools: bool = False) -> AgentResult:
-    """Extrait un article, écrit `out_dir/article_<id>.json` et, si `store` est donné, l'enregistre dans Neo4j."""
-    result = extract_article(art, show_tools=show_tools)
+def process_article(art: dict, *, out_dir: Path = STIX_BUNDLES_DIR, store=None, show_tools: bool = False, fast: bool = False, closed: bool = False) -> AgentResult:
+    """Extrait un article, écrit `out_dir/article_<id>.json` et, si `store` est donné, l'enregistre dans Neo4j. `fast` : extraction
+    en deux appels contraints par partie (`fast_extract`) au lieu de la boucle d'outils ; `closed` : questions fermées courtes, en parallèle
+    (`closed_extract`), pour les modèles de taille réduite."""
+    if closed:
+        from backend.extracting import closed_extract  # importe ce module
+
+        result = closed_extract.extract_article(art)
+    elif fast:
+        from backend.extracting import fast_extract  # fast_extract importe ce module
+
+        result = fast_extract.extract_article(art)
+    else:
+        result = extract_article(art, show_tools=show_tools)
     objects, support = article_objects(result, art)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / f"article_{art['id']}.json").write_text(article_bundle(result, art, objects, support).serialize(pretty=True), encoding="utf-8")
@@ -321,7 +332,7 @@ def process_article(art: dict, *, out_dir: Path = STIX_BUNDLES_DIR, store=None, 
         store.save_article(
             nodes, art["id"],
             {"title": art["title"], "url": art["url"], "site_name": art["site_name"], "category": art["primary_category"],
-             "model": OLLAMA_MODEL, "extraction_seconds": round(result.seconds, 1), "extracted_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+             "model": LLM_MODEL, "extraction_seconds": round(result.seconds, 1), "extracted_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
              "llm_failures": len(result.failed_passages)},
         )  # fmt: skip
     return result
@@ -396,6 +407,8 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="N'écrit rien dans Neo4j")
     parser.add_argument("--out", type=Path, default=STIX_BUNDLES_DIR, help=f"Dossier des bundles STIX 2.1 (défaut : {STIX_BUNDLES_DIR})")
     parser.add_argument("--show-tools", action="store_true", help="Affiche chaque appel d'outil et son résultat")
+    parser.add_argument("--fast", action="store_true", help="Extraction rapide : candidates calculées par le code, deux appels par partie")
+    parser.add_argument("--closed", action="store_true", help="Extraction à questions fermées : le code propose, de petits appels parallèles choisissent")
     parser.add_argument("--show-log", action="store_true", help="Affiche les corrections et refus de la vérification")
     parser.add_argument("--stats", action="store_true", help="Statistiques du graphe STIX dans Neo4j")
     args = parser.parse_args()
@@ -415,7 +428,7 @@ def main() -> None:
         skip = set() if args.force or args.article_id else store.extracted_article_ids()
     articles = fetch_articles(len(args.article_id) if args.article_id else args.limit, args.article_id, skip)
     for art in articles:
-        result = process_article(art, out_dir=args.out, store=store, show_tools=args.show_tools)
+        result = process_article(art, out_dir=args.out, store=store, show_tools=args.show_tools, fast=args.fast, closed=args.closed)
         console.print(summary_line(result))
         for f in result.failed_passages:
             console.print(f"  [red]{f}[/]")

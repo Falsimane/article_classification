@@ -5,6 +5,7 @@ import re
 import unittest
 from pathlib import Path
 
+from backend.extracting import fast_extract
 from backend.extracting.iocs import ioc_system
 from backend.extracting.rules import rule_system
 from backend.extracting.stix_agent import system_prompt, tool_specs
@@ -31,6 +32,8 @@ class NoEvaluatedArticleInPrompts(unittest.TestCase):
         prompts = {
             "agent (système)": system_prompt(),
             "agent (outils)": json.dumps(tool_specs(), ensure_ascii=False),
+            "rapide (système)": fast_extract.system_prompt(),
+            "rapide (tâches)": fast_extract.inventory_prompt("", []) + fast_extract.relation_prompt("", [], ""),
             "IOC": ioc_system(),
             "règles": rule_system(),
         }
