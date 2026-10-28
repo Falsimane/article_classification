@@ -46,12 +46,13 @@ mesurer rappel, précision et hallucinations de l'extraction.
 ├── backend/                 # Python : preprocessing, extraction, STIX, Neo4j, évaluation, API Web   → backend/README.md
 │   ├── cti_core/            #   moteur de nettoyage natif en Rust (PyO3), compilé par uv à l'installation
 │   ├── preprocessing/       #   nettoyage, classification LLM, audit humain (TUI)
-│   ├── extracting/          #   extraction STIX en trois étapes (entités, techniques vérifiées, relations), IOC, règles
+│   ├── text/                #   noms normalisés, ancrage, dates, phrases numérotées (partagé par extraction, STIX, évaluation)
+│   ├── extracting/          #   extraction STIX en trois étapes (graph/ : entités, techniques vérifiées, relations), observables/ : IOC, règles
 │   ├── stix/                #   objets STIX 2.1 (stix2), index ATT&CK v20.0
 │   ├── database/            #   persistance Neo4j
 │   ├── evaluation/          #   score contre le gold annoté
-│   ├── server.py            #   serveur HTTP : API REST + build du frontend
-│   └── stix_dashboard.py    #   graphe Neo4j → JSON pour l'interface
+│   ├── dashboard/           #   serveur HTTP (API REST + build du frontend), graphe Neo4j → JSON pour l'interface
+│   └── data/                #   données hors git : sources/ (SQLite), bundles/, eval/, raw/, archive/ (CTI_DATA_DIR)
 ├── frontend/                # React 18 + TypeScript + Tailwind + React Flow 12 (Vite)                 → frontend/README.md
 ├── Annotations/             # articles annotés à la main (gold STIX), manifest.json, méthode d'annotation
 ├── scripts/dashboard.sh     # build du frontend si besoin + lancement du serveur
@@ -79,9 +80,9 @@ mesurer rappel, précision et hallucinations de l'extraction.
 | Docker + Docker Compose | — | base Neo4j |
 | Serveurs LLM | — | extraction : serveur compatible OpenAI (**vLLM**, **SGLang**) lancé avec un analyseur d'appels d'outils ; classification : **Ollama** |
 
-**Données d'entrée.** Le pipeline lit les articles dans `db_outputs/cti_knowledge.db` (SQLite, table `knowledge` :
+**Données d'entrée.** Le pipeline lit les articles dans `backend/data/sources/cti_knowledge.db` (SQLite, table `knowledge` :
 `id, site_name, url, title, publication_date, content`). Cette base est produite par le scraping, qui n'est pas dans ce
-dépôt, et `db_outputs/` n'est pas versionné : elle doit être fournie séparément.
+dépôt, et `backend/data/` n'est pas versionné : elle doit être fournie séparément.
 
 **Serveurs LLM distants.** Les modèles tournent sur une machine distante, jointe par un tunnel SSH sur `localhost`. Les
 scripts n'envoient que des requêtes HTTP.
@@ -141,7 +142,7 @@ uv run cti-classifier
 # 1 bis. (facultatif) Vérifier et corriger les classifications à la main
 uv run cti-audit
 
-# 2. Extraire les 10 prochains articles CTI vers Neo4j (bundle STIX écrit dans db_outputs/stix_bundles/)
+# 2. Extraire les 10 prochains articles CTI vers Neo4j (bundle STIX écrit dans backend/data/bundles/)
 uv run cti-extract --limit 10
 
 # 3. Ouvrir le tableau de bord sur http://localhost:8095
@@ -185,8 +186,8 @@ appel pour les relations entre les éléments numérotés retenus (plus un appel
 
 ```bash
 uv run cti-eval --run --workers 4                       # extrait les articles de Annotations/manifest.json (4 à la fois) puis score
-uv run cti-eval --run --bundles db_outputs/eval/<nom>   # dans un dossier nommé, pour comparer deux versions
-uv run cti-eval --bundles db_outputs/eval/<nom>         # re-score des bundles existants, sans appel au modèle
+uv run cti-eval --run --bundles backend/data/eval/<nom>   # dans un dossier nommé, pour comparer deux versions
+uv run cti-eval --bundles backend/data/eval/<nom>         # re-score des bundles existants, sans appel au modèle
 uv run cti-eval --article-id 1553 --bundles <dossier>   # limiter à un article
 ```
 
@@ -205,7 +206,7 @@ uv run cti-dashboard --port 8095        # serveur seul (sert frontend/dist)
 
 ```bash
 uv run python -m backend.stix.attack [chemin/enterprise-attack-20.0.json]   # reconstruire l'index ATT&CK v20.0
-uv run python -m backend.extracting.update_ioc_reference                     # TLD IANA et domaines populaires (Tranco)
+uv run python -m backend.extracting.observables.update_reference                     # TLD IANA et domaines populaires (Tranco)
 ```
 
 ---
@@ -233,10 +234,10 @@ Toutes les variables sont lues dans l'environnement du processus (voir `backend/
 
 | Emplacement | Contenu | Accès |
 | :--- | :--- | :--- |
-| `db_outputs/cti_knowledge.db` | `knowledge` (articles bruts), `article_classifications` (catégorie, markdown nettoyé), `site_boilerplate` (gabarits appris) | écrit par `cti-classifier` et `cti-audit` ; **lecture seule** pour l'extraction et le tableau de bord |
+| `backend/data/sources/cti_knowledge.db` | `knowledge` (articles bruts), `article_classifications` (catégorie, markdown nettoyé), `site_boilerplate` (gabarits appris) | écrit par `cti-classifier` et `cti-audit` ; **lecture seule** pour l'extraction et le tableau de bord |
 | Neo4j `bolt://localhost:7687` | graphe STIX : nœuds `(:Stix:<Type>)`, arêtes typées, provenance par article | **seule** base du graphe de connaissances |
-| `db_outputs/stix_bundles/article_<id>.json` | bundle STIX 2.1 complet de chaque extraction (IOC bénins compris) | réécrit à chaque extraction, même en `--dry-run` |
-| `db_outputs/eval/<nom>/` | bundles de l'évaluation, `runs.json`, `report.md`, `report.json` (défaut : `latest`) | écrit par `cti-eval` |
+| `backend/data/bundles/article_<id>.json` | bundle STIX 2.1 complet de chaque extraction (IOC bénins compris) | réécrit à chaque extraction, même en `--dry-run` |
+| `backend/data/eval/<nom>/` | bundles de l'évaluation, `runs.json`, `report.md`, `report.json` (défaut : `latest`) | écrit par `cti-eval` |
 | `backend/stix/reference/` | index ATT&CK v20.0 (SQLite FTS5) | versionné / reconstruit à la demande |
 
 ---

@@ -37,18 +37,23 @@ Le pipeline permet de :
 │   │   ├── cti_classifier.py     # Classification & triage LLM (Ollama)
 │   │   └── audit_classifier.py   # Interface TUI (Textual) pour l'audit et la validation humaine
 │   │
+│   ├── text/                     # Partagé par extraction, STIX et évaluation (n'importe ni stix/ ni extracting/)
+│   │   ├── evidence.py           # noms normalisés, ancrage des citations, confiance, dates
+│   │   └── segment.py            # Phrases numérotées (la preuve d'une relation est un numéro de phrase) ; `render` = texte montré au modèle
+│   │
 │   ├── extracting/               # Construction sémantique du Knowledge Graph CTI
-│   │   ├── extract.py            # CLI `cti-extract` : articles classifiés -> pipeline -> bundle STIX (fichier) -> Neo4j
+│   │   ├── cli.py                # CLI `cti-extract` : articles classifiés -> pipeline -> bundle STIX (fichier) -> Neo4j
 │   │   ├── pipeline.py           # Extraction d'un article, trois étapes sur le texte entier : entités et techniques (un appel),
 │   │   │                         #   techniques vérifiées contre ATT&CK (identifiant existant ET nom correspondant ; refusées corrigées
 │   │   │                         #   par le modèle avec search_attack / get_attack), relations entre éléments numérotés (+ une correction)
-│   │   ├── draft.py              # DraftGraph (vérification STIX : stix2 strict, table de relations, ATT&CK, phrases citées) et outils ATT&CK
-│   │   ├── segment.py            # Phrases numérotées (la preuve d'une relation est un numéro de phrase) ; `render` = texte montré au modèle
 │   │   ├── llm.py                # Client vLLM : sortie contrainte (`generate`), tours avec outils (`chat`), slots, tokens comptés par le serveur
-│   │   ├── iocs.py               # IOC : valeurs par règles, rôle et rattachement par le modèle ; jugés non malveillants gardés (indicateur benign)
-│   │   ├── rules.py              # Règles YARA (libyara) et Sigma (YAML) par analyse syntaxique ; seule l'entité détectée est choisie par le modèle
-│   │   ├── evidence.py, places.py  # noms normalisés, ancrage, dates ; lieux -> ISO 3166-1 / région STIX
-│   │   └── update_ioc_reference.py # mise à jour des listes TLD / domaines populaires (reference/)
+│   │   ├── graph/
+│   │   │   ├── draft.py          # DraftGraph (vérification STIX : stix2 strict, table de relations, ATT&CK, phrases citées) et outils ATT&CK
+│   │   │   └── places.py         # lieux -> ISO 3166-1 / région STIX
+│   │   └── observables/
+│   │       ├── iocs.py           # IOC : valeurs par règles, rôle et rattachement par le modèle ; jugés non malveillants gardés (indicateur benign)
+│   │       ├── rules.py          # Règles YARA (libyara) et Sigma (YAML) par analyse syntaxique ; seule l'entité détectée est choisie par le modèle
+│   │       └── update_reference.py # mise à jour des listes TLD / domaines populaires (reference/)
 │   │
 │   ├── evaluation/               # Mesure de l'extraction contre les articles annotés à la main (Annotations/)
 │   │   ├── score.py              # Méthode d'Annotations/methode_annotation.md : rappel, précision, crédit partiel, hallucinations, ancrage
@@ -60,12 +65,14 @@ Le pipeline permet de :
 │   │
 │   ├── stix/                     # Objets STIX 2.1 (stix2), index SQLite FTS5 d'ATT&CK v20.0 (attack.py), IOC datés, règles en indicator
 │   ├── cti_core/                 # Moteur déterministe natif Rust (PyO3) : nettoyage, sections, découpage
-│   ├── server.py                 # Serveur Web HTTP & API REST STIX (sert frontend/dist) : /api/stats|articles|graph|iocs|rules|article|bundle|actors
-│   └── stix_dashboard.py         # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML)
+│   ├── dashboard/
+│   │   ├── server.py             # Serveur Web HTTP & API REST STIX (sert frontend/dist) : /api/stats|articles|graph|iocs|rules|article|bundle|actors
+│   │   └── stix_dashboard.py     # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML)
+│   ├── config.py                 # Seul endroit qui définit les chemins de données (DATA_DIR, surchargé par CTI_DATA_DIR) et les serveurs LLM
+│   └── data/                     # Hors git : sources/ (cti_knowledge.db, urls_collection.db), bundles/, eval/, raw/ (scrapes), archive/
 │
 ├── frontend/                     # React 18 + TypeScript + Tailwind CSS 3 + React Flow 12 (Vite) ; voir frontend/README.md
 ├── Annotations/                  # Gold STIX annoté à la main, manifest.json, méthode d'annotation
-├── db_outputs/                   # SQLite source (cti_knowledge.db), bundles STIX, rapports d'évaluation
 └── pyproject.toml                # Configuration du package, dépendances uv et scripts CLI
 ```
 
@@ -76,7 +83,7 @@ Le pipeline permet de :
 | Base de Données | Rôle | Politique d'accès |
 | :--- | :--- | :--- |
 | **Neo4j** (`bolt://localhost:7687`) | **L'UNIQUE base de persistance du Knowledge Graph CTI** (graphe STIX, provenance par article). | Lecture / Écriture via `backend/database/stix_store.py`. |
-| **SQLite** (`db_outputs/cti_knowledge.db`) | Contient les articles bruts scrappés (`knowledge`) et les résultats de classification (`article_classifications`). | **STRICTEMENT LECTURE SEULE** pour l'extraction et le dashboard. Aucune entité de graphe n'y est enregistrée. |
+| **SQLite** (`backend/data/sources/cti_knowledge.db`) | Contient les articles bruts scrappés (`knowledge`) et les résultats de classification (`article_classifications`). | **STRICTEMENT LECTURE SEULE** pour l'extraction et le dashboard. Aucune entité de graphe n'y est enregistrée. |
 
 ---
 
@@ -98,7 +105,7 @@ uv run cti-extract --limit 10
 # Un article, sans écrire dans Neo4j, avec les refus de la vérification et les appels d'outils
 uv run cti-extract --article-id 1553 --dry-run --show-log
 
-# Le bundle STIX 2.1 final de chaque article est toujours écrit dans db_outputs/stix_bundles/article_<id>.json
+# Le bundle STIX 2.1 final de chaque article est toujours écrit dans backend/data/bundles/article_<id>.json
 # (même en --dry-run ; --out change de dossier). Une ré-extraction écrase le fichier : annoter une copie.
 # Le bundle contient aussi les IOC jugés non malveillants (indicator_types benign) ; Neo4j ne les reçoit pas.
 
@@ -112,11 +119,11 @@ uv run cti-extract --limit 5 --force    # re-traiter des articles déjà extrait
 uv run python -m backend.stix.attack
 
 # Articles annotés (Annotations/manifest.json : article_id -> gold) ; rapport dans <bundles>/report.md
-uv run cti-eval --run --workers 4 --bundles db_outputs/eval/<nom>
-uv run cti-eval --bundles db_outputs/eval/<nom>   # re-score sans appel au modèle
+uv run cti-eval --run --workers 4 --bundles backend/data/eval/<nom>
+uv run cti-eval --bundles backend/data/eval/<nom>   # re-score sans appel au modèle
 ```
 Le backend Python n'a pas de tests unitaires : toute modification de l'extraction se mesure avec `cti-eval` sur les 9 articles
-annotés et se compare au dernier rapport (référence : `db_outputs/eval/staged_q38_27b_9art`, entités R 47,9 % / P 51,5 %,
+annotés et se compare au dernier rapport (référence : `backend/data/eval/staged_q38_27b_9art`, entités R 47,9 % / P 51,5 %,
 relations R 21,7 % / P 35,9 %).
 
 ### D. Serveur Web & Dashboard CTI

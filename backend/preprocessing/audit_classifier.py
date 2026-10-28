@@ -13,8 +13,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.panel import Panel
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-DB_PATH = BASE_DIR / "db_outputs" / "cti_knowledge.db"
+from backend.config import SOURCE_ARTICLES_DB as DB_PATH
 
 def get_articles_to_review(mode: str = "douteux", limit: int = 50) -> list:
     with sqlite3.connect(DB_PATH, timeout=10.0) as conn:

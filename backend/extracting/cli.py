@@ -5,7 +5,7 @@
     uv run cti-extract --article-id 1553 --dry-run --show-log   # chaque refus de la vérification et chaque appel d'outil
     uv run cti-extract --stats
 
-Chaque article passe par `pipeline.extract_article` ; le `stix2.Bundle` est écrit dans db_outputs/stix_bundles/article_<id>.json
+Chaque article passe par `pipeline.extract_article` ; le `stix2.Bundle` est écrit dans backend/data/bundles/article_<id>.json
 (même en --dry-run), puis enregistré dans Neo4j sans les IOC jugés bénins.
 """
 
@@ -22,14 +22,13 @@ if str(root_dir) not in sys.path:
 from rich.console import Console  # noqa: E402
 from rich.table import Table  # noqa: E402
 
-from backend.config import LLM_MODEL, SOURCE_ARTICLES_DB  # noqa: E402
+from backend.config import BUNDLES_DIR, LLM_MODEL, SOURCE_ARTICLES_DB  # noqa: E402
 from backend.text.evidence import parse_date  # noqa: E402
 from backend.extracting.pipeline import ExtractionResult, clean_title, extract_article  # noqa: E402
 from backend.stix.iocs import build_ioc_objects, without_benign  # noqa: E402
 from backend.stix.objects import as_dict, bundle, report  # noqa: E402
 from backend.stix.rules import build_rule_objects  # noqa: E402
 
-STIX_BUNDLES_DIR = root_dir / "db_outputs" / "stix_bundles"  # bundle final de chaque article, pour l'annotation
 CATEGORIES = ("operational", "tactical", "strategic")
 
 console = Console()
@@ -57,7 +56,7 @@ def article_bundle(result: ExtractionResult, art: dict, objects: list, support: 
     return bundle([rep, *objects, *support])
 
 
-def process_article(art: dict, *, out_dir: Path = STIX_BUNDLES_DIR, store=None) -> ExtractionResult:
+def process_article(art: dict, *, out_dir: Path = BUNDLES_DIR, store=None) -> ExtractionResult:
     """Extrait un article, écrit `out_dir/article_<id>.json` et, si `store` est donné, l'enregistre dans Neo4j."""
     result = extract_article(art)
     objects, support = article_objects(result, art)
@@ -140,7 +139,7 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=10, help="Nombre maximal d'articles")
     parser.add_argument("--force", action="store_true", help="Ré-extraire aussi les articles déjà dans Neo4j")
     parser.add_argument("--dry-run", action="store_true", help="N'écrit rien dans Neo4j")
-    parser.add_argument("--out", type=Path, default=STIX_BUNDLES_DIR, help=f"Dossier des bundles STIX 2.1 (défaut : {STIX_BUNDLES_DIR})")
+    parser.add_argument("--out", type=Path, default=BUNDLES_DIR, help=f"Dossier des bundles STIX 2.1 (défaut : {BUNDLES_DIR})")
     parser.add_argument("--show-log", action="store_true", help="Affiche les refus de la vérification et les appels d'outils")
     parser.add_argument("--stats", action="store_true", help="Statistiques du graphe STIX dans Neo4j")
     args = parser.parse_args()

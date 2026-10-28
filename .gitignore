@@ -8,7 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
-db_outputs
+backend/data
 cti_core/cargo.lock
 backend/cti_core/target
 frontend/node_modules/

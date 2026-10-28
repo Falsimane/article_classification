@@ -4,7 +4,11 @@ import os
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-SOURCE_ARTICLES_DB = ROOT_DIR / "db_outputs" / "cti_knowledge.db"  # articles et classifications (SQLite)
+# Données (hors git) : seul endroit où leur emplacement est défini ; CTI_DATA_DIR le déplace en entier
+DATA_DIR = Path(os.environ.get("CTI_DATA_DIR") or ROOT_DIR / "backend" / "data")
+SOURCE_ARTICLES_DB = DATA_DIR / "sources" / "cti_knowledge.db"  # articles et classifications (SQLite)
+BUNDLES_DIR = DATA_DIR / "bundles"  # bundle STIX final de chaque article (écrit par cti-extract, lu par le dashboard)
+EVAL_DIR = DATA_DIR / "eval"  # un dossier par exécution de cti-eval
 
 os.environ["NO_PROXY"] = "localhost,127.0.0.1"  # les serveurs d'inférence sont joints par un tunnel local, jamais par un proxy
 

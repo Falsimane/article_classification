@@ -19,7 +19,7 @@ commandes, voir le [README racine](../README.md).
 7. [`stix/` : objets STIX 2.1 et bases de référence](#stix--objets-stix-21-et-bases-de-référence)
 8. [`database/` : persistance Neo4j](#database--persistance-neo4j)
 9. [`evaluation/` : score contre le gold](#evaluation--score-contre-le-gold)
-10. [`server.py` et `stix_dashboard.py` : API Web](#serverpy-et-stix_dashboardpy--api-web)
+10. [`dashboard/` : API Web](#dashboard--api-web)
 
 ---
 
@@ -35,28 +35,28 @@ SQLite knowledge (article brut)
    ▼
 SQLite article_classifications (primary_category, clean_markdown, is_processable…)
    │
-   │  extracting/extract.py -> pipeline.py          ── uv run cti-extract
-   │    1. segment.py : phrases numérotées (unités), article entier montré au modèle
+   │  extracting/cli.py -> pipeline.py              ── uv run cti-extract
+   │    1. text/segment.py : phrases numérotées (unités), article entier montré au modèle
    │    2. appel « entités » : entités et techniques ATT&CK (identifiant|nom|phrases)
    │    3. techniques vérifiées contre ATT&CK v20.0 ; les refusées corrigées par le modèle avec search_attack / get_attack
    │    4. appel « relations » entre éléments numérotés (+ une correction) ; DraftGraph : stix2 strict, phrases citées
-   │    5. iocs.py  : valeurs par règles, rôle et rattachement choisis par le LLM
-   │    6. rules.py : règles YARA (libyara) / Sigma (YAML) par analyse syntaxique, entité détectée choisie par le LLM
+   │    5. observables/iocs.py  : valeurs par règles, rôle et rattachement choisis par le LLM
+   │    6. observables/rules.py : règles YARA (libyara) / Sigma (YAML) par analyse syntaxique, entité détectée choisie par le LLM
    │    7. stix/objects.py : stix2.Bundle (identifiants déterministes)
-   ├──▶ db_outputs/stix_bundles/article_<id>.json   (complet, IOC bénins compris)
+   ├──▶ backend/data/bundles/article_<id>.json   (complet, IOC bénins compris)
    ▼
 Neo4j  (:Stix:<Type>) -[:USES|TARGETS|…]-> (:Stix:<Type>)   database/stix_store.py (sans les IOC bénins)
    │
-   │  stix_dashboard.py  (données pures, aucun HTML)
+   │  dashboard/stix_dashboard.py  (données pures, aucun HTML)
    ▼
-server.py  ── /api/*  ──▶  frontend React (frontend/dist)
+dashboard/server.py  ── /api/*  ──▶  frontend React (frontend/dist)
 ```
 
 Les deux bases ont des rôles stricts :
 
 | Base | Rôle | Écrite par | Lue par |
 | :--- | :--- | :--- | :--- |
-| SQLite `db_outputs/cti_knowledge.db` | articles bruts, classifications, gabarits de sources | `cti-classifier`, `cti-audit` | extraction et tableau de bord, **en lecture seule** |
+| SQLite `backend/data/sources/cti_knowledge.db` | articles bruts, classifications, gabarits de sources | `cti-classifier`, `cti-audit` | extraction et tableau de bord, **en lecture seule** |
 | Neo4j `bolt://localhost:7687` | **unique** stockage du graphe de connaissances | `stix_store.py` | `stix_dashboard.py` |
 
 ---
@@ -88,8 +88,10 @@ deux exécutions donnent la même extraction.
 
 ## `config.py` : configuration partagée
 
-Lit l'environnement une fois et expose les constantes utilisées par les clients LLM et les lecteurs d'articles : chemin
-de la base SQLite (`SOURCE_ARTICLES_DB`) ; pour l'extraction, URL et modèle du serveur vLLM/SGLang (`OPENAI_BASE_URL`,
+Lit l'environnement une fois et expose les constantes utilisées par les clients LLM et les lecteurs d'articles. C'est le
+seul endroit qui définit les chemins de données : `DATA_DIR` (`backend/data`, ou `CTI_DATA_DIR`) et, dessous, la base SQLite
+(`SOURCE_ARTICLES_DB` = `sources/cti_knowledge.db`), les bundles (`BUNDLES_DIR`) et les évaluations (`EVAL_DIR`) ;
+`raw/` (pages scrapées) et `archive/` n'y sont pas lus. Pour l'extraction, URL et modèle du serveur vLLM/SGLang (`OPENAI_BASE_URL`,
 `LLM_MODEL`) et requêtes en vol (`LLM_SLOTS`) ; pour la classification, URL, modèle et contexte d'Ollama
 (`OLLAMA_NUM_CTX`). Il force aussi `NO_PROXY=localhost,127.0.0.1` pour que les tunnels ne passent jamais par un proxy.
 
@@ -159,13 +161,13 @@ d'outils refuse l'étape 2 de la même façon : les techniques déjà valides so
 | Fichier | Rôle |
 | :--- | :--- |
 | `llm.py` | Client du serveur vLLM/SGLang (`/v1/chat/completions`). `generate` : un appel sous schéma JSON (`response_format`), JSON demandé sur une ligne, réponse tronquée récupérée élément par élément. `chat` : un tour de conversation avec outils. `map_parallel` : appels parallèles bornés par le sémaphore de slots. `try_generate` : variante qui renvoie une réponse par défaut honnête en cas d'échec (IOC : rôle `unknown`). Chaque résultat porte les tokens lus et générés comptés par le serveur. |
-| `segment.py` | Découpe le markdown nettoyé en **unités numérotées** (phrases ; blocs de code et tables gardés entiers, montrés en extrait) ; `render` produit le texte numéroté montré au modèle. |
-| `draft.py` | **`DraftGraph`**, le brouillon vérifié de l'article, et les outils de recherche dans ATT&CK (`search_attack`, `get_attack`). `declare` crée une entité par sa classe `stix2` ; `relate` crée une relation et contrôle : couple de types permis par la table de relations STIX, identifiant ATT&CK existant en v20.0 (révoqué → remplaçant), phrases citées existantes qui nomment l'entité reliée (ou les trois phrases précédentes, ou le titre de section). Les techniques, groupes et logiciels connus d'ATT&CK sont les objets officiels de MITRE, pas des copies. |
-| `evidence.py` | Comparaison de noms normalisés, ancrage des preuves, confiance exprimée par l'auteur, analyse des dates. |
-| `places.py` | Résout un nom de lieu (« Russia », « Russie », « Eastern Europe ») en code ISO 3166-1 ou en région du vocabulaire STIX `region-ov`. Un nom non résolu est refusé, jamais inventé. |
-| `iocs.py` | IOC : valeurs candidates par règles (adresses, domaines, URL, courriels, hachages), filtres (adresses privées, domaines populaires, domaine de l'éditeur, extensions de fichier prises pour des TLD), regroupement par phrase ou section d'annexe, puis réponse fermée du modèle : rôle (`c2`, `payload-delivery`…) et entité de rattachement. Les IOC jugés non malveillants sont gardés dans le bundle avec `indicator_types: ["benign"]`, pas dans Neo4j. |
-| `rules.py` | Règles de détection lues dans le markdown complet (pas dans les unités, qui fusionnent les espaces). YARA compilée par `libyara`, Sigma lue en YAML avec `title`, `logsource` et `detection.condition`. Une règle invalide n'est jamais réparée : elle est écartée avec sa raison. Le modèle choisit l'entité détectée. |
-| `update_ioc_reference.py` | Met à jour `reference/tlds.txt` (IANA) et `reference/popular_domains.txt` (Tranco), données versionnées du filtrage des IOC. |
+| `text/segment.py` | Découpe le markdown nettoyé en **unités numérotées** (phrases ; blocs de code et tables gardés entiers, montrés en extrait) ; `render` produit le texte numéroté montré au modèle. |
+| `graph/draft.py` | **`DraftGraph`**, le brouillon vérifié de l'article, et les outils de recherche dans ATT&CK (`search_attack`, `get_attack`). `declare` crée une entité par sa classe `stix2` ; `relate` crée une relation et contrôle : couple de types permis par la table de relations STIX, identifiant ATT&CK existant en v20.0 (révoqué → remplaçant), phrases citées existantes qui nomment l'entité reliée (ou les trois phrases précédentes, ou le titre de section). Les techniques, groupes et logiciels connus d'ATT&CK sont les objets officiels de MITRE, pas des copies. |
+| `text/evidence.py` | Comparaison de noms normalisés, ancrage des preuves, confiance exprimée par l'auteur, analyse des dates. |
+| `graph/places.py` | Résout un nom de lieu (« Russia », « Russie », « Eastern Europe ») en code ISO 3166-1 ou en région du vocabulaire STIX `region-ov`. Un nom non résolu est refusé, jamais inventé. |
+| `observables/iocs.py` | IOC : valeurs candidates par règles (adresses, domaines, URL, courriels, hachages), filtres (adresses privées, domaines populaires, domaine de l'éditeur, extensions de fichier prises pour des TLD), regroupement par phrase ou section d'annexe, puis réponse fermée du modèle : rôle (`c2`, `payload-delivery`…) et entité de rattachement. Les IOC jugés non malveillants sont gardés dans le bundle avec `indicator_types: ["benign"]`, pas dans Neo4j. |
+| `observables/rules.py` | Règles de détection lues dans le markdown complet (pas dans les unités, qui fusionnent les espaces). YARA compilée par `libyara`, Sigma lue en YAML avec `title`, `logsource` et `detection.condition`. Une règle invalide n'est jamais réparée : elle est écartée avec sa raison. Le modèle choisit l'entité détectée. |
+| `observables/update_reference.py` | Met à jour `observables/reference/tlds.txt` (IANA) et `reference/popular_domains.txt` (Tranco), données versionnées du filtrage des IOC. |
 
 ### Format d'une ligne soumise
 
@@ -226,7 +228,7 @@ Le dossier `Annotations/` contient des articles annotés à la main en STIX (`*_
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `cti_eval.py` | CLI `cti-eval`. `--run` extrait les articles du manifeste (`--workers N` articles à la fois), sinon re-score les bundles de `--bundles` (défaut : `db_outputs/eval/latest`). Écrit `runs.json` (durées, appels par étape, échecs), `report.json` et `report.md` dans le dossier des bundles. |
+| `cti_eval.py` | CLI `cti-eval`. `--run` extrait les articles du manifeste (`--workers N` articles à la fois), sinon re-score les bundles de `--bundles` (défaut : `backend/data/eval/latest`). Écrit `runs.json` (durées, appels par étape, échecs), `report.json` et `report.md` dans le dossier des bundles. |
 | `score.py` | Méthode de score décrite ci-dessous. |
 
 - **Rappel** (métrique principale) = objets `required` trouvés / total `required`.
@@ -247,7 +249,7 @@ Les prompts et le code ne doivent contenir aucun nom propre tiré des articles �
 
 ---
 
-## `server.py` et `stix_dashboard.py` : API Web
+## `dashboard/` : API Web
 
 `server.py` (CLI `cti-dashboard`, port 8095 par défaut) est un `http.server` de la bibliothèque standard. Il sert le build
 du frontend (`frontend/dist`) ; toute route inconnue renvoie `index.html` (routage côté client). `stix_dashboard.py`

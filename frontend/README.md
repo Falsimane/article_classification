@@ -4,7 +4,7 @@ Interface Web du CTI Knowledge Graph : exploration des rapports extraits (graphe
 texte de l'article) et profils des acteurs de la menace.
 
 **Pile** : React 18, TypeScript 5, Tailwind CSS 3, React Flow 12 (`@xyflow/react`), d3-force, react-markdown, Vite 5,
-Vitest. L'application est construite dans `dist/` et servie par le backend (`backend/server.py`) ; elle ne lit que
+Vitest. L'application est construite dans `dist/` et servie par le backend (`backend/dashboard/server.py`) ; elle ne lit que
 l'API REST `/api/*`.
 
 ---
@@ -33,7 +33,7 @@ frontend/
 ├── src/
 │   ├── main.tsx              # point d'entrée React
 │   ├── App.tsx               # routage (/ = rapports, /actors = acteurs), chargement des stats et des articles
-│   ├── types.ts              # formes JSON de l'API (miroir de backend/stix_dashboard.py)
+│   ├── types.ts              # formes JSON de l'API (miroir de backend/dashboard/stix_dashboard.py)
 │   ├── index.css             # Tailwind + styles React Flow
 │   ├── components/
 │   │   ├── Shell.tsx         # barre supérieure : navigation et totaux (articles, entités, relations, IOC)
@@ -106,7 +106,7 @@ reste vide.
 ## Contrat avec l'API
 
 `src/lib/api.ts` est le seul module qui appelle le réseau. `src/types.ts` reflète les réponses de
-`backend/stix_dashboard.py` : toute modification d'une forme JSON côté serveur doit être reportée ici.
+`backend/dashboard/stix_dashboard.py` : toute modification d'une forme JSON côté serveur doit être reportée ici.
 
 | Fonction | Route | Type |
 | :--- | :--- | :--- |

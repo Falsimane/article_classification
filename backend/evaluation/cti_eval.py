@@ -1,8 +1,8 @@
 """Évaluation de l'extraction contre les articles annotés à la main (Annotations/manifest.json).
 
     uv run cti-eval --run --workers 4                  # extrait les articles annotés (4 à la fois), puis score
-    uv run cti-eval --run --bundles db_outputs/eval/<nom>   # même chose, dans un dossier nommé (comparer deux versions)
-    uv run cti-eval --bundles db_outputs/eval/<nom>         # score des bundles déjà produits, sans appel au modèle
+    uv run cti-eval --run --bundles backend/data/eval/<nom>   # même chose, dans un dossier nommé (comparer deux versions)
+    uv run cti-eval --bundles backend/data/eval/<nom>         # score des bundles déjà produits, sans appel au modèle
 
 Chaque exécution écrit dans le dossier des bundles : `report.json` (scores, manques, prédictions à revoir) et `report.md`.
 La méthode de score est celle de `score.py` (rappel principal, précision, crédit partiel, hallucinations, ancrage).
@@ -23,11 +23,10 @@ root_dir = Path(__file__).resolve().parents[2]
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-from backend.config import SOURCE_ARTICLES_DB  # noqa: E402
+from backend.config import EVAL_DIR, SOURCE_ARTICLES_DB  # noqa: E402
 from backend.evaluation.score import ArticleScore, score_article, total  # noqa: E402
 
 MANIFEST = root_dir / "Annotations" / "manifest.json"
-EVAL_DIR = root_dir / "db_outputs" / "eval"
 
 console = Console()
 
@@ -138,7 +137,7 @@ def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs
 def main() -> None:
     parser = argparse.ArgumentParser(description="Évaluation de l'extraction contre les articles annotés")
     parser.add_argument("--run", action="store_true", help="Extrait d'abord les articles annotés (appels au modèle)")
-    parser.add_argument("--bundles", type=Path, default=EVAL_DIR / "latest", help="Dossier des bundles prédits (défaut : db_outputs/eval/latest)")
+    parser.add_argument("--bundles", type=Path, default=EVAL_DIR / "latest", help="Dossier des bundles prédits (défaut : backend/data/eval/latest)")
     parser.add_argument("--article-id", type=int, action="append", help="Limiter à ces articles (option répétable)")
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
     parser.add_argument("--workers", type=int, default=1, help="Articles extraits en même temps")

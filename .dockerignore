@@ -8,7 +8,7 @@ build/
 dist/
 wheels/
 *.egg-info
-db_outputs/
+backend/data/
 *.db
 *.db-shm
 *.db-wal

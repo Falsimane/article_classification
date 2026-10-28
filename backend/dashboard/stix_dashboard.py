@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from backend.config import ROOT_DIR, SOURCE_ARTICLES_DB
+from backend.config import BUNDLES_DIR, SOURCE_ARTICLES_DB
 from backend.database.stix_store import StixStore
 from backend.stix.iocs import ioc_status
 
@@ -30,7 +30,6 @@ TYPE_FAMILIES: dict[str, frozenset[str]] = {
     "target": frozenset({"identity", "location", "incident"}),
 }
 ACTOR_TYPES = ("threat-actor", "intrusion-set", "campaign")
-STIX_BUNDLES_DIR = ROOT_DIR / "db_outputs" / "stix_bundles"  # écrit par l'extraction (extract.STIX_BUNDLES_DIR)
 
 
 def family_of(stix_type: str) -> str:
@@ -201,7 +200,7 @@ def article_text(article_id: int, db_path: Path = SOURCE_ARTICLES_DB) -> dict[st
     }  # fmt: skip
 
 
-def article_bundle(article_id: int, store: StixStore | None = None, bundles_dir: Path = STIX_BUNDLES_DIR) -> tuple[bytes, bool] | None:
+def article_bundle(article_id: int, store: StixStore | None = None, bundles_dir: Path = BUNDLES_DIR) -> tuple[bytes, bool] | None:
     """Bundle STIX 2.1 de l'article, tel que l'extraction l'a écrit (`stix2.Bundle` validé, IOC bénins et objets ATT&CK de support
     compris), et s'il couvre encore le graphe de Neo4j : une ré-extraction en --dry-run réécrit le fichier sans toucher au graphe."""
     path = bundles_dir / f"article_{article_id}.json"

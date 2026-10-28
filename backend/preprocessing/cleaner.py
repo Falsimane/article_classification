@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 import cti_core
 
-DB_PATH = Path(__file__).resolve().parents[2] / "db_outputs" / "cti_knowledge.db"
+from backend.config import SOURCE_ARTICLES_DB as DB_PATH
 
 # Phases d'intrusion reconnues dans les titres de sections (sémantique : côté Python uniquement).
 KNOWN_PHASES = {
