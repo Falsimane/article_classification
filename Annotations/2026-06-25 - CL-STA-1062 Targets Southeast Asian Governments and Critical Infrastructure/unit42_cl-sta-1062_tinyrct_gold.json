@@ -1,0 +1,2097 @@
+{
+  "type": "bundle",
+  "id": "bundle--2693e1ce-35c2-5371-9c1d-bdfce82f22ca",
+  "objects": [
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "id": "report--fd865435-95c0-5c52-a6e2-d23fb788c24f",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "CL-STA-1062 Targets Southeast Asian Governments and Critical Infrastructure",
+      "description": "Unit 42 (Palo Alto Networks). Cluster sinophone CL-STA-1062 (= UAT-7237, confiance forte), actif depuis 2022 en Asie de l'Est ; campagne 2025 contre des entités gouvernementales et d'infrastructure énergétique critique d'Asie du Sud-Est : exploitation d'applications web, web shells ASPX, tunneling (SoftEther VPN, yuze, VNT), JuicyPotato, exfiltration en archives RAR ; analyse de la nouvelle porte dérobée .NET TinyRCT et de son downloader chargé par injection AppDomainManager.",
+      "published": "2026-06-25T00:00:00.000Z",
+      "report_types": [
+        "threat-report"
+      ],
+      "object_refs": [
+        "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+        "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+        "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+        "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+        "tool--afc079f3-c0ea-4096-b75d-3f05338b7f60",
+        "tool--afc87a37-1ad2-51c0-8eb4-6e0eaf7219a3",
+        "tool--698f621c-8d40-57bf-9151-66c60597886e",
+        "tool--38b367a6-1553-5d0d-bc45-d18bf59485b8",
+        "tool--58ce8845-ad40-5a1e-875f-0136e4a8f451",
+        "tool--83143c16-3e68-5d56-8121-c5194564c758",
+        "tool--5dabce0f-03fb-52e0-b924-3847f7043e32",
+        "tool--cc49d5a4-67f3-5beb-9b6a-dd86a439a2bb",
+        "identity--a803da42-f4a5-5eca-9bdf-73f787d79686",
+        "identity--41e0d74b-8421-5c8f-a16e-423606c4533f",
+        "location--615ca5a6-c135-58d4-956e-c4b784ad039c",
+        "location--35b0a5d8-ce4b-519b-abfe-ccad53847700",
+        "location--84e25bb4-1b50-5d5d-ab49-41258cf41295",
+        "attack-pattern--5502c4e9-24ef-4d5f-8ee9-9e906c2f82c4",
+        "attack-pattern--3f886f2a-874f-4333-b794-aa6075009b1c",
+        "attack-pattern--5d0d3609-d06d-49e1-b9c9-b544e0c618cb",
+        "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+        "attack-pattern--4fe28b27-b13c-453e-a386-c2ef362a573b",
+        "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+        "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+        "attack-pattern--00f90846-cbd1-4fc5-9233-df5c2bf2a662",
+        "attack-pattern--248d3fe1-7fe1-4d71-91c7-8bb7ef35cad3",
+        "attack-pattern--1c34f7aa-9341-4a48-bfab-af22e51aca6c",
+        "attack-pattern--a19e86f8-1c0a-4fea-8407-23b73d615776",
+        "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+        "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+        "attack-pattern--2aed01ad-3df3-4410-a8cb-11ea4ded587c",
+        "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+        "attack-pattern--853c4192-4311-43e1-bfbb-b11b14911852",
+        "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+        "attack-pattern--24bfaeba-cb0d-4525-b3dc-507c77ecec41",
+        "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+        "attack-pattern--7bc57495-ea59-4380-be31-a64af124ef18",
+        "attack-pattern--3c4a2599-71ee-4405-ba1e-0e28414b4bc5",
+        "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+        "attack-pattern--c3888c54-775d-4b2f-b759-75a2ececcbfd",
+        "attack-pattern--53ac20cd-aca3-406e-9aa0-9fc7fdc60a5a",
+        "attack-pattern--0259baeb-9f63-4c69-bf10-eb038c390688",
+        "attack-pattern--d2c4e5ea-dbdf-4113-805a-b1e2a337fb33",
+        "attack-pattern--d63a3fb8-9452-4e9d-a60a-54be68d5998c",
+        "attack-pattern--356662f7-e315-4759-86c9-6214e2a50ff8",
+        "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+        "attack-pattern--7bdca9d5-d500-4d7d-8c52-5fd47baf4c0c",
+        "relationship--857241ef-c032-5205-b8ff-0a681d9f12c2",
+        "relationship--2311a354-9ee2-5969-a7d9-7b673a699cbd",
+        "relationship--542b30d9-90e6-5305-a566-9b780dae0d90",
+        "relationship--a5fe9145-80ab-5b5b-b212-add7b1ef8844",
+        "relationship--1758a398-6f76-5cfe-abff-f35098812c02",
+        "relationship--396a43b0-b3f7-54db-a957-6f832a5545af",
+        "relationship--b15ec9b6-7a85-5035-b3e1-c20281c0b5bd",
+        "relationship--4ed9cebd-3bbb-567a-98ac-6b0a14f57d11",
+        "relationship--f86ce86f-0652-58d9-a034-52d4be371267",
+        "relationship--0c12de18-e410-5212-b1ed-8de3b46a38a7",
+        "relationship--1257571a-13b7-5ab7-969b-4e9dfc52eb57",
+        "relationship--4c57ef54-cb45-5904-a4b6-1d1b204890b8",
+        "relationship--1f63b5ab-17af-54d0-bdf9-d15f2b8d59b0",
+        "relationship--b11c42f1-651e-5318-9f5e-2fa42ef9c121",
+        "relationship--17acf20f-5480-5d9f-bd97-9faca1e1021c",
+        "relationship--9ae61328-96a4-5951-80d6-34d098c1306a",
+        "relationship--7fa3d425-025b-5618-b6ff-9a6b4f69c194",
+        "relationship--71b087f0-4065-5d50-a92b-4402b3401cc6",
+        "relationship--4273fb59-eda7-5af0-be5e-91ef911c762d",
+        "relationship--93c8ce5e-65d6-5e15-93af-569d275096c3",
+        "relationship--86845d8a-1812-5302-8f4b-26567c4a9fc6",
+        "relationship--aac5a77c-f37c-50f5-9d37-e2a1a3c16c73",
+        "relationship--8b1b8ac0-1517-5dcf-bfc7-1e7bae630bd4",
+        "relationship--a643b4f6-df5b-5314-98b7-9b34b9ca7fe3",
+        "relationship--8e9d228d-7d4b-57a3-89cd-8bbf03b4cac3",
+        "relationship--c4f6ae06-fb9a-5529-b13a-8ee3c0e9f360",
+        "relationship--15cdaf5e-1118-595d-9f24-5f9364ad695a",
+        "relationship--94492c4e-aea7-507d-a295-f4699e1ee4d0",
+        "relationship--6cfb47fc-af2b-5506-b1b5-de75acbaf1e5",
+        "relationship--f1e6da23-c5d4-5a93-878b-0ddfdb8d3f4e",
+        "relationship--22cae691-a6c3-5c17-8f31-5608e76773ac",
+        "relationship--492b00c3-bf80-5973-bae3-50e5052fe4ff",
+        "relationship--bca3f4c8-4611-5df5-bab5-9e712c99d042",
+        "relationship--91f813a9-f532-5895-9c23-541b44617dbf",
+        "relationship--500b634b-9bd0-536b-98f3-ad45b27a16bd",
+        "relationship--2fa2d671-2c45-5398-900e-0a2b3670644b",
+        "relationship--166a11e9-d563-5294-801a-58f0c6005f07",
+        "relationship--95e0b670-7843-509b-a589-c77dc0e1778a",
+        "relationship--e1b3e51a-c8aa-5e19-98d2-16fa20179654",
+        "relationship--474747ea-0e67-5089-afc3-1cfd3c44b774",
+        "relationship--abef4990-591e-57f1-bbe1-c41269275722",
+        "relationship--6d54a484-31a5-5d1c-9215-d4798c339cdf",
+        "relationship--cc4212b1-6b1c-55a8-9fc6-dd9c9212d430",
+        "relationship--890d9b0f-92a6-5212-9261-66b133be1ab9",
+        "relationship--a7609d48-67ae-5b1e-a7da-89e46f317703",
+        "relationship--497a68a8-a948-59f4-a455-dfd70a3fce51",
+        "relationship--5b3d0da3-ba8c-5615-860b-c885250353db",
+        "relationship--70e998ad-72a7-5cc3-b138-cf5ff679b7f2",
+        "relationship--7f9e7256-8b2e-56ca-8533-0d7d238a0408",
+        "relationship--f615a40b-d836-539f-b059-d6634d6b36dc",
+        "relationship--c7ef4223-70de-57c9-9c86-e3b08597434c",
+        "relationship--3cfbe9a1-6df6-5c90-b9fb-3cd40a003982",
+        "relationship--50de2164-09bf-5281-b93a-fff7f672af31",
+        "relationship--33024907-1deb-50e7-b0e5-da13bdb2b462",
+        "relationship--c83a4889-b54d-59a5-a6bb-2d474a09e9f5",
+        "relationship--2c42a569-15f3-5063-ab56-439baaa86537",
+        "relationship--ee9f16ff-232c-50c2-b867-01b6d4f4d028"
+      ],
+      "external_references": [
+        {
+          "source_name": "Unit 42",
+          "url": "https://unit42.paloaltonetworks.com/cl-sta-1062-tinyrct-backdoor/"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_attack_version": "20.0",
+      "x_gold_evidence_quote": "We detail the latest campaign linked to CL-STA-1062 against the energy and government sectors in Southeast Asia, and provide a technical analysis of the new TinyRCT backdoor."
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "CL-STA-1062",
+      "description": "Cluster d'activité suivi par Unit 42, attribué à des acteurs sinophones (« Chinese-speaking »), actif depuis au moins mars 2022 ; identifié avec une confiance forte au cluster UAT-7237 de Cisco Talos (campagnes contre l'hébergement web à Taïwan). Boîte à outils hybride : outils open source (SoftEther VPN, Mimikatz, VNT) et porte dérobée sur mesure TinyRCT. Aucun État commanditaire n'est désigné.",
+      "aliases": [
+        "CL-STA-1062",
+        "UAT-7237"
+      ],
+      "x_gold_name_variants": [
+        "CL-STA-1062 cluster"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The Chinese-speaking attackers behind this cluster, which we track as [CL-STA-1062](https://unit42.paloaltonetworks.com/unit-42-attribution-framework/), have been active since at least March 2022."
+    },
+    {
+      "type": "campaign",
+      "spec_version": "2.1",
+      "id": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Campagne CL-STA-1062 contre les gouvernements et l'énergie en Asie du Sud-Est (2025)",
+      "description": "Intrusions observées en 2025 en Asie du Sud-Est : entité gouvernementale compromise en septembre 2025 (web shells, exfiltration de bases MSSQL et du code source d'un serveur web), reconnaissance d'une seconde entité gouvernementale, compromission probable d'au moins dix organisations d'octobre à décembre 2025, et compromission d'une entité d'infrastructure critique puis de deux entités d'infrastructure énergétique critique détenues par l'État dans le même pays. Exploitation d'applications web, web shells ASPX, outils de tunneling déguisés (SoftEther VPN, yuze, VNT), JuicyPotato, archives RAR protégées par mot de passe ; TinyRCT découvert sur l'infrastructure de la campagne.",
+      "objective": "Accès aux réseaux et exfiltration de données d'entités gouvernementales et d'infrastructure énergétique critique d'Asie du Sud-Est.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "We detail the latest campaign linked to CL-STA-1062 against the energy and government sectors in Southeast Asia, and provide a technical analysis of the new TinyRCT backdoor.",
+      "x_gold_sequence": [
+        {
+          "order": 1,
+          "summary": "Scan de vulnérabilités des entités visées (entités CEI).",
+          "techniques": [
+            "T1595.002"
+          ]
+        },
+        {
+          "order": 2,
+          "summary": "Exploitation d'applications web et dépôt de web shells ASPX, mécanisme central d'exécution de commandes.",
+          "techniques": [
+            "T1190",
+            "T1505.003"
+          ]
+        },
+        {
+          "order": 3,
+          "summary": "Reconnaissance initiale depuis le web shell (identité système, configuration IP, administrateurs du domaine), résultats envoyés par curl vers une IP de l'attaquant.",
+          "techniques": [
+            "T1033",
+            "T1016",
+            "T1069.002",
+            "T1048"
+          ]
+        },
+        {
+          "order": 4,
+          "summary": "Requêtes sortantes vers l'infrastructure de l'attaquant : téléchargement de composants SoftEther VPN, de fscan et d'archives RAR contenant les outils du groupe.",
+          "techniques": [
+            "T1105"
+          ]
+        },
+        {
+          "order": 5,
+          "summary": "Déploiement d'outils de tunneling (SoftEther VPN, yuze, VNT) déguisés en fichiers VMware ou d'agent XDR ; VNT lancé par tâche planifiée à l'ouverture de session.",
+          "techniques": [
+            "T1572",
+            "T1036.005",
+            "T1053.005"
+          ]
+        },
+        {
+          "order": null,
+          "summary": "Élévation de privilèges avec JuicyPotato ; traceroute pour repérer des chemins de mouvement latéral vers une autre entité gouvernementale.",
+          "techniques": [
+            "T1016"
+          ]
+        },
+        {
+          "order": 6,
+          "summary": "Collecte et exfiltration : requête sur un serveur MSSQL, archivage du code source d'un serveur web et des données dans des archives RAR protégées par mot de passe.",
+          "techniques": [
+            "T1213.006",
+            "T1074.001",
+            "T1560.001"
+          ]
+        },
+        {
+          "order": null,
+          "summary": "Chaîne TinyRCT (non située dans la chronologie des intrusions) : l'utilisateur lance chrome_setup.exe depuis chrome_setup.zip, injection AppDomainManager de MyAppDomainManager.dll, vérification du dossier Downloads, téléchargement de PerfWatson2.exe (TinyRCT) dans %LOCALAPPDATA%, tâche planifiée GoogleUpdaterTaskSystem à l'ouverture de session.",
+          "techniques": [
+            "T1204.002",
+            "T1574.014",
+            "T1480",
+            "T1105",
+            "T1036.005",
+            "T1053.005"
+          ]
+        },
+        {
+          "order": null,
+          "summary": "TinyRCT : empreinte de l'hôte, balise HTTP chiffrée AES, commandes (cmd.exe, fichiers, téléchargement, exfiltration en blocs de 40 Ko, capture d'écran), autodestruction.",
+          "techniques": [
+            "T1082",
+            "T1071.001",
+            "T1573.001",
+            "T1059.003",
+            "T1083",
+            "T1005",
+            "T1560",
+            "T1030",
+            "T1041",
+            "T1113",
+            "T1070.009",
+            "T1070.004"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "TinyRCT",
+      "description": "RAT/porte dérobée .NET (C#) pour Windows, jusque-là non documentée, déposée sous le nom PerfWatson2.exe dans %LOCALAPPDATA%. Vérifie son chemin d'exécution, prend l'empreinte de l'hôte, communique en HTTP (balise GET toutes les 10 s, POST pour les données) chiffré en AES-128-CBC à clé codée en dur ; exécution de commandes via cmd.exe, listage et lecture de fichiers, téléchargement, exfiltration de fichiers (gzip + AES, blocs de 40 Ko), capture d'écran, autodestruction (suppression de la tâche planifiée puis du binaire via choice.exe).",
+      "is_family": true,
+      "malware_types": [
+        "backdoor",
+        "remote-access-trojan"
+      ],
+      "implementation_languages": [
+        "c#"
+      ],
+      "x_gold_name_variants": [
+        "PerfWatson2.exe",
+        "PerfWatson2"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Analysis of the binary's internal strings revealed that the authors refer to this tool as TinyRCT."
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "TinyRCT downloader",
+      "description": "DLL .NET malveillante (MyAppDomainManager.dll) chargée par injection AppDomainManager via chrome_setup.exe.config, à côté d'un chrome_setup.exe légitime et signé, dans l'archive chrome_setup.zip. Vérifie qu'elle s'exécute depuis %USERPROFILE%\\Downloads, télécharge TinyRCT depuis le serveur de staging, l'enregistre en PerfWatson2.exe dans %LOCALAPPDATA% et crée une tâche planifiée GoogleUpdaterTaskSystem… exécutée à l'ouverture de session avec les privilèges les plus élevés.",
+      "is_family": true,
+      "malware_types": [
+        "downloader"
+      ],
+      "x_gold_name_variants": [
+        "MyAppDomainManager.dll",
+        "MyAppDomainManager",
+        "TinyRCT loader"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Once injected into the legitimate setup process, the malicious MyAppDomainManager.dll functions primarily as a stealthy downloader and persistence enabler.",
+      "x_gold_context": "Nommé « TinyRCT downloader » dans l'annexe IOC ; décrit dans la section Infection Vector sous le nom MyAppDomainManager.dll."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--afc079f3-c0ea-4096-b75d-3f05338b7f60",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Mimikatz",
+      "description": "Outil open source cité parmi ceux qu'utilise fréquemment le groupe ; son usage n'est pas détaillé.",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "S0002",
+          "url": "https://attack.mitre.org/software/S0002"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "While they frequently use common open-source tools such as SoftEther VPN, Mimikatz and VNT, they have recently introduced TinyRCT, a bespoke, previously undocumented backdoor."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--afc87a37-1ad2-51c0-8eb4-6e0eaf7219a3",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "SoftEther VPN",
+      "description": "VPN open source employé comme outil de tunneling (C2, exfiltration, mouvement latéral) ; binaire extrait d'une archive RAR protégée par mot de passe via un web shell et déguisé en vmtools.exe.",
+      "x_gold_name_variants": [
+        "SoftEther",
+        "SoftEther VPN Bridge"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "They deployed a variety of these tools, including:\n\n  * [SoftEther VPN](https://en.wikipedia.org/wiki/SoftEther_VPN)"
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--698f621c-8d40-57bf-9151-66c60597886e",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "VNT",
+      "description": "Outil de VPN/tunneling open source (vnt-dev/vnt), déguisé en exécutable VMware (vmwared.exe) et lancé par une tâche planifiée à l'ouverture de session.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In another case, the attackers attempted to disguise VNT as a VMware executable, as shown in Figure 7."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--38b367a6-1553-5d0d-bc45-d18bf59485b8",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "yuze",
+      "description": "Outil de tunneling open source (P001water/yuze) utilisé pour le C2 et l'exfiltration.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Figure 5 shows the command line used by the group to execute a yuze instance."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--58ce8845-ad40-5a1e-875f-0136e4a8f451",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "JuicyPotato",
+      "description": "Outil open source d'élévation de privilèges ; le mécanisme n'est pas décrit par l'article.",
+      "x_gold_name_variants": [
+        "Juicy Potato"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "To escalate privileges, the attackers deployed known open-source tools, such as [JuicyPotato](https://malpedia.caad.fkie.fraunhofer.de/details/win.juicy_potato)."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--83143c16-3e68-5d56-8121-c5194564c758",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "curl",
+      "description": "Utilitaire en ligne de commande utilisé pour envoyer en HTTP POST les résultats d'énumération vers une adresse IP de l'attaquant.",
+      "x_gold_name_variants": [
+        "curl.exe"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we noted activity sending the results of network and system enumeration directly to an actor-controlled IP address using curl."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--5dabce0f-03fb-52e0-b924-3847f7043e32",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "fscan",
+      "description": "Outil téléchargé vers les réseaux des victimes depuis l'infrastructure de l'attaquant (Figure 3) ; usage non décrit.",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Notable names include \"fscan\" and \"SoftEther,\" both highlighted in red.",
+      "x_gold_context": "Figure 3 (requêtes sortantes téléchargeant les outils des attaquants vers les réseaux ciblés) et annexe IOC (hash « fscan ») ; aucun usage décrit dans le récit."
+    },
+    {
+      "type": "tool",
+      "spec_version": "2.1",
+      "id": "tool--cc49d5a4-67f3-5beb-9b6a-dd86a439a2bb",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "WinRAR",
+      "description": "Archiveur en ligne de commande utilisé pour compresser les données avant exfiltration (archives RAR protégées par mot de passe).",
+      "x_gold_name_variants": [
+        "rar.exe",
+        "WinRAR.exe"
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "A screenshot of a command line interface displaying a WinRAR command to archive files from the directory \"backup\" into a compressed file named \"web.rar\"",
+      "x_gold_context": "Texte alternatif de la Figure 2 (archivage du code source du serveur web) ; le récit parle seulement d'archives RAR protégées par mot de passe."
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--a803da42-f4a5-5eca-9bdf-73f787d79686",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Southeast Asian government entities",
+      "description": "Entités gouvernementales d'un pays d'Asie du Sud-Est (non nommé) ; une entité compromise, une seconde reconnue depuis la première.",
+      "identity_class": "class",
+      "sectors": [
+        "government"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In September 2025, we discovered that the attackers behind CL-STA-1062 had compromised a Southeast Asian government entity by deploying web shells and exfiltrating database information."
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--41e0d74b-8421-5c8f-a16e-423606c4533f",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "State-owned critical energy infrastructure entities in Southeast Asia",
+      "description": "Entreprises publiques d'infrastructure énergétique critique (CEI) et entité d'infrastructure critique du même pays d'Asie du Sud-Est.",
+      "identity_class": "class",
+      "sectors": [
+        "energy"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we discovered that the attackers behind CL-STA-1062 had also compromised two state-owned critical energy infrastructure (CEI) entities in the same Southeast Asian country."
+    },
+    {
+      "type": "location",
+      "spec_version": "2.1",
+      "id": "location--615ca5a6-c135-58d4-956e-c4b784ad039c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "South-eastern Asia",
+      "region": "south-eastern-asia",
+      "x_gold_name_variants": [
+        "Southeast Asia"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Throughout 2025, we observed a cluster of activity targeting government entities and critical infrastructure in Southeast Asia."
+    },
+    {
+      "type": "location",
+      "spec_version": "2.1",
+      "id": "location--35b0a5d8-ce4b-519b-abfe-ccad53847700",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Eastern Asia",
+      "region": "eastern-asia",
+      "x_gold_name_variants": [
+        "East Asia"
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "our telemetry reveals that the attackers behind this cluster have been conducting operations across East Asia since 2022."
+    },
+    {
+      "type": "location",
+      "spec_version": "2.1",
+      "id": "location--84e25bb4-1b50-5d5d-ab49-41258cf41295",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Taiwan",
+      "country": "TW",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The attackers are expanding operations from Taiwan to critical infrastructure and government entities in Southeast Asia.",
+      "x_gold_context": "Ciblage de Taïwan rapporté par Cisco Talos sous le nom UAT-7237 (« reported for its campaigns against web hosting infrastructure in Taiwan ») et repris en conclusion ; aucune intrusion à Taïwan n'est décrite par l'article."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--5502c4e9-24ef-4d5f-8ee9-9e906c2f82c4",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Vulnerability Scanning",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1595.002",
+          "url": "https://attack.mitre.org/techniques/T1595/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "reconnaissance"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "We observed attackers scanning the entities for vulnerabilities, shortly followed by outbound requests from the infected networks."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--3f886f2a-874f-4333-b794-aa6075009b1c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Exploit Public-Facing Application",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1190",
+          "url": "https://attack.mitre.org/techniques/T1190"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The intrusions we observed typically begin with the attackers exploiting web applications to deploy ASPX web shells."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--5d0d3609-d06d-49e1-b9c9-b544e0c618cb",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Web Shell",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1505.003",
+          "url": "https://attack.mitre.org/techniques/T1505/003"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These web shells function as the central mechanism for executing arbitrary commands, dropping additional tooling and conducting initial reconnaissance."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Ingress Tool Transfer",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1105",
+          "url": "https://attack.mitre.org/techniques/T1105"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These requests connected to attacker-controlled infrastructure and resulted in the victim networks downloading malicious payloads that included SoftEther VPN components and RAR archives containing the group's tools."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--4fe28b27-b13c-453e-a386-c2ef362a573b",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Protocol Tunneling",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1572",
+          "url": "https://attack.mitre.org/techniques/T1572"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The attackers behind the activity frequently use tunneling tools for command and control (C2) and data exfiltration."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Match Legitimate Resource Name or Location",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1036.005",
+          "url": "https://attack.mitre.org/techniques/T1036/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These tools were often disguised as legitimate system files, such as VMware executables or an XDR agent."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Scheduled Task",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1053.005",
+          "url": "https://attack.mitre.org/techniques/T1053/005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This command creates a scheduled task named GoogleUpdaterTaskSystem140.0.7272.0 {ACE7A46F-50FD-481C-AB32-3D838871DB40}."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--00f90846-cbd1-4fc5-9233-df5c2bf2a662",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Archive via Utility",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1560.001",
+          "url": "https://attack.mitre.org/techniques/T1560/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "collection"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "For data staging and exfiltration, they frequently compressed findings into password-protected RAR archives."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--248d3fe1-7fe1-4d71-91c7-8bb7ef35cad3",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Databases",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1213.006",
+          "url": "https://attack.mitre.org/techniques/T1213/006"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "collection"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Figure 1 shows the command line used to exfiltrate data from an MSSQL server."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--1c34f7aa-9341-4a48-bfab-af22e51aca6c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Local Data Staging",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1074.001",
+          "url": "https://attack.mitre.org/techniques/T1074/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "collection"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In one case, we observed the attacker staging and exfiltrating an entire directory of web server source code from the government entity, as Figure 2 shows.",
+      "x_gold_context": "Figure 2 : le dossier est archivé dans web.rar à la racine de c:\\ sur l'hôte compromis, donc staging local."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--a19e86f8-1c0a-4fea-8407-23b73d615776",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Exfiltration Over Alternative Protocol",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1048",
+          "url": "https://attack.mitre.org/techniques/T1048"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "exfiltration"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "we noted activity sending the results of network and system enumeration directly to an actor-controlled IP address using curl.",
+      "x_gold_context": "Envoi vers une adresse IP de l'attaquant que l'article ne présente pas comme le C2 ; texte alternatif de la Figure 4 : « HTTP POST requests »."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "System Network Configuration Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1016",
+          "url": "https://attack.mitre.org/techniques/T1016"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "In one instance, the attackers used traceroute to identify potential lateral movement paths to another government entity.",
+      "x_gold_context": "Commande traceroute ; Figure 4 (texte alternatif) : requêtes sur la configuration IP. TinyRCT collecte aussi les adresses IP locales."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "System Owner/User Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1033",
+          "url": "https://attack.mitre.org/techniques/T1033"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The commands include checks for system identity, IP configuration, and domain admins.",
+      "x_gold_context": "Texte alternatif de la Figure 4 (« system identity ») ; TinyRCT collecte le nom de l'utilisateur courant."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--2aed01ad-3df3-4410-a8cb-11ea4ded587c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Domain Groups",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1069.002",
+          "url": "https://attack.mitre.org/techniques/T1069/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The commands include checks for system identity, IP configuration, and domain admins.",
+      "x_gold_context": "Texte alternatif de la Figure 4 : vérification des « domain admins »."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "System Information Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1082",
+          "url": "https://attack.mitre.org/techniques/T1082"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Before entering its main command loop, TinyRCT conducts initial reconnaissance to fingerprint the infected host."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--853c4192-4311-43e1-bfbb-b11b14911852",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Execution Guardrails",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1480",
+          "url": "https://attack.mitre.org/techniques/T1480"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Upon execution, the malware performs an environment validation to explicitly verify that it was executed from %LOCALAPPDATA%."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Web Protocols",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1071.001",
+          "url": "https://attack.mitre.org/techniques/T1071/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The malware uses standard HTTP for network traffic, but it encrypts all exchanged data using AES-128 encryption in CBC mode."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--24bfaeba-cb0d-4525-b3dc-507c77ecec41",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Symmetric Cryptography",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1573.001",
+          "url": "https://attack.mitre.org/techniques/T1573/001"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The malware uses standard HTTP for network traffic, but it encrypts all exchanged data using AES-128 encryption in CBC mode."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Windows Command Shell",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1059.003",
+          "url": "https://attack.mitre.org/techniques/T1059/003"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Shell execution** : Executes the command via cmd.exe (or direct process execution) and returns stdout/stderr."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--7bc57495-ea59-4380-be31-a64af124ef18",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "File and Directory Discovery",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1083",
+          "url": "https://attack.mitre.org/techniques/T1083"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "discovery"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**File listing:** Enumerates directories and files in the specified path."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--3c4a2599-71ee-4405-ba1e-0e28414b4bc5",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Data from Local System",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1005",
+          "url": "https://attack.mitre.org/techniques/T1005"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "collection"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Exfiltrate file:** Reads a binary file from the requested path, compresses its contents using gzip, encrypts them using AES and sends them to the C2 in 40 KB chunks."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Exfiltration Over C2 Channel",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1041",
+          "url": "https://attack.mitre.org/techniques/T1041"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "exfiltration"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It polls the C2 server for instructions using GET requests, while it sends exfiltrated data via POST requests."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--c3888c54-775d-4b2f-b759-75a2ececcbfd",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Data Transfer Size Limits",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1030",
+          "url": "https://attack.mitre.org/techniques/T1030"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "exfiltration"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Exfiltrate file:** Reads a binary file from the requested path, compresses its contents using gzip, encrypts them using AES and sends them to the C2 in 40 KB chunks."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--53ac20cd-aca3-406e-9aa0-9fc7fdc60a5a",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Archive Collected Data",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1560",
+          "url": "https://attack.mitre.org/techniques/T1560"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "collection"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Exfiltrate file:** Reads a binary file from the requested path, compresses its contents using gzip, encrypts them using AES and sends them to the C2 in 40 KB chunks.",
+      "x_gold_context": "Compression gzip et chiffrement AES avant exfiltration ; la bibliothèque ou méthode n'est pas précisée, d'où la technique parente."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--0259baeb-9f63-4c69-bf10-eb038c390688",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Screen Capture",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1113",
+          "url": "https://attack.mitre.org/techniques/T1113"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "collection"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Screen capture:** Captures the primary screen, saves the capture as a JPEG file, compresses it, encrypts it and sends it to the C2."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--d2c4e5ea-dbdf-4113-805a-b1e2a337fb33",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Clear Persistence",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1070.009",
+          "url": "https://attack.mitre.org/techniques/T1070/009"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Upon receiving the self-destruct command, the malware first deletes the GoogleUpdater scheduled task created by the loader."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--d63a3fb8-9452-4e9d-a60a-54be68d5998c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "File Deletion",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1070.004",
+          "url": "https://attack.mitre.org/techniques/T1070/004"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It then executes a self-deletion routine using a legacy batch command technique involving the choice.exe program. This routine deletes the malware’s PerfWatson2 executable, as Figure 10 shows."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--356662f7-e315-4759-86c9-6214e2a50ff8",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "AppDomainManager",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1574.014",
+          "url": "https://attack.mitre.org/techniques/T1574/014"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This specific combination of files is used to perform [AppDomainManager Injection](https://attack.mitre.org/techniques/T1574/014/) – a technique that exploits the trust relationship between a .NET application and its configuration file."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Malicious File",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1204.002",
+          "url": "https://attack.mitre.org/techniques/T1204/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "execution"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "When the user runs the executable, the .NET runtime reads the adjacent configuration file.",
+      "x_gold_context": "L'exécutable est le chrome_setup.exe légitime de l'archive chrome_setup.zip ; le mode de livraison de l'archive n'est pas décrit."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--7bdca9d5-d500-4d7d-8c52-5fd47baf4c0c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Masquerade Task or Service",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1036.004",
+          "url": "https://attack.mitre.org/techniques/T1036/004"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        }
+      ],
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "This command creates a scheduled task named GoogleUpdaterTaskSystem140.0.7272.0 {ACE7A46F-50FD-481C-AB32-3D838871DB40}.",
+      "x_gold_context": "Nom de tâche imitant le service de mise à jour de Google (artefact : nom de la tâche) ; l'article ne le présente pas explicitement comme un déguisement."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--857241ef-c032-5205-b8ff-0a681d9f12c2",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "attributed-to",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "We detail the latest campaign linked to CL-STA-1062 against the energy and government sectors in Southeast Asia"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2311a354-9ee2-5969-a7d9-7b673a699cbd",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "target_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "they have recently introduced TinyRCT, a bespoke, previously undocumented backdoor."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--542b30d9-90e6-5305-a566-9b780dae0d90",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "target_ref": "tool--afc87a37-1ad2-51c0-8eb4-6e0eaf7219a3",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "While they frequently use common open-source tools such as SoftEther VPN, Mimikatz and VNT"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a5fe9145-80ab-5b5b-b212-add7b1ef8844",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "target_ref": "tool--afc079f3-c0ea-4096-b75d-3f05338b7f60",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "While they frequently use common open-source tools such as SoftEther VPN, Mimikatz and VNT"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1758a398-6f76-5cfe-abff-f35098812c02",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "target_ref": "tool--698f621c-8d40-57bf-9151-66c60597886e",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "While they frequently use common open-source tools such as SoftEther VPN, Mimikatz and VNT"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--396a43b0-b3f7-54db-a957-6f832a5545af",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "target_ref": "location--35b0a5d8-ce4b-519b-abfe-ccad53847700",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "our telemetry reveals that the attackers behind this cluster have been conducting operations across East Asia since 2022."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b15ec9b6-7a85-5035-b3e1-c20281c0b5bd",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+      "target_ref": "location--84e25bb4-1b50-5d5d-ab49-41258cf41295",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The attackers are expanding operations from Taiwan to critical infrastructure and government entities in Southeast Asia.",
+      "x_gold_context": "Ciblage de Taïwan connu par le rapport Talos sur UAT-7237, alias du cluster ; repris en conclusion sans intrusion décrite."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4ed9cebd-3bbb-567a-98ac-6b0a14f57d11",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "identity--a803da42-f4a5-5eca-9bdf-73f787d79686",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In September 2025, we discovered that the attackers behind CL-STA-1062 had compromised a Southeast Asian government entity by deploying web shells and exfiltrating database information."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f86ce86f-0652-58d9-a034-52d4be371267",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "identity--41e0d74b-8421-5c8f-a16e-423606c4533f",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we discovered that the attackers behind CL-STA-1062 had also compromised two state-owned critical energy infrastructure (CEI) entities in the same Southeast Asian country."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--0c12de18-e410-5212-b1ed-8de3b46a38a7",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "location--615ca5a6-c135-58d4-956e-c4b784ad039c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Throughout 2025, we observed a cluster of activity targeting government entities and critical infrastructure in Southeast Asia."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1257571a-13b7-5ab7-969b-4e9dfc52eb57",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "tool--afc87a37-1ad2-51c0-8eb4-6e0eaf7219a3",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In one case, the attackers used a web shell to extract a password-protected RAR archive containing a SoftEther VPN binary masquerading as vmtools.exe."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4c57ef54-cb45-5904-a4b6-1d1b204890b8",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "tool--698f621c-8d40-57bf-9151-66c60597886e",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "In another case, the attackers attempted to disguise VNT as a VMware executable, as shown in Figure 7."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--1f63b5ab-17af-54d0-bdf9-d15f2b8d59b0",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "tool--38b367a6-1553-5d0d-bc45-d18bf59485b8",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Figure 5 shows the command line used by the group to execute a yuze instance."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--b11c42f1-651e-5318-9f5e-2fa42ef9c121",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "tool--58ce8845-ad40-5a1e-875f-0136e4a8f451",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "To escalate privileges, the attackers deployed known open-source tools, such as [JuicyPotato]"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--17acf20f-5480-5d9f-bd97-9faca1e1021c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "tool--83143c16-3e68-5d56-8121-c5194564c758",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we noted activity sending the results of network and system enumeration directly to an actor-controlled IP address using curl."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9ae61328-96a4-5951-80d6-34d098c1306a",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "tool--5dabce0f-03fb-52e0-b924-3847f7043e32",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Notable names include \"fscan\" and \"SoftEther,\" both highlighted in red.",
+      "x_gold_context": "Figure 3 : requêtes HTTP téléchargeant les outils des attaquants vers les réseaux ciblés (entités CEI)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7fa3d425-025b-5618-b6ff-9a6b4f69c194",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "tool--cc49d5a4-67f3-5beb-9b6a-dd86a439a2bb",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "A screenshot of a command line interface displaying a WinRAR command to archive files from the directory \"backup\" into a compressed file named \"web.rar\"",
+      "x_gold_context": "Figure 2 : archivage du code source du serveur web de l'entité gouvernementale."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--71b087f0-4065-5d50-a92b-4402b3401cc6",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "During our investigation into the campaign's infrastructure, we observed the server at 139.180.134[.]221 hosting a suspicious executable named PerfWatson2.exe.",
+      "x_gold_context": "PerfWatson2.exe est identifié comme TinyRCT dans la phrase suivante ; l'exécution de TinyRCT chez une victime de la campagne n'est pas décrite."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4273fb59-eda7-5af0-be5e-91ef911c762d",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--5502c4e9-24ef-4d5f-8ee9-9e906c2f82c4",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "We observed attackers scanning the entities for vulnerabilities"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--93c8ce5e-65d6-5e15-93af-569d275096c3",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--3f886f2a-874f-4333-b794-aa6075009b1c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The intrusions we observed typically begin with the attackers exploiting web applications to deploy ASPX web shells."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--86845d8a-1812-5302-8f4b-26567c4a9fc6",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--5d0d3609-d06d-49e1-b9c9-b544e0c618cb",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The intrusions we observed typically begin with the attackers exploiting web applications to deploy ASPX web shells."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--aac5a77c-f37c-50f5-9d37-e2a1a3c16c73",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "resulted in the victim networks downloading malicious payloads that included SoftEther VPN components and RAR archives containing the group's tools."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8b1b8ac0-1517-5dcf-bfc7-1e7bae630bd4",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--4fe28b27-b13c-453e-a386-c2ef362a573b",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The attackers behind the activity frequently use tunneling tools for command and control (C2) and data exfiltration."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a643b4f6-df5b-5314-98b7-9b34b9ca7fe3",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "These tools were often disguised as legitimate system files, such as VMware executables or an XDR agent."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--8e9d228d-7d4b-57a3-89cd-8bbf03b4cac3",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Figure 7. Creating a scheduled task to execute a VNT binary."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c4f6ae06-fb9a-5529-b13a-8ee3c0e9f360",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--00f90846-cbd1-4fc5-9233-df5c2bf2a662",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "For data staging and exfiltration, they frequently compressed findings into password-protected RAR archives."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--15cdaf5e-1118-595d-9f24-5f9364ad695a",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--248d3fe1-7fe1-4d71-91c7-8bb7ef35cad3",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Figure 1 shows the command line used to exfiltrate data from an MSSQL server."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--94492c4e-aea7-507d-a295-f4699e1ee4d0",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--1c34f7aa-9341-4a48-bfab-af22e51aca6c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "we observed the attacker staging and exfiltrating an entire directory of web server source code from the government entity",
+      "x_gold_context": "Figure 2 : archive web.rar écrite à la racine de c:\\ sur l'hôte compromis."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6cfb47fc-af2b-5506-b1b5-de75acbaf1e5",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--a19e86f8-1c0a-4fea-8407-23b73d615776",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "sending the results of network and system enumeration directly to an actor-controlled IP address using curl",
+      "x_gold_context": "Adresse IP de l'attaquant non présentée comme C2 ; Figure 4 (texte alternatif) : requêtes HTTP POST."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f1e6da23-c5d4-5a93-878b-0ddfdb8d3f4e",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "In one instance, the attackers used traceroute to identify potential lateral movement paths to another government entity.",
+      "x_gold_context": "traceroute, et requêtes de configuration IP de la Figure 4."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--22cae691-a6c3-5c17-8f31-5608e76773ac",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The commands include checks for system identity, IP configuration, and domain admins.",
+      "x_gold_context": "Texte alternatif de la Figure 4."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--492b00c3-bf80-5973-bae3-50e5052fe4ff",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--2aed01ad-3df3-4410-a8cb-11ea4ded587c",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "The commands include checks for system identity, IP configuration, and domain admins.",
+      "x_gold_context": "Texte alternatif de la Figure 4."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--bca3f4c8-4611-5df5-bab5-9e712c99d042",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "Figure 4. System enumeration command lines.",
+      "x_gold_context": "Énumération système envoyée par curl ; le détail des commandes n'est visible que dans la capture."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--91f813a9-f532-5895-9c23-541b44617dbf",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "downloads",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "If the validation passes, the loader contacts the staging server at 139.180.134[.]221 to retrieve the secondary payload. The loader saves this payload to the user’s %LOCALAPPDATA% directory as PerfWatson2.exe",
+      "x_gold_context": "PerfWatson2.exe est TinyRCT (« the TinyRCT malware, masquerading as PerfWatson2.exe »)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--500b634b-9bd0-536b-98f3-ad45b27a16bd",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "When the user runs the executable, the .NET runtime reads the adjacent configuration file. This forces the loading of a malicious DLL (MyAppDomainManager.dll) to act as the application's manager."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2fa2d671-2c45-5398-900e-0a2b3670644b",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "attack-pattern--356662f7-e315-4759-86c9-6214e2a50ff8",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "This forces the loading of a malicious DLL (MyAppDomainManager.dll) to act as the application's manager."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--166a11e9-d563-5294-801a-58f0c6005f07",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "attack-pattern--853c4192-4311-43e1-bfbb-b11b14911852",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It explicitly verifies that the host process is running from %USERPROFILE%\\Downloads — the user’s Downloads directory.",
+      "x_gold_context": "Section Infection Vector : le sujet est le loader MyAppDomainManager.dll (« TinyRCT downloader » de l'annexe)."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--95e0b670-7843-509b-a589-c77dc0e1778a",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "If the validation passes, the loader contacts the staging server at 139.180.134[.]221 to retrieve the secondary payload."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--e1b3e51a-c8aa-5e19-98d2-16fa20179654",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The loader saves this payload to the user’s %LOCALAPPDATA% directory as PerfWatson2.exe, mimicking the legitimate telemetry component associated with Microsoft Visual Studio."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--474747ea-0e67-5089-afc3-1cfd3c44b774",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "To ensure this payload runs continuously without user interaction, the loader constructs and executes a specific schtasks command."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--abef4990-591e-57f1-bbe1-c41269275722",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "target_ref": "attack-pattern--7bdca9d5-d500-4d7d-8c52-5fd47baf4c0c",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "This command creates a scheduled task named GoogleUpdaterTaskSystem140.0.7272.0 {ACE7A46F-50FD-481C-AB32-3D838871DB40}.",
+      "x_gold_context": "Nom de tâche imitant la mise à jour de Google ; non qualifié de déguisement par l'article."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6d54a484-31a5-5d1c-9215-d4798c339cdf",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--853c4192-4311-43e1-bfbb-b11b14911852",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Upon execution, the malware performs an environment validation to explicitly verify that it was executed from %LOCALAPPDATA%."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--cc4212b1-6b1c-55a8-9fc6-dd9c9212d430",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**User and system context:** Current username, machine name and OS version."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--890d9b0f-92a6-5212-9261-66b133be1ab9",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "**User and system context:** Current username, machine name and OS version.",
+      "x_gold_context": "Nom d'utilisateur courant dans l'empreinte de l'hôte, en recouvrement avec T1082."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a7609d48-67ae-5b1e-a7da-89e46f317703",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
+      "labels": [
+        "gold:acceptable"
+      ],
+      "x_gold_evidence_quote": "**Network and execution:** Local IP addresses, the complete execution path of the malware and the current process ID (PID).",
+      "x_gold_context": "Adresses IP locales dans l'empreinte de l'hôte, en recouvrement avec T1082."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--497a68a8-a948-59f4-a455-dfd70a3fce51",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--df8b2a25-8bdf-4856-953c-a04372b1c161",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The malware uses standard HTTP for network traffic"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--5b3d0da3-ba8c-5615-860b-c885250353db",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--24bfaeba-cb0d-4525-b3dc-507c77ecec41",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "it encrypts all exchanged data using AES-128 encryption in CBC mode."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--70e998ad-72a7-5cc3-b138-cf5ff679b7f2",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--d1fcf083-a721-4223-aedf-bf8960798d62",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Shell execution** : Executes the command via cmd.exe (or direct process execution) and returns stdout/stderr."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7f9e7256-8b2e-56ca-8533-0d7d238a0408",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--7bc57495-ea59-4380-be31-a64af124ef18",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**File listing:** Enumerates directories and files in the specified path."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--f615a40b-d836-539f-b059-d6634d6b36dc",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--3c4a2599-71ee-4405-ba1e-0e28414b4bc5",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Exfiltrate file:** Reads a binary file from the requested path"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c7ef4223-70de-57c9-9c86-e3b08597434c",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Download file:** Downloads a file from a URL and saves it to the desired path."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--3cfbe9a1-6df6-5c90-b9fb-3cd40a003982",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--53ac20cd-aca3-406e-9aa0-9fc7fdc60a5a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "compresses its contents using gzip, encrypts them using AES and sends them to the C2 in 40 KB chunks."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--50de2164-09bf-5281-b93a-fff7f672af31",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--c3888c54-775d-4b2f-b759-75a2ececcbfd",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "sends them to the C2 in 40 KB chunks."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--33024907-1deb-50e7-b0e5-da13bdb2b462",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It polls the C2 server for instructions using GET requests, while it sends exfiltrated data via POST requests."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--c83a4889-b54d-59a5-a6bb-2d474a09e9f5",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--0259baeb-9f63-4c69-bf10-eb038c390688",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "**Screen capture:** Captures the primary screen, saves the capture as a JPEG file, compresses it, encrypts it and sends it to the C2."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--2c42a569-15f3-5063-ab56-439baaa86537",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--d2c4e5ea-dbdf-4113-805a-b1e2a337fb33",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "Upon receiving the self-destruct command, the malware first deletes the GoogleUpdater scheduled task created by the loader."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ee9f16ff-232c-50c2-b867-01b6d4f4d028",
+      "created": "2026-06-25T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+      "target_ref": "attack-pattern--d63a3fb8-9452-4e9d-a60a-54be68d5998c",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "It then executes a self-deletion routine using a legacy batch command technique involving the choice.exe program."
+    }
+  ]
+}

@@ -303,7 +303,7 @@ def extract_rules(title: str, clean_markdown: str, entities: list[dict]) -> Rule
         return res, parse_rule_answers(res.parsed, batch)
 
     answers: dict[int, str | None] = {}
-    for res, parsed in map(classify, batches):  # Ollama traite les requêtes l'une après l'autre
+    for res, parsed in llm.map_parallel(classify, batches):
         result.calls.append(res)
         answers.update(parsed)
     for n, rule, _ in numbered:

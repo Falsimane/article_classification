@@ -4,6 +4,11 @@
     {"article_id": 1079, "gold": "2026-06-16 - Rapid7 Analysis CVE-2018-13379 Path Traversal in Fortinet FortiOS/rapid7_cve-2018-13379_gold.json"},
     {"article_id": 1281, "gold": "April 01, 2026 - STARDUST CHOLLIMA Likely Compromises Axios npm Package/crowdstrike_stardust_chollima_axios_gold.json"},
     {"article_id": 1602, "gold": "2017-08-28 - Recent ISMAgent Samples and Infrastructure by Iranian Threat Group GreenBug/clearsky_ismagent_greenbug_gold.json"},
-    {"article_id": 1553, "gold": "HARFANGLAB - 2025-08-20 - UAC-0057 keeps applying pressure on Ukraine and Poland /uac0057_harfanglab_TRR250801_gold.json"}
+    {"article_id": 1553, "gold": "HARFANGLAB - 2025-08-20 - UAC-0057 keeps applying pressure on Ukraine and Poland /uac0057_harfanglab_TRR250801_gold.json"},
+    {"article_id": 1558, "gold": "2024-10-11 - HijackLoader evolution abusing genuine signing certificates/hijackloader_harfanglab_gold.json"},
+    {"article_id": 1549, "gold": "2026-05-13 - Gamaredon's infection chain Spoofed emails, GammaDrop and GammaLoad/gamaredon_harfanglab_TRR260501_gold.json"},
+    {"article_id": 1697, "gold": "2026-06-25 - CL-STA-1062 Targets Southeast Asian Governments and Critical Infrastructure/unit42_cl-sta-1062_tinyrct_gold.json"},
+    {"article_id": 1438, "gold": "April 13, 2016 - Cyber Skirmish Russia v. Turkey/crowdstrike_cyber_skirmish_russia_turkey_gold.json"},
+    {"article_id": 1338, "gold": "January 10, 2023 - SCATTERED SPIDER BYOVD/crowdstrike_scattered_spider_byovd_gold.json"}
   ]
 }

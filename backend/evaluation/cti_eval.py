@@ -1,7 +1,11 @@
 """Évaluation de l'extraction contre les articles annotés à la main (Annotations/manifest.json).
 
     uv run cti-eval --run                          # extrait les articles annotés avec l'agent, puis score
+    uv run cti-eval --system fast --run            # même chose avec l'extraction rapide (fast_extract), dans db_outputs/eval/fast
     uv run cti-eval --bundles db_outputs/eval/agent   # score des bundles déjà produits, sans appel au modèle
+
+Avec un serveur SGLang/vLLM (CTI_LLM_BACKEND=openai, tunnel vers CTI_OPENAI_URL) les articles s'extraient en parallèle :
+    CTI_LLM_BACKEND=openai uv run cti-eval --system fast --run --workers 4 --bundles db_outputs/eval/fast_sglang
 
 Chaque exécution écrit dans le dossier des bundles : `report.json` (scores, manques, prédictions à revoir) et `report.md`.
 La méthode de score est celle de `score.py` (rappel principal, précision, crédit partiel, hallucinations, ancrage).
@@ -11,6 +15,8 @@ import argparse
 import json
 import sys
 import time
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from rich.console import Console
@@ -44,20 +50,42 @@ def fetch_article(article_id: int) -> dict:
     return rows[0]
 
 
-def run_agent(art: dict, out_dir: Path) -> dict:
-    """Extrait un article avec l'agent, sans Neo4j ; le bundle est écrit dans `out_dir/article_<id>.json`."""
+def run_agent(art: dict, out_dir: Path, system: str = "agent") -> dict:
+    """Extrait un article (agent ou extraction rapide), sans Neo4j ; le bundle est écrit dans `out_dir/article_<id>.json`."""
     from backend.extracting.stix_agent import process_article
 
     t0 = time.perf_counter()
-    result = process_article(art, out_dir=out_dir)
-    return {"seconds": round(time.perf_counter() - t0, 1), "output_tokens": result.output_tokens}
+    result = process_article(art, out_dir=out_dir, fast=system == "fast", closed=system == "closed", oneshot=system == "oneshot")
+    return {
+        "seconds": round(time.perf_counter() - t0, 1), "output_tokens": result.output_tokens, "llm_calls": len(result.turns),
+        "calls_by_stage": dict(Counter(name for t in result.turns for name in t.tool_calls)), "failed_passages": result.failed_passages,
+    }  # fmt: skip
+
+
+def run_all(arts: list[dict], out_dir: Path, system: str, workers: int, runs: dict) -> float:
+    """Extrait les articles, `workers` à la fois (le serveur groupe leurs requêtes ; Ollama, lui, les traite l'une après l'autre).
+    Un article échoué est signalé et laissé sans bundle. Retourne la durée totale, celle que voit l'utilisateur."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    t0 = time.perf_counter()
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        futures = {pool.submit(run_agent, art, out_dir, system): art for art in arts}
+        for future in as_completed(futures):
+            art = futures[future]
+            try:
+                runs[art["id"]] = future.result()
+            except Exception as exc:  # noqa: BLE001 : un article perdu n'arrête pas les autres
+                console.print(f"[red]Échec[/] article {art['id']} : {type(exc).__name__}: {exc}")
+                continue
+            console.print(f"[bold]Extrait[/] article {art['id']} — {art['title']} ({runs[art['id']]['seconds']} s)")
+            (out_dir / "runs.json").write_text(json.dumps(runs, indent=1), encoding="utf-8")
+    return time.perf_counter() - t0
 
 
 def _pct(value: float | None) -> str:
     return "—" if value is None else f"{100 * value:.1f} %"
 
 
-def print_scores(scores: list[ArticleScore], summary: dict, runs: dict) -> None:
+def print_scores(scores: list[ArticleScore], summary: dict, runs: dict, wall: float | None = None) -> None:
     table = Table(title="Score contre le gold (ATT&CK v20.0)", header_style="bold magenta", border_style="dim")
     for col in ("Article", "Ent. rappel", "Ent. précision", "Rel. rappel", "Rel. précision", "Prédits (ent/rel)", "Halluc.", "Citations ancrées", "Durée"):
         table.add_column(col, justify="right")
@@ -73,12 +101,16 @@ def print_scores(scores: list[ArticleScore], summary: dict, runs: dict) -> None:
         d = s.as_dict()
         row(str(s.article_id), d["entities"], d["relations"], len(s.hallucinations), s.grounding, runs.get(s.article_id))
     seconds = sum(r["seconds"] for r in runs.values()) if runs else None
-    row("TOTAL", summary["entities"], summary["relations"], summary["hallucinations"], summary["grounding"], {"seconds": seconds} if runs else None)
+    row("TOTAL", summary["entities"], summary["relations"], summary["hallucinations"], summary["grounding"], {"seconds": round(seconds, 1)} if runs else None)
     console.print(table)
+    if wall is not None:
+        console.print(f"Durée réelle de l'extraction : {wall:.1f} s (somme des durées par article : {seconds:.1f} s)")
 
 
-def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs: dict) -> str:
+def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs: dict, wall: float | None = None) -> str:
     lines = [f"# Évaluation `{system}` contre le gold (ATT&CK v20.0)", ""]
+    if wall is not None:
+        lines += [f"Durée réelle de l'extraction : **{wall:.1f} s** pour {len(runs)} articles (somme des durées par article : {sum(r['seconds'] for r in runs.values()):.1f} s).", ""]
     lines += ["| Article | Entités rappel | Entités précision | Relations rappel | Relations précision | Hallucinations | Durée |", "|---|---|---|---|---|---|---|"]
     for s in scores:
         d = s.as_dict()
@@ -109,23 +141,26 @@ def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs
 def main() -> None:
     parser = argparse.ArgumentParser(description="Évaluation de l'extraction contre les articles annotés")
     parser.add_argument("--run", action="store_true", help="Extrait d'abord les articles annotés (appels au modèle)")
-    parser.add_argument("--bundles", type=Path, help="Dossier des bundles prédits (défaut : db_outputs/eval/agent)")
+    parser.add_argument("--system", choices=("agent", "fast", "closed", "oneshot"), default="agent", help="Extracteur lancé par --run")
+    parser.add_argument("--bundles", type=Path, help="Dossier des bundles prédits (défaut : db_outputs/eval/<système>)")
     parser.add_argument("--article-id", type=int, action="append", help="Limiter à ces articles (option répétable)")
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
+    parser.add_argument("--workers", type=int, default=1, help="Articles extraits en même temps (utile avec CTI_LLM_BACKEND=openai ; Ollama traite une requête à la fois)")
     args = parser.parse_args()
 
-    out_dir = args.bundles or EVAL_DIR / "agent"
+    out_dir = args.bundles or EVAL_DIR / args.system
     entries = [a for a in load_manifest(args.manifest) if not args.article_id or a["article_id"] in args.article_id]
     runs_file = out_dir / "runs.json"
     runs: dict[int, dict] = {int(k): v for k, v in json.loads(runs_file.read_text()).items()} if runs_file.exists() else {}
+    arts = {e["article_id"]: fetch_article(e["article_id"]) for e in entries}
+    wall = None
+    if args.run:
+        for art in arts.values():
+            console.print(f"[bold]Extraction[/] article {art['id']} — {art['title']}")
+        wall = run_all(list(arts.values()), out_dir, args.system, args.workers, runs)
     scores = []
     for entry in entries:
-        art = fetch_article(entry["article_id"])
-        if args.run:
-            console.print(f"[bold]Extraction[/] article {art['id']} — {art['title']}")
-            runs[art["id"]] = run_agent(art, out_dir)
-            out_dir.mkdir(parents=True, exist_ok=True)
-            runs_file.write_text(json.dumps(runs, indent=1), encoding="utf-8")
+        art = arts[entry["article_id"]]
         pred_path = out_dir / f"article_{art['id']}.json"
         if not pred_path.exists():
             console.print(f"[yellow]Pas de bundle pour l'article {art['id']} ({pred_path}) : lancer avec --run[/]")
@@ -137,10 +172,10 @@ def main() -> None:
         return
     summary = total(scores)
     runs = {k: v for k, v in runs.items() if k in {s.article_id for s in scores}}
-    print_scores(scores, summary, runs)
-    report = {"system": out_dir.name, "summary": summary, "runs": runs, "articles": [s.as_dict() for s in scores]}
+    print_scores(scores, summary, runs, wall)
+    report = {"system": out_dir.name, "summary": summary, "runs": runs, "wall_seconds": wall, "articles": [s.as_dict() for s in scores]}
     (out_dir / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
-    (out_dir / "report.md").write_text(markdown_report(out_dir.name, scores, summary, runs), encoding="utf-8")
+    (out_dir / "report.md").write_text(markdown_report(out_dir.name, scores, summary, runs, wall), encoding="utf-8")
     console.print(f"Rapport : {out_dir / 'report.md'}")
 
 

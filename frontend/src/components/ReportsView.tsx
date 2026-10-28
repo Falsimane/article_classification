@@ -1,8 +1,10 @@
 import clsx from "clsx";
+import { Download } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
 import type { ArticleSummary, Family } from "../types";
+import { ArticleView } from "./ArticleView";
 import { FamilyFilter } from "./FamilyFilter";
 import { GraphCanvas } from "./GraphCanvas";
 import { IocTable } from "./IocTable";
@@ -16,14 +18,29 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
   const [family, setFamily] = useState<Family | "all">("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-  const [panel, setPanel] = useState<"graph" | "iocs" | "rules">("graph");
+  const [panel, setPanel] = useState<"graph" | "iocs" | "rules" | "article">("graph");
+  const [exportNote, setExportNote] = useState<string | null>(null);
 
-  useEffect(() => { setSelected(null); }, [articleId]);
+  useEffect(() => { setSelected(null); setExportNote(null); }, [articleId]);
   const graph = useAsync(() => (articleId == null ? Promise.resolve(null) : api.graph(articleId, { type: family === "all" ? undefined : family, search: search || undefined })), [articleId, family, search]);
   const iocs = useAsync(() => (articleId == null ? Promise.resolve([]) : api.iocs(articleId)), [articleId]);
   const rules = useAsync(() => (articleId == null ? Promise.resolve([]) : api.rules(articleId)), [articleId]);
+  const text = useAsync(() => (articleId == null ? Promise.resolve(null) : api.article(articleId)), [articleId]);
   const current = graph.data;
   const node = useMemo(() => current?.nodes.find((n) => n.id === selected) ?? null, [current, selected]);
+
+  const exportBundle = async (id: number) => {
+    try {
+      const { blob, matchesGraph } = await api.bundle(id);
+      const url = URL.createObjectURL(blob);
+      const link = Object.assign(document.createElement("a"), { href: url, download: `article_${id}.stix.json` });
+      link.click();
+      URL.revokeObjectURL(url);
+      setExportNote(matchesGraph ? null : "Le bundle exporté ne couvre plus le graphe affiché : l'article a été ré-extrait sans écrire dans Neo4j (--dry-run).");
+    } catch (e) {
+      setExportNote((e as Error).message);
+    }
+  };
 
   if (articles.length === 0) return <Empty>Aucun article extrait. Lancez : uv run cti-extractor --limit 10</Empty>;
   return (
@@ -46,15 +63,30 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
       </aside>
 
       <section className="flex min-w-0 flex-col">
-        <nav className="flex border-b border-line bg-panel px-3">
-          {([["graph", "Graphe"], ["iocs", "Indicateurs"], ["rules", "Détection"]] as const).map(([id, label]) => (
+        <nav className="flex items-center border-b border-line bg-panel px-3">
+          {([["graph", "Graphe"], ["iocs", "Indicateurs"], ["rules", "Détection"], ["article", "Article"]] as const).map(([id, label]) => (
             <button key={id} onClick={() => setPanel(id)} className={clsx("border-b-2 px-4 py-2 text-sm", panel === id ? "border-accent text-ink" : "border-transparent text-muted hover:text-ink")}>
               {label}
-              {id !== "graph" && <span className="ml-1.5 font-mono text-xs text-faint">{(id === "iocs" ? iocs : rules).data?.length ?? 0}</span>}
+              {(id === "iocs" || id === "rules") && <span className="ml-1.5 font-mono text-xs text-faint">{(id === "iocs" ? iocs : rules).data?.length ?? 0}</span>}
             </button>
           ))}
+          {articleId != null && (
+            <button onClick={() => exportBundle(articleId)} title="Télécharger le bundle STIX 2.1 de l'article (JSON)" className="ml-auto flex items-center gap-1.5 border border-line px-2 py-1 text-xs text-muted hover:border-line-strong hover:text-ink">
+              <Download size={12} /> Exporter STIX
+            </button>
+          )}
         </nav>
-        {panel === "rules" ? (
+        {exportNote && (
+          <div className="flex items-center gap-3 border-b border-line bg-panel px-4 py-1.5 text-xs text-warn">
+            {exportNote}
+            <button onClick={() => setExportNote(null)} className="ml-auto text-faint hover:text-ink">Fermer</button>
+          </div>
+        )}
+        {panel === "article" ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {text.error ? <Empty>{text.error}</Empty> : text.data ? <ArticleView article={text.data} /> : null}
+          </div>
+        ) : panel === "rules" ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
             {rules.error ? <Empty>{rules.error}</Empty> : <RuleTable rows={rules.data ?? []} empty="Aucune règle YARA ou Sigma valide dans cet article." />}
           </div>

@@ -1,0 +1,38 @@
+[
+  {
+    "candidat": "intrusion-set « hacktivists operating under Anonymous-style monikers » (targets Turkey)",
+    "raison": "Acteur non nommé ; 'Anonymous-style' est une comparaison, pas une identité. Citation : \"hacktivists operating under Anonymous-style monikers began targeting the Turkish root DNS\""
+  },
+  {
+    "candidat": "intrusion-set « Russia-associated intrusion actors » (targets Turkish critical infrastructure)",
+    "raison": "Non nommé et hedgé (\"apparent targeting\") ; attribution à la Russie non établie par l'article."
+  },
+  {
+    "candidat": "attribution des attaques à l'État russe ou turc",
+    "raison": "L'article dit seulement que le ciblage s'aligne avec les intérêts des États (\"appear to have leveraged hacktivist-style attacks\")."
+  },
+  {
+    "candidat": "T1498.001 Direct Network Flood / T1498.002 Reflection Amplification",
+    "raison": "Mécanisme du DDoS non décrit ; technique parente T1498 retenue."
+  },
+  {
+    "candidat": "T1499 Endpoint Denial of Service",
+    "raison": "Rien n'indique une attaque au niveau applicatif ou du service plutôt que du réseau."
+  },
+  {
+    "candidat": "T1530 / T1567 / T1213 (fuite de données personnelles de ~50 millions de citoyens turcs)",
+    "raison": "Méthode de collecte et d'exfiltration non décrite ; seule la fuite publique est mentionnée."
+  },
+  {
+    "candidat": "T1584 Compromise Infrastructure / DNS (ciblage de la racine DNS turque)",
+    "raison": "'Targeting' ne dit pas s'il y a eu compromission ou déni de service."
+  },
+  {
+    "candidat": "location Russia (cible des attaques de janvier 2016 sur banques et FSB)",
+    "raison": "Écarté par prudence ; attaquants non établis. Citation : \"In January 2016, attacks targeting Russian banking infrastructure and the FSB were observed.\" À ajouter (targets) si l'analyste le souhaite, avec une technique non précisée."
+  },
+  {
+    "candidat": "identity Federal Security Service (FSB) / banques turques / ISIS",
+    "raison": "Entités politiques ou victimes génériques, non nécessaires au graphe tools/TTP/attribution ; aucune relation fiable."
+  }
+]

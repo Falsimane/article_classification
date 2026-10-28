@@ -616,7 +616,7 @@ def extract_iocs(
         return res, parse_ioc_answers(res.parsed, batch)
 
     answers: dict[int, tuple[str, str | None]] = {}
-    for res, parsed in map(classify_batch, batches):  # Ollama traite les requêtes l'une après l'autre
+    for res, parsed in llm.map_parallel(classify_batch, batches):
         result.calls.append(res)
         answers.update(parsed)
 

@@ -1,0 +1,585 @@
+{
+  "type": "bundle",
+  "id": "bundle--c791f409-f7dc-5fd1-bbe7-d23e814e6c3f",
+  "objects": [
+    {
+      "type": "report",
+      "spec_version": "2.1",
+      "id": "report--47ea8328-4b14-5650-aa77-d1402e83c697",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "SCATTERED SPIDER Attempts to Avoid Detection with Bring-Your-Own-Driver Tactic",
+      "published": "2023-01-10T00:00:00.000Z",
+      "report_types": [
+        "threat-report"
+      ],
+      "description": "CrowdStrike décrit une tentative de SCATTERED SPIDER de charger un pilote noyau malveillant via CVE-2015-2291 (pilote Ethernet Intel, BYOVD) pour patcher csagent.sys en mémoire et neutraliser le capteur Falcon.",
+      "object_refs": [
+        "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+        "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+        "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
+        "software--a6f3dbdc-a784-51e4-a4de-c62df1fd0b3d",
+        "software--e7b9baa5-612e-5f69-8a37-83bc270cc1b4",
+        "identity--ada1562a-b37a-5c81-80e3-6b89079f94e4",
+        "identity--4fdf8f6c-ea86-5858-a29f-e26432c7a781",
+        "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
+        "attack-pattern--954a1639-f2d6-407d-aef3-4917622ca493",
+        "attack-pattern--cca0ccb6-a068-4574-a722-b1556f86833a",
+        "attack-pattern--4061e78c-1284-44b4-9116-73e4ac3912f7",
+        "attack-pattern--b21c3b2d-02e6-45b1-980b-e69051040839",
+        "attack-pattern--bbde9781-60aa-4b8a-a911-895b0c1b3872",
+        "attack-pattern--32901740-b42c-4fdd-bc02-345b5dc57082",
+        "relationship--152c757b-88dd-57bf-b272-3898eac58d9b",
+        "relationship--eddb7365-b04d-57d2-9f22-84b854c6e85c",
+        "relationship--802056cd-96d2-5e49-b1e1-b235622eaaea",
+        "relationship--fdf7ee8e-f713-5cf4-9849-3a786b5832a5",
+        "relationship--97d8d480-6500-579d-b14e-1212cad2005d",
+        "relationship--a7c4af7a-ef91-56df-86ac-3e73deb89903",
+        "relationship--6b3bf619-8085-58ba-890d-3082edc9ed85",
+        "relationship--38582bd9-9084-5cfe-941d-ed1cae33e1b6",
+        "relationship--36f1724b-3607-5a12-826a-2156646e4732",
+        "relationship--171e75bd-9060-559d-a163-8278dc3dbe7c",
+        "relationship--4506f404-b2b3-5c4f-9d3b-e8339c85c4a8",
+        "relationship--9d6b218d-5245-51ea-83f6-7fee6870fce7",
+        "relationship--ddc4eaec-90a1-5ed5-999a-951e9dbe2e5f",
+        "relationship--7c207d30-e255-5822-92ee-bcf542215536",
+        "relationship--08fb3c77-8cd5-5393-94e8-a9417ffae509"
+      ],
+      "external_references": [
+        {
+          "source_name": "CrowdStrike",
+          "url": "https://www.crowdstrike.com/en-us/blog/scattered-spider-attempts-to-avoid-detection-with-bring-your-own-vulnerable-driver-tactic/"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_attack_version": "20.0",
+      "x_gold_evidence_quote": "SCATTERED SPIDER Exploits Windows Security Deficiencies with Bring-Your-Own-Vulnerable-Driver Tactic in Attempt to Bypass Endpoint Security"
+    },
+    {
+      "type": "intrusion-set",
+      "spec_version": "2.1",
+      "id": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "SCATTERED SPIDER",
+      "description": "Adversaire eCrime ciblant les secteurs télécoms et BPO ; obtient l'accès par hameçonnage d'identifiants et ingénierie sociale, puis privilégie des outils légitimes de gestion à distance plutôt que des malwares propres.",
+      "aliases": [
+        "SCATTERED SPIDER",
+        "Roasted 0ktapus",
+        "UNC3944"
+      ],
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "G1015",
+          "url": "https://attack.mitre.org/groups/G1015"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "SCATTERED SPIDER (aka Roasted 0ktapus, UNC3944) leverages a combination of credential phishing and social engineering"
+    },
+    {
+      "type": "malware",
+      "spec_version": "2.1",
+      "id": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Pilote noyau malveillant (désactivation de csagent.sys)",
+      "is_family": false,
+      "description": "Pilote noyau Windows 64 bits (moins de 35 fonctions) chargé via un pilote Intel vulnérable ; déchiffre par XOR une liste de produits de sécurité ciblés, trouve csagent.sys (composant noyau CrowdStrike Falcon) et le patche en mémoire à des offsets codés en dur ; les routines installées signalent un succès au capteur sans rien faire.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "deploy a malicious kernel driver through a vulnerability (CVE-2015-2291)",
+      "x_gold_context": "Pilote 64 bits non nommé par l'article, signé par divers certificats ; il recherche csagent.sys et patche en mémoire ses routines avec du code trampoline."
+    },
+    {
+      "type": "vulnerability",
+      "spec_version": "2.1",
+      "id": "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "CVE-2015-2291",
+      "external_references": [
+        {
+          "source_name": "cve",
+          "external_id": "CVE-2015-2291"
+        }
+      ],
+      "description": "Vulnérabilité du pilote de diagnostic Ethernet Intel pour Windows, exploitée pour charger un pilote malveillant dans le noyau (BYOVD).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a vulnerability (CVE-2015-2291) in the Intel Ethernet diagnostics driver"
+    },
+    {
+      "type": "software",
+      "spec_version": "2.1",
+      "id": "software--a6f3dbdc-a784-51e4-a4de-c62df1fd0b3d",
+      "name": "Intel Ethernet diagnostics driver",
+      "vendor": "Intel",
+      "x_gold_description": "Pilote de diagnostic Ethernet Intel pour Windows, vulnérable à CVE-2015-2291. Versions affectées non précisées.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the Intel Ethernet diagnostics driver for Windows",
+      "x_gold_context": "Produit affecté par CVE-2015-2291 ; versions affectées non précisées."
+    },
+    {
+      "type": "software",
+      "spec_version": "2.1",
+      "id": "software--e7b9baa5-612e-5f69-8a37-83bc270cc1b4",
+      "name": "CrowdStrike Falcon sensor",
+      "vendor": "CrowdStrike",
+      "x_gold_description": "Capteur CrowdStrike Falcon, dont le composant noyau csagent.sys est la cible du patch mémoire du pilote malveillant.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "searching for `csagent.sys` (the CrowdStrike Falcon kernel component)",
+      "x_gold_context": "Le pilote recherche csagent.sys, « the CrowdStrike Falcon kernel component » (même paragraphe de l'article)."
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--ada1562a-b37a-5c81-80e3-6b89079f94e4",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Telecommunications companies",
+      "identity_class": "class",
+      "sectors": [
+        "telecommunications"
+      ],
+      "description": "Organisations du secteur télécoms visées dans la campagne de SCATTERED SPIDER rapportée en décembre 2022.",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "targeting organizations within the telecom and business process outsourcing (BPO) sectors"
+    },
+    {
+      "type": "identity",
+      "spec_version": "2.1",
+      "id": "identity--4fdf8f6c-ea86-5858-a29f-e26432c7a781",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Business process outsourcing (BPO) companies",
+      "identity_class": "class",
+      "description": "Organisations du secteur de l'externalisation des processus d'affaires (BPO).",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "targeting organizations within the telecom and business process outsourcing (BPO) sectors"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Valid Accounts",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1078",
+          "url": "https://attack.mitre.org/techniques/T1078"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "stealth"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "persistence"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        },
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "initial-access"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the adversary is largely leveraging valid accounts as the initial access vector",
+      "x_gold_context": "Sous-technique non déterminable : type de compte non précisé."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--954a1639-f2d6-407d-aef3-4917622ca493",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Multi-Factor Authentication Request Generation",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1621",
+          "url": "https://attack.mitre.org/techniques/T1621"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "credential-access"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "overwhelms targets using multifactor authentication (MFA) notification fatigue tactics"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--cca0ccb6-a068-4574-a722-b1556f86833a",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Phishing for Information",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1598",
+          "url": "https://attack.mitre.org/techniques/T1598"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "reconnaissance"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "leverages a combination of credential phishing and social engineering to capture one-time-password (OTP) codes",
+      "x_gold_context": "Sous-technique non déterminable (canal du hameçonnage non précisé) : technique parente."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--4061e78c-1284-44b4-9116-73e4ac3912f7",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Remote Access Tools",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1219",
+          "url": "https://attack.mitre.org/techniques/T1219"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "command-and-control"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "favoring a wide range of legitimate remote management tools to maintain persistent access"
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--b21c3b2d-02e6-45b1-980b-e69051040839",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Exploitation for Privilege Escalation",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1068",
+          "url": "https://attack.mitre.org/techniques/T1068"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "privilege-escalation"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "deploy a malicious kernel driver through a vulnerability (CVE-2015-2291) in the Intel Ethernet diagnostics driver",
+      "x_gold_context": "BYOVD : la vulnérabilité du pilote Intel sert à exécuter du code dans le noyau Windows."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--bbde9781-60aa-4b8a-a911-895b0c1b3872",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Disable or Modify Tools",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1685",
+          "url": "https://attack.mitre.org/techniques/T1685"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "defense-impairment"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The intent of the adversary is to disable the endpoint security products visibility and prevention capabilities",
+      "x_gold_context": "Le pilote patche en mémoire csagent.sys. T1685 remplace T1562.001 (révoquée en v20.0)."
+    },
+    {
+      "type": "attack-pattern",
+      "spec_version": "2.1",
+      "id": "attack-pattern--32901740-b42c-4fdd-bc02-345b5dc57082",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "name": "Code Signing",
+      "external_references": [
+        {
+          "source_name": "mitre-attack",
+          "external_id": "T1553.002",
+          "url": "https://attack.mitre.org/techniques/T1553/002"
+        }
+      ],
+      "kill_chain_phases": [
+        {
+          "kill_chain_name": "mitre-attack",
+          "phase_name": "defense-impairment"
+        }
+      ],
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "signed by different certificates and authorities — including stolen certificates originally issued to NVIDIA and Global Software LLC",
+      "x_gold_context": "Les versions du pilote malveillant sont signées avec des certificats volés ou un certificat de test."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--152c757b-88dd-57bf-b272-3898eac58d9b",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a novel attempt by this adversary to deploy a malicious kernel driver through a vulnerability (CVE-2015-2291)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--eddb7365-b04d-57d2-9f22-84b854c6e85c",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "the adversary is largely leveraging valid accounts as the initial access vector"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--802056cd-96d2-5e49-b1e1-b235622eaaea",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "attack-pattern--954a1639-f2d6-407d-aef3-4917622ca493",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "overwhelms targets using multifactor authentication (MFA) notification fatigue tactics"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--fdf7ee8e-f713-5cf4-9849-3a786b5832a5",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "attack-pattern--cca0ccb6-a068-4574-a722-b1556f86833a",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "leverages a combination of credential phishing and social engineering to capture one-time-password (OTP) codes"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--97d8d480-6500-579d-b14e-1212cad2005d",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "attack-pattern--4061e78c-1284-44b4-9116-73e4ac3912f7",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "favoring a wide range of legitimate remote management tools to maintain persistent access"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--a7c4af7a-ef91-56df-86ac-3e73deb89903",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "attack-pattern--b21c3b2d-02e6-45b1-980b-e69051040839",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a novel attempt by this adversary to deploy a malicious kernel driver through a vulnerability (CVE-2015-2291)",
+      "x_gold_context": "Le pilote malveillant est chargé par l'acteur via CVE-2015-2291."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--6b3bf619-8085-58ba-890d-3082edc9ed85",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+      "target_ref": "attack-pattern--bbde9781-60aa-4b8a-a911-895b0c1b3872",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "The intent of the adversary is to disable the endpoint security products visibility and prevention capabilities",
+      "x_gold_context": "Section Technical Analysis : le pilote patche csagent.sys."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--38582bd9-9084-5cfe-941d-ed1cae33e1b6",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "uses",
+      "source_ref": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+      "target_ref": "attack-pattern--32901740-b42c-4fdd-bc02-345b5dc57082",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "signed by different certificates and authorities — including stolen certificates originally issued to NVIDIA and Global Software LLC"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--36f1724b-3607-5a12-826a-2156646e4732",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "identity--ada1562a-b37a-5c81-80e3-6b89079f94e4",
+      "confidence": 15,
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "targeting organizations within the telecom and business process outsourcing (BPO) sectors",
+      "x_gold_context": "Campagne de décembre 2022 rapportée en introduction, attribuée avec faible confiance à SCATTERED SPIDER."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--171e75bd-9060-559d-a163-8278dc3dbe7c",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "target_ref": "identity--4fdf8f6c-ea86-5858-a29f-e26432c7a781",
+      "confidence": 15,
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "targeting organizations within the telecom and business process outsourcing (BPO) sectors",
+      "x_gold_context": "Idem : attribution à faible confiance."
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--4506f404-b2b3-5c4f-9d3b-e8339c85c4a8",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+      "target_ref": "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "deploy a malicious kernel driver through a vulnerability (CVE-2015-2291)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--9d6b218d-5245-51ea-83f6-7fee6870fce7",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "attack-pattern--b21c3b2d-02e6-45b1-980b-e69051040839",
+      "target_ref": "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "deploy a malicious kernel driver through a vulnerability (CVE-2015-2291)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--ddc4eaec-90a1-5ed5-999a-951e9dbe2e5f",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "has",
+      "source_ref": "software--a6f3dbdc-a784-51e4-a4de-c62df1fd0b3d",
+      "target_ref": "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "a vulnerability (CVE-2015-2291) in the Intel Ethernet diagnostics driver for Windows"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--7c207d30-e255-5822-92ee-bcf542215536",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+      "target_ref": "software--e7b9baa5-612e-5f69-8a37-83bc270cc1b4",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "searching for `csagent.sys` (the CrowdStrike Falcon kernel component)"
+    },
+    {
+      "type": "relationship",
+      "spec_version": "2.1",
+      "id": "relationship--08fb3c77-8cd5-5393-94e8-a9417ffae509",
+      "created": "2023-01-10T00:00:00.000Z",
+      "modified": "2026-10-27T00:00:00.000Z",
+      "relationship_type": "targets",
+      "source_ref": "attack-pattern--bbde9781-60aa-4b8a-a911-895b0c1b3872",
+      "target_ref": "software--e7b9baa5-612e-5f69-8a37-83bc270cc1b4",
+      "labels": [
+        "gold:required"
+      ],
+      "x_gold_evidence_quote": "searching for `csagent.sys` (the CrowdStrike Falcon kernel component)"
+    }
+  ]
+}

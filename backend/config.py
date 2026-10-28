@@ -22,3 +22,12 @@ OLLAMA_NUM_CTX = int(os.environ.get("OLLAMA_NUM_CTX") or os.environ.get("CTI_EXT
 # Requêtes que le serveur traite en même temps (sa variable OLLAMA_NUM_PARALLEL) : un processus client n'en envoie jamais
 # davantage, les autres attendent leur tour chez le client plutôt que dans la file du serveur.
 OLLAMA_SLOTS = max(1, int(os.environ.get("OLLAMA_NUM_PARALLEL", "1")))
+
+# Moteur d'inférence de l'extraction : « ollama » (défaut) ou « openai » (API /v1/chat/completions : SGLang, vLLM). Avec « openai »,
+# le contexte (`--context-length`) et les slots sont fixés côté serveur ; CTI_LLM_SLOTS = requêtes en vol (son --max-running-requests).
+LLM_BACKEND = os.environ.get("CTI_LLM_BACKEND", "ollama").strip().lower()
+OPENAI_BASE_URL = os.environ.get("CTI_OPENAI_URL", "http://127.0.0.1:8010/v1").rstrip("/")
+OPENAI_MODEL = os.environ.get("CTI_OPENAI_MODEL", "cti-qwen")
+LLM_MODEL = OPENAI_MODEL if LLM_BACKEND == "openai" else OLLAMA_MODEL
+LLM_SLOTS = max(1, int(os.environ.get("CTI_LLM_SLOTS") or 10)) if LLM_BACKEND == "openai" else OLLAMA_SLOTS
+

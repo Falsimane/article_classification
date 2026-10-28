@@ -252,6 +252,18 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
+    def send_bytes_response(self, payload: bytes, filename: str, headers: Dict[str, str]) -> None:
+        """Fichier JSON servi tel quel, en téléchargement."""
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        for key, value in headers.items():
+            self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(payload)
+
     def use_stix(self, params: Dict[str, List[str]]) -> bool:
         """Sert le graphe STIX dès qu'il contient un article extrait ; `?model=legacy|stix` force un choix."""
         forced = params.get("model", [None])[0]
@@ -267,6 +279,19 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
             elif path == "/api/rules":
                 aid = params.get("article_id", [None])[0]
                 self.send_json_response(stix_dashboard.rules_of_article(int(aid)) if aid and aid.isdigit() else {"error": "article_id requis"}, status=200 if aid and aid.isdigit() else 400)
+            elif path in ("/api/article", "/api/bundle"):
+                aid = params.get("article_id", [None])[0]
+                if not (aid and aid.isdigit()):
+                    self.send_json_response({"error": "article_id requis"}, status=400)
+                elif path == "/api/article":
+                    text = stix_dashboard.article_text(int(aid))
+                    self.send_json_response(text or {"error": "Article introuvable"}, status=200 if text else 404)
+                else:
+                    found = stix_dashboard.article_bundle(int(aid))
+                    if found is None:
+                        self.send_json_response({"error": f"Aucun bundle STIX pour l'article {aid} (ré-extraire l'article)"}, status=404)
+                    else:
+                        self.send_bytes_response(found[0], f"article_{aid}.stix.json", {"X-Bundle-Matches-Graph": "1" if found[1] else "0"})
             elif path == "/api/actors":
                 self.send_json_response(stix_dashboard.actors())
             elif path.startswith("/api/actors/"):
