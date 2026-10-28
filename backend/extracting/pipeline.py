@@ -20,11 +20,11 @@ import time
 from dataclasses import dataclass, field
 
 from backend.extracting import llm
-from backend.extracting.draft import DraftGraph, get_attack, search_attack_many
-from backend.extracting.evidence import normalize_name, parse_date
-from backend.extracting.iocs import IocResult, extract_iocs
-from backend.extracting.rules import RuleResult, extract_rules
-from backend.extracting.segment import render, segment
+from backend.extracting.graph.draft import DraftGraph, get_attack, search_attack_many
+from backend.text.evidence import normalize_name, parse_date
+from backend.extracting.observables.iocs import IocResult, extract_iocs
+from backend.extracting.observables.rules import RuleResult, extract_rules
+from backend.text.segment import render, segment
 from backend.stix.attack import attack_id, get_attack_kb
 from backend.stix.objects import ENTITY_CLASSES, ArticleContext
 

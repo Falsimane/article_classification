@@ -1,6 +1,6 @@
 """Données de référence du filtrage des IOC (`reference/tlds.txt`, `reference/popular_domains.txt`).
 
-    uv run python -m backend.extracting.update_ioc_reference
+    uv run python -m backend.extracting.observables.update_reference
 
 Sources :
 - liste officielle des TLD de l'IANA (https://data.iana.org/TLD/tlds-alpha-by-domain.txt) : un « nom.ext » n'est un

@@ -39,7 +39,7 @@ def load_manifest(path: Path = MANIFEST) -> list[dict]:
 
 def fetch_article(article_id: int) -> dict:
     """Article et classification, sans les filtres d'éligibilité de l'extraction (le gold peut porter sur tout article)."""
-    from backend.extracting.extract import read_articles
+    from backend.extracting.cli import read_articles
 
     rows = read_articles("k.id = ?", [article_id])
     if not rows:
@@ -49,7 +49,7 @@ def fetch_article(article_id: int) -> dict:
 
 def run_one(art: dict, out_dir: Path) -> dict:
     """Extrait un article, sans Neo4j ; le bundle est écrit dans `out_dir/article_<id>.json`."""
-    from backend.extracting.extract import process_article
+    from backend.extracting.cli import process_article
 
     t0 = time.perf_counter()
     result = process_article(art, out_dir=out_dir)

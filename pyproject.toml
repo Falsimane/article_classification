@@ -25,9 +25,9 @@ cti-core = { path = "backend/cti_core", editable = true }
 
 [project.scripts]
 cti-classifier = "backend.preprocessing.cti_classifier:main"
-cti-extract = "backend.extracting.extract:main"
+cti-extract = "backend.extracting.cli:main"
 cti-eval = "backend.evaluation.cti_eval:main"
-cti-dashboard = "backend.server:main"
+cti-dashboard = "backend.dashboard.server:main"
 cti-audit = "backend.preprocessing.audit_classifier:main"
 
 [build-system]

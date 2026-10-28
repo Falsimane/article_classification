@@ -20,10 +20,10 @@ from urllib.parse import urlsplit
 
 from backend.stix.iocs import HASH_ALGOS, HASH_PRIORITY, ROLES, IocFinding
 
-from .evidence import mentions_prepared, parse_date, prepare_text
+from backend.text.evidence import mentions_prepared, parse_date, prepare_text
 
-from . import llm
-from .segment import _FILE_EXT, Unit
+from backend.extracting import llm
+from backend.text.segment import FILE_EXT, Unit
 
 REFERENCE = Path(__file__).resolve().parent / "reference"
 ATTACH_TYPES = frozenset({"malware", "tool", "threat-actor", "intrusion-set", "campaign", "infrastructure", "incident"})
@@ -54,7 +54,7 @@ def popular_domains() -> frozenset[str]:
 
 # Extensions de fichier qui sont AUSSI des TLD réels (`.py`, `.sh`, `.zip`…) : « install.sh » n'est un domaine que dans une
 # liste d'indicateurs
-_CODE_EXTENSIONS = _FILE_EXT | frozenset("py pl rs go rb php java cs cpp md h c asp aspx jsp cgi gz tar sql yml yaml toml html htm css png jpg gif svg pdf".split())
+_CODE_EXTENSIONS = FILE_EXT | frozenset("py pl rs go rb php java cs cpp md h c asp aspx jsp cgi gz tar sql yml yaml toml html htm css png jpg gif svg pdf".split())
 _DOCUMENTATION_DOMAINS = frozenset({"example.com", "example.org", "example.net"})
 # Liens d'un tweet cité : raccourcisseur et images de Twitter, jamais l'indicateur lui-même (l'IOC est derrière, ou dans l'image)
 _SOCIAL_LINK_HOSTS = frozenset({"t.co", "pic.twitter.com", "pbs.twimg.com"})

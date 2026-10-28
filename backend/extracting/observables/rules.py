@@ -20,10 +20,10 @@ import yara
 
 from backend.stix.rules import DetectionRule
 
-from .evidence import mentions_prepared, prepare_text
+from backend.text.evidence import mentions_prepared, prepare_text
 
-from . import llm
-from .iocs import Attachable, _trim, attachables
+from backend.extracting import llm
+from backend.extracting.observables.iocs import Attachable, _trim, attachables
 
 MAX_RULES_PER_CALL = 10
 MAX_RULE_TOKENS = 120

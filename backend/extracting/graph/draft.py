@@ -22,9 +22,9 @@ from stix2.v21.vocab import INDUSTRY_SECTOR
 from backend.stix.attack import AttackKB, attack_id, get_attack_kb
 from backend.stix.objects import ENTITY_CLASSES, ArticleContext, entity, relationship
 
-from .evidence import confidence_from_text, mentions, normalize_name
-from .places import resolve_location
-from .segment import Unit
+from backend.text.evidence import confidence_from_text, mentions, normalize_name
+from backend.extracting.graph.places import resolve_location
+from backend.text.segment import Unit
 
 # Extrémités qui peuvent rester implicites dans la phrase citée : l'acteur (« les opérateurs », « il ») et la technique
 # (la phrase décrit le comportement, elle ne nomme pas la technique ATT&CK)

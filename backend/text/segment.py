@@ -29,7 +29,7 @@ _HASH = re.compile(r"\b[a-fA-F0-9]{32,64}\b")
 _IPV4 = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
 _DOMAIN = re.compile(r"^[a-z0-9][a-z0-9\-]*(?:\.[a-z0-9\-]+)+(?:[:/].*)?$", re.I)
 # Extensions de fichier courantes : un « nom.exe » n'est pas un nom de domaine
-_FILE_EXT = frozenset("exe dll sys bat cmd ps1 vbs js jar msi scr lnk so dat tmp bin log txt cfg ini conf json xml hta zip rar 7z iso doc docx xls xlsx pdf py sh".split())
+FILE_EXT = frozenset("exe dll sys bat cmd ps1 vbs js jar msi scr lnk so dat tmp bin log txt cfg ini conf json xml hta zip rar 7z iso doc docx xls xlsx pdf py sh".split())
 
 
 _RULE_LISTING = re.compile(r"^\s*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s*:", re.I)
@@ -45,7 +45,7 @@ def is_indicator_text(text: str) -> bool:
     if _RULE_LISTING.match(text):
         return True
     hashes, ips = len(_HASH.findall(text)), len(_IPV4.findall(text))
-    domains = sum(1 for t in tokens if _DOMAIN.match(t.strip("|,;()[]")) and t.rsplit(".", 1)[-1].lower().strip("|,;()[]") not in _FILE_EXT)
+    domains = sum(1 for t in tokens if _DOMAIN.match(t.strip("|,;()[]")) and t.rsplit(".", 1)[-1].lower().strip("|,;()[]") not in FILE_EXT)
     return hashes >= 2 or (hashes + ips + domains) / len(tokens) >= 0.4
 
 
@@ -142,7 +142,7 @@ def segment(clean_markdown: str) -> list[Unit]:
     def add(kind: str, text: str, path: str) -> None:
         units.append(Unit(len(units) + 1, kind, text, path))
 
-    for block in UniversalCTICleaner._engine.split_blocks(clean_markdown or ""):
+    for block in UniversalCTICleaner.split_blocks(clean_markdown or ""):
         if block.kind == "heading":
             continue
         if block.kind in ("code", "table"):

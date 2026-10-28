@@ -23,7 +23,7 @@ from rich.console import Console  # noqa: E402
 from rich.table import Table  # noqa: E402
 
 from backend.config import LLM_MODEL, SOURCE_ARTICLES_DB  # noqa: E402
-from backend.extracting.evidence import parse_date  # noqa: E402
+from backend.text.evidence import parse_date  # noqa: E402
 from backend.extracting.pipeline import ExtractionResult, clean_title, extract_article  # noqa: E402
 from backend.stix.iocs import build_ioc_objects, without_benign  # noqa: E402
 from backend.stix.objects import as_dict, bundle, report  # noqa: E402

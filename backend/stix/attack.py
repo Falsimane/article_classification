@@ -24,7 +24,7 @@ from pathlib import Path
 
 from stix2 import Filter, MemoryStore, parse
 
-from backend.extracting.evidence import normalize_name
+from backend.text.evidence import normalize_name
 
 REFERENCE_DIR = Path(__file__).resolve().parent / "reference"
 INDEX_FILE = REFERENCE_DIR / "attack_v20.sqlite"

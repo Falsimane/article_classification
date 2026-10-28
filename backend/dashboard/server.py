@@ -15,11 +15,11 @@ from pathlib import Path
 from typing import Any, Dict, List
 from urllib.parse import parse_qs, unquote, urlparse
 
-root_dir = Path(__file__).resolve().parents[1]
+root_dir = Path(__file__).resolve().parents[2]
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-from backend import stix_dashboard  # noqa: E402
+from backend.dashboard import stix_dashboard  # noqa: E402
 
 WEB_DIR = root_dir / "frontend" / "dist"  # build Vite (cd frontend && npm run build)
 

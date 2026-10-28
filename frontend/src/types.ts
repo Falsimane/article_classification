@@ -59,7 +59,7 @@ export interface ArticleGraph {
   edges: GraphEdge[];
 }
 
-/** Texte de l'article tel que l'extraction l'a lu : markdown nettoyé (backend/stix_dashboard.py `article_text`). */
+/** Texte de l'article tel que l'extraction l'a lu : markdown nettoyé (backend/dashboard/stix_dashboard.py `article_text`). */
 export interface ArticleText {
   id: number;
   title: string;
@@ -93,7 +93,7 @@ export interface IocRow {
 
 export type RuleKind = "yara" | "sigma";
 
-/** Règle de détection (backend/stix_dashboard.py `_rule_row`) : `source` est le texte exact de l'article. */
+/** Règle de détection (backend/dashboard/stix_dashboard.py `_rule_row`) : `source` est le texte exact de l'article. */
 export interface RuleRow {
   id: string;
   kind: RuleKind;

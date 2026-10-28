@@ -166,6 +166,11 @@ class UniversalCTICleaner:
         return sections_data
 
     @classmethod
+    def split_blocks(cls, clean_markdown: str) -> list:
+        """Blocs du document dans l'ordre (titre, paragraphe, liste, code, table), avec leur `heading_path`."""
+        return cls._engine.split_blocks(clean_markdown or "")
+
+    @classmethod
     def chunk(cls, clean_markdown: str, max_chars: int = 7500) -> List[Dict[str, Any]]:
         """Segments d'extraction sans recouvrement : jamais de coupe dans un bloc de code, une table ou
         un paragraphe, chaque titre reste avec son contenu, `heading_path` donne le contexte hiérarchique."""
