@@ -9,9 +9,12 @@ volontairement tout ce que les articles disent d'un même acteur.
 """
 
 import json
+import sqlite3
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
+from backend.config import ROOT_DIR, SOURCE_ARTICLES_DB
 from backend.database.stix_store import StixStore
 from backend.stix.iocs import ioc_status
 
@@ -27,6 +30,7 @@ TYPE_FAMILIES: dict[str, frozenset[str]] = {
     "target": frozenset({"identity", "location", "incident"}),
 }
 ACTOR_TYPES = ("threat-actor", "intrusion-set", "campaign")
+STIX_BUNDLES_DIR = ROOT_DIR / "db_outputs" / "stix_bundles"  # écrit par l'extraction (stix_agent.STIX_BUNDLES_DIR)
 
 
 def family_of(stix_type: str) -> str:
@@ -188,6 +192,38 @@ def rules_of_article(article_id: int, store: StixStore | None = None) -> dict[st
     store = store or StixStore()
     rows = [_rule_row(r) for r in store.article_rules(article_id)]
     return {"article_id": article_id, "rules": rows, "count": len(rows)}
+
+
+def article_text(article_id: int, db_path: Path = SOURCE_ARTICLES_DB) -> dict[str, Any] | None:
+    """Texte de l'article tel que l'extraction l'a lu : le markdown nettoyé de la classification (SQLite, lecture seule)."""
+    with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=30.0) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT k.id, k.title, k.url, k.site_name, k.publication_date, c.primary_category, c.clean_markdown "
+            "FROM knowledge k JOIN article_classifications c ON c.knowledge_id = k.id WHERE k.id = ?",
+            (article_id,),
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        "id": row["id"], "title": row["title"] or f"Article {row['id']}", "url": row["url"] or "", "site_name": row["site_name"],
+        "published": (row["publication_date"] or "")[:10] or None, "category": row["primary_category"], "markdown": row["clean_markdown"] or "",
+    }  # fmt: skip
+
+
+def article_bundle(article_id: int, store: StixStore | None = None, bundles_dir: Path = STIX_BUNDLES_DIR) -> tuple[bytes, bool] | None:
+    """Bundle STIX 2.1 de l'article, tel que l'extraction l'a écrit (`stix2.Bundle` validé, IOC bénins et objets ATT&CK de support
+    compris), et s'il couvre encore le graphe de Neo4j : une ré-extraction en --dry-run réécrit le fichier sans toucher au graphe."""
+    path = bundles_dir / f"article_{article_id}.json"
+    if not path.is_file():
+        return None
+    raw = path.read_bytes()
+    try:
+        ids = {o.get("id") for o in json.loads(raw).get("objects", [])}
+    except (ValueError, AttributeError):
+        return raw, False
+    graph = (store or StixStore()).dashboard_graph(article_id)
+    return raw, all(x["id"] in ids for x in graph["nodes"] + graph["edges"])
 
 
 def articles(store: StixStore | None = None) -> dict[str, Any]:

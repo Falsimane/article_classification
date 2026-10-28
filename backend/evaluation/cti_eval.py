@@ -15,6 +15,7 @@ import argparse
 import json
 import sys
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -54,10 +55,10 @@ def run_agent(art: dict, out_dir: Path, system: str = "agent") -> dict:
     from backend.extracting.stix_agent import process_article
 
     t0 = time.perf_counter()
-    result = process_article(art, out_dir=out_dir, fast=system == "fast", closed=system == "closed")
+    result = process_article(art, out_dir=out_dir, fast=system == "fast", closed=system == "closed", oneshot=system == "oneshot")
     return {
         "seconds": round(time.perf_counter() - t0, 1), "output_tokens": result.output_tokens, "llm_calls": len(result.turns),
-        "failed_passages": result.failed_passages,
+        "calls_by_stage": dict(Counter(name for t in result.turns for name in t.tool_calls)), "failed_passages": result.failed_passages,
     }  # fmt: skip
 
 
@@ -140,7 +141,7 @@ def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs
 def main() -> None:
     parser = argparse.ArgumentParser(description="Évaluation de l'extraction contre les articles annotés")
     parser.add_argument("--run", action="store_true", help="Extrait d'abord les articles annotés (appels au modèle)")
-    parser.add_argument("--system", choices=("agent", "fast", "closed"), default="agent", help="Extracteur lancé par --run")
+    parser.add_argument("--system", choices=("agent", "fast", "closed", "oneshot"), default="agent", help="Extracteur lancé par --run")
     parser.add_argument("--bundles", type=Path, help="Dossier des bundles prédits (défaut : db_outputs/eval/<système>)")
     parser.add_argument("--article-id", type=int, action="append", help="Limiter à ces articles (option répétable)")
     parser.add_argument("--manifest", type=Path, default=MANIFEST)

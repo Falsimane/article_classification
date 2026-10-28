@@ -28,6 +28,10 @@ OPENAI = LLM_BACKEND == "openai"  # SGLang / vLLM : requêtes groupées côté s
 # Avec « openai », une requête attend son tour dans le lot du serveur (une dizaine d'autres générations en même temps) : délai plus long.
 TOTAL_REQUEST_TIMEOUT = float(os.environ.get("CTI_LLM_TIMEOUT", "180" if OPENAI else "55"))
 COMPACT = "\nÉcris le JSON sur UNE SEULE LIGNE, sans retour à la ligne ni indentation."
+# Réflexion du modèle (Qwen3.x, backend « openai » seulement) : le serveur doit séparer le raisonnement de la réponse
+# (`--reasoning-parser qwen3`), le schéma JSON ne s'applique qu'à la réponse. Ses tokens s'ajoutent au budget de chaque appel.
+THINKING = os.environ.get("CTI_THINKING", "off").strip().lower() in ("on", "1", "yes", "true")
+THINKING_TOKENS = int(os.environ.get("CTI_THINKING_TOKENS") or 8192)
 
 _local = threading.local()
 # Une requête n'est envoyée que lorsqu'un slot du serveur est libre. Abandonner une requête restée dans la file du serveur
@@ -153,7 +157,13 @@ def _openai_post(payload: dict) -> dict:
 
 def _openai_payload(model: str, messages: list[dict], max_output_tokens: int) -> dict:
     """Décodage déterministe (température 0, top_k 1, graine fixe) et réflexion de Qwen coupée, comme avec Ollama : le serveur
-    applique sinon les paramètres par défaut de la configuration du modèle (température 0,6)."""
+    applique sinon les paramètres par défaut de la configuration du modèle (température 0,6). Avec CTI_THINKING, l'échantillonnage
+    recommandé par Qwen pour la réflexion (un décodage glouton y boucle), graine fixe."""
+    if THINKING:
+        return {
+            "model": model, "messages": messages, "max_tokens": max_output_tokens + THINKING_TOKENS, "temperature": 0.6, "top_p": 0.95,
+            "top_k": 20, "seed": 0, "chat_template_kwargs": {"enable_thinking": True},
+        }  # fmt: skip
     return {
         "model": model, "messages": messages, "max_tokens": max_output_tokens, "temperature": 0, "top_k": 1, "seed": 0,
         "chat_template_kwargs": {"enable_thinking": False},
@@ -361,3 +371,12 @@ def try_generate(system: str, prompt: str, schema: dict, **kwargs) -> LLMResult:
         return generate(system, prompt, schema, **kwargs)
     except (TimeoutError, requests.RequestException, ValueError) as exc:
         return LLMResult(parsed=None, raw="", seconds=time.perf_counter() - t0, error=f"{type(exc).__name__}: {exc}")
+
+
+def map_parallel(fn, items: list) -> list:
+    """`fn` appliquée à chaque élément en parallèle, résultats dans l'ordre. Chaque appel au modèle attend un slot (`_slots`) :
+    avec Ollama (un slot) ils passent donc l'un après l'autre, avec SGLang ensemble."""
+    if not items:
+        return []
+    with ThreadPoolExecutor(max_workers=min(len(items), max(LLM_SLOTS, 1))) as pool:
+        return list(pool.map(fn, items))

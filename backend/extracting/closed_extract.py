@@ -33,13 +33,14 @@ from backend.extracting.places import resolve_location
 from backend.extracting.rules import extract_rules
 from backend.extracting.segment import Unit, segment
 from backend.extracting.stix_agent import AgentResult, TurnStat, clean_title
+from backend.stix import galaxy
 from backend.stix.attack import AttackKB
 from backend.stix.objects import ArticleContext
 
-MAX_TYPING = int(os.environ.get("CTI_MAX_TYPING") or 60)  # noms inconnus du code soumis au modèle, par article
+MAX_TYPING = int(os.environ.get("CTI_MAX_TYPING") or 150)  # noms inconnus du code soumis au modèle, par article
 MAX_BEHAVIOR_CALLS = int(os.environ.get("CTI_MAX_BEHAVIORS") or 300)  # phrases soumises au choix d'une technique
 CANDIDATES = 6  # techniques candidates par phrase
-MAX_PAIRS = 120  # paires d'entités soumises au modèle, par article
+MAX_PAIRS = int(os.environ.get("CTI_MAX_PAIRS") or 300)  # paires d'entités soumises au modèle, par article
 MAX_EVIDENCE = 3  # phrases montrées (et citées) pour un lien entre deux entités
 LEAD_SENTENCES = 8  # phrases de début de rapport montrées pour reconnaître une campagne
 TYPE_TOKENS, CHOICE_TOKENS, CAMPAIGN_TOKENS = 16, 12, 48
@@ -69,10 +70,13 @@ TYPING_SYSTEM = """Tu classes un nom propre rencontré dans un rapport de menace
 - software : produit légitime visé par l'attaque, vulnérable ou compromis.
 - victim : organisation, entreprise ou secteur victime.
 - location : pays ou région.
-- none : l'auteur du rapport, un chercheur ou un éditeur de sécurité, une personne, un mot courant, un nom de fichier ordinaire, un concept, tout le reste."""
+- none : l'auteur du rapport, un chercheur ou un éditeur de sécurité, une personne, un mot courant, un nom de fichier ordinaire, un concept, tout le reste.
+malware, tool, group, infrastructure et software désignent UNE entité précise, par son nom. Une désignation générique (« l'implant », « le groupe », « les outils de l'attaquant », « le serveur C2 », « un pilote signé ») est none. victim admet un secteur ou une population précisément désignés (« les entreprises fintech »), pas « les organisations » ou « les victimes » seuls.
+Un indice tiré d'une base publique peut accompagner le nom : il dit ce que ce nom désigne ailleurs, pas ce qu'il désigne ici. Seules les phrases du rapport décident (un même nom peut y être une victime, un produit légitime ou un mot courant)."""
 TECHNIQUE_SYSTEM = """Tu rattaches une phrase d'un rapport de menace à une technique MITRE ATT&CK. On te donne UNE phrase et des techniques candidates numérotées.
 Réponds par le numéro de la technique que la phrase décrit comme action de l'attaquant ou de son logiciel malveillant (la plus précise : la sous-technique quand le mécanisme est nommé), ou 0 si la phrase ne décrit aucune de ces actions (contexte, analyse, défense, victime, chronologie, indicateur)."""
-ACTOR_SYSTEM = """Tu dis qui réalise une action décrite dans une phrase d'un rapport de menace. Réponds par le numéro de l'entité dont la phrase décrit la capacité ou l'action, ou 0 si la phrase décrit une étape de l'opération dans son ensemble sans la prêter à une de ces entités."""
+ACTOR_SYSTEM = """Tu dis qui réalise une action décrite dans une phrase d'un rapport de menace. Réponds par le numéro de l'entité dont la phrase décrit la capacité ou l'action, ou 0 si la phrase décrit une étape de l'opération dans son ensemble sans la prêter à une de ces entités.
+Une action exécutée par un programme (collecte d'informations, chiffrement, communication, persistance, exécution de commandes, téléchargement) est celle de ce programme, même quand la phrase le désigne par « il », « l'implant », « la charge » ou que seuls le titre de la section ou les phrases précédentes le nomment."""
 PAIR_SYSTEM = """Tu lis quelques phrases d'un rapport de menace et dis quel lien entre deux entités elles AFFIRMENT explicitement. Réponds par le numéro de l'option, ou 0 si les phrases n'affirment aucun de ces liens (simple voisinage, hypothèse, négation). N'invente rien."""
 CAMPAIGN_LINK_SYSTEM = """Tu lis quelques phrases d'un rapport de menace qui décrit une opération malveillante, puis une affirmation sur cette opération. Réponds 1 si les phrases affirment explicitement ce que dit l'affirmation (ou le disent sans ambiguïté en d'autres mots), 0 sinon (simple voisinage, hypothèse, négation, fait sans lien avec l'opération). N'invente rien."""
 CAMPAIGN_CLAIMS = {
@@ -124,6 +128,7 @@ class Candidate:
     stix_type: str | None = None  # connu du code (ATT&CK, CVE, lieu) ; sinon le modèle le choisit
     extra: str = ""
     attack_ids: tuple[str, ...] = ()
+    known: str = ""  # ce qu'une base publique (MISP Galaxy) dit du nom : un indice montré au modèle, pas un type imposé
 
     def score(self) -> int:
         return 3 * self.strong + min(len(set(self.uids)), 5) + (3 if self.attack_ids else 0)
@@ -143,6 +148,7 @@ def find_candidates(units: list[Unit], kb: AttackKB, publisher: str = "") -> lis
     eligible = [u for u in units if u.kind in ("sentence", "item") and u.is_evidence_eligible]
     common = {w for u in eligible for w in re.findall(r"\b[a-z][a-z'\-]{2,}\b", u.text)}  # mots vus en minuscules : pas des noms
     names = kb.names_index()
+    listed = galaxy.names_index()
     found: dict[str, Candidate] = {}
 
     def add(surface: str, uid: int, *, strong: int = 0, stix_type: str | None = None, extra: str = "", attack_ids: tuple[str, ...] = ()):
@@ -150,8 +156,15 @@ def find_candidates(units: list[Unit], kb: AttackKB, publisher: str = "") -> lis
         norm = normalize_name(surface)
         if not norm or len(norm) < 3 or (publisher and norm == publisher):
             return
-        key = attack_ids[0] if attack_ids else norm
+        key, known = (attack_ids[0] if attack_ids else norm), ""
+        if not attack_ids and stix_type is None and (cluster := galaxy.lookup(surface)):  # MISP Galaxy : alias réunis sous une clé
+            key = cluster.key
+            if not key.startswith("galaxy:"):  # même entité qu'un nom d'ATT&CK : traitée comme lui
+                attack_ids = (key,)
+            else:
+                known = galaxy.describe(cluster)
         c = found.setdefault(key, Candidate(key, stix_type=stix_type, extra=extra, attack_ids=attack_ids))
+        c.known = c.known or known
         c.uids.append(uid)
         c.surfaces[surface] += 1
         c.strong = max(c.strong, strong)
@@ -167,8 +180,8 @@ def find_candidates(units: list[Unit], kb: AttackKB, publisher: str = "") -> lis
             for n in (3, 2, 1):
                 surface = " ".join(words[i : i + n])
                 norm = normalize_name(surface)
-                if len(words[i : i + n]) == n and len(norm) >= 4 and norm in names and _name_like(surface, common):
-                    add(surface, u.uid, strong=3, attack_ids=names[norm])
+                if len(words[i : i + n]) == n and len(norm) >= 4 and (norm in names or norm in listed) and _name_like(surface, common):
+                    add(surface, u.uid, strong=3, attack_ids=names.get(norm, ()))
                     i += n - 1
                     break
             i += 1
@@ -241,6 +254,22 @@ def _window(draft: DraftGraph, uid: int) -> list[Unit]:
     return out
 
 
+def section_actors(draft: DraftGraph, uid: int, mentioned: dict[int, list[str]], actors: list[str], heading: list[str], k: int = 4) -> list[str]:
+    """Entités à qui l'action d'une phrase peut être prêtée, la plus probable d'abord : celles de la phrase et des précédentes
+    (`_window`), celles que nomme le titre de la section (« First stage C# DLL implants »), puis la dernière nommée plus haut dans la
+    section, référent probable de « il » ou de « l'implant »."""
+    near = [s for w in _window(draft, uid) for s in mentioned.get(w.uid, []) if s in actors] + heading
+    path = draft.by_uid[uid].heading_path
+    for prev in range(uid - len(_window(draft, uid)), -1, -1):
+        before = draft.by_uid.get(prev)
+        if before is None or before.heading_path != path:
+            break
+        if hits := [s for s in mentioned.get(prev, []) if s in actors]:
+            near += hits
+            break
+    return list(dict.fromkeys(near))[:k]
+
+
 def best_evidence(uids, mentioned: dict[int, list[str]], k: int = MAX_EVIDENCE) -> list[int]:
     """Au plus `k` phrases de preuve : la première mention (où l'entité est présentée) et celles qui nomment le plus d'autres entités,
     où son rôle se dit. Sans cela, les premières venues (souvent un titre ou une liste) occupent la place."""
@@ -306,7 +335,7 @@ def extract_article(art: dict, *, with_iocs: bool = True, with_rules: bool = Tru
     calls: list[Call] = []
     for c in untyped:
         shown = "\n".join(_quote(draft.by_uid[uid], 300) for uid in dict.fromkeys(c.uids[:3]))
-        calls.append(Call("type", TYPING_SYSTEM, f"{lead}Phrases où « {c.name} » apparaît :\n{shown}\n\nQue désigne « {c.name} » dans ce rapport ?",
+        calls.append(Call("type", TYPING_SYSTEM, f"{lead}Phrases où « {c.name} » apparaît :\n{shown}\n" + (f"\nIndice (base publique, à confirmer par les phrases) : {c.known}\n" if c.known else "") + f"\nQue désigne « {c.name} » dans ce rapport ?",
                           _schema_choice([*_TYPES, "none"]), TYPE_TOKENS, {"c": c}))  # fmt: skip
     for u, hits in behaviors:
         options = "\n".join(f"{i}. {h.attack_id} {h.name} ({', '.join(h.tactics[:2])}) — {h.summary[:110]}" for i, h in enumerate(hits, 1))
@@ -354,33 +383,37 @@ def extract_article(art: dict, *, with_iocs: bool = True, with_rules: bool = Tru
     # 3. lot 2 : qui agit, et le lien de chaque paire d'entités
     calls, relations = [], []  # relations : (ligne « source|relation|cible|phrases », origine)
     actors = [s for s in entities if draft.type_of(s) in _ACTORS]
+    in_heading = {
+        path: [s for part in reversed(path.split(" > ")) for s in actors if mentions_prepared(prepare_text(part), draft.terms[s])]
+        for path in {u.heading_path for u, _ in chosen if u.heading_path}
+    }  # fmt: skip
     for u, tid in chosen:
-        near = [s for w in _window(draft, u.uid) for s in mentioned.get(w.uid, []) if s in actors]
-        near = list(dict.fromkeys(near))[:4]
-        if near and campaign_sid:
+        near = section_actors(draft, u.uid, mentioned, actors, in_heading.get(u.heading_path, []))
+        if near:
+            context = "\n".join(_quote(w, 260) for w in reversed(_window(draft, u.uid)[1:]))
             opts = "\n".join(f"{i}. « {draft.name_of(s)} » ({draft.type_of(s)})" for i, s in enumerate(near, 1))
-            calls.append(Call("actor", ACTOR_SYSTEM, f"{lead}{_quote(u)}\n\nAction : {draft.attack.get(tid)['full_name']}\n\nQui la réalise ?\n{opts}\n0. l'opération dans son ensemble\n",
+            zero = "l'opération dans son ensemble" if campaign_sid else "aucune de ces entités"
+            calls.append(Call("actor", ACTOR_SYSTEM, f"{lead}Section : {u.heading_path or '—'}\n" + (f"Phrases précédentes :\n{context}\n" if context else "")
+                              + f"Phrase :\n{_quote(u)}\n\nAction : {draft.attack.get(tid)['full_name']}\n\nQui la réalise ?\n{opts}\n0. {zero}\n",
                               _numbers(len(near)), CHOICE_TOKENS, {"u": u, "tid": tid, "near": near}))  # fmt: skip
             continue
-        who = near[0] if near else campaign_sid
-        if who:
-            relations.append((f"{clean(draft.name_of(who))}|uses|{tid}|{u.uid}", "technique"))
+        if campaign_sid:
+            relations.append((f"{clean(draft.name_of(campaign_sid))}|uses|{tid}|{u.uid}", "technique"))
 
     seen_pairs: set[frozenset] = set()
-    pairs: list[tuple[str, str, list[int]]] = []
+    kind = lambda s: "campaign" if s == campaign_sid else draft.type_of(s)  # noqa: E731
 
-    def add_pair(a: str, b: str, uids: list[int]) -> None:
+    def add_pair(bucket: list, a: str, b: str, uids: list[int]) -> None:
+        """Une paire n'entre au budget que si la table des relations permet de la relier, dans un sens ou dans l'autre."""
         key = frozenset((a, b))
-        if key in seen_pairs or len(pairs) >= MAX_PAIRS:
+        if key in seen_pairs or not uids or not (ALLOWED.get((kind(a), kind(b))) or ALLOWED.get((kind(b), kind(a)))):
             return
         seen_pairs.add(key)
-        pairs.append((a, b, uids))
+        bucket.append((a, b, uids))
 
-    if campaign_sid:  # la campagne n'est nommée dans aucune phrase : on lui présente chaque entité avec ses premières mentions
-        for s in entities:
-            uids = best_evidence(sid_units[s] & {u.uid for u in eligible}, mentioned)
-            if uids:
-                add_pair(campaign_sid, s, uids)
+    # Budget : d'abord les entités nommées ensemble dans le texte, puis la campagne (qu'aucune phrase ne nomme) avec chaque entité ;
+    # dans l'ordre inverse, les paires de la campagne remplissaient le budget dès qu'un article cite beaucoup de noms.
+    local, with_campaign = [], []
     for u in eligible:
         own = mentioned.get(u.uid, [])
         if not own:
@@ -389,7 +422,11 @@ def extract_article(art: dict, *, with_iocs: bool = True, with_rules: bool = Tru
         for a in own:
             for b in around:
                 if a != b:
-                    add_pair(a, b, best_evidence([w.uid for w in _window(draft, u.uid) if a in mentioned.get(w.uid, []) or b in mentioned.get(w.uid, [])], mentioned))
+                    add_pair(local, a, b, best_evidence([w.uid for w in _window(draft, u.uid) if a in mentioned.get(w.uid, []) or b in mentioned.get(w.uid, [])], mentioned))
+    if campaign_sid:
+        for s in entities:
+            add_pair(with_campaign, campaign_sid, s, best_evidence(sid_units[s] & {u.uid for u in eligible}, mentioned))
+    pairs = (local + with_campaign)[:MAX_PAIRS]
     for a, b, uids in pairs:
         if campaign_sid in (a, b):  # la campagne n'est nommée dans aucune phrase : affirmation à confirmer, pas un lien à deviner
             other = b if a == campaign_sid else a

@@ -309,11 +309,15 @@ def article_bundle(result: AgentResult, art: dict, objects: list, support: list 
     return bundle([rep, *objects, *support])
 
 
-def process_article(art: dict, *, out_dir: Path = STIX_BUNDLES_DIR, store=None, show_tools: bool = False, fast: bool = False, closed: bool = False) -> AgentResult:
+def process_article(art: dict, *, out_dir: Path = STIX_BUNDLES_DIR, store=None, show_tools: bool = False, fast: bool = False, closed: bool = False, oneshot: bool = False) -> AgentResult:
     """Extrait un article, écrit `out_dir/article_<id>.json` et, si `store` est donné, l'enregistre dans Neo4j. `fast` : extraction
     en deux appels contraints par partie (`fast_extract`) au lieu de la boucle d'outils ; `closed` : questions fermées courtes, en parallèle
-    (`closed_extract`), pour les modèles de taille réduite."""
-    if closed:
+    (`closed_extract`), pour les modèles de taille réduite ; `oneshot` : l'article entier en un appel (`oneshot_extract`), sans décomposition."""
+    if oneshot:
+        from backend.extracting import oneshot_extract  # importe ce module
+
+        result = oneshot_extract.extract_article(art)
+    elif closed:
         from backend.extracting import closed_extract  # importe ce module
 
         result = closed_extract.extract_article(art)
@@ -325,7 +329,8 @@ def process_article(art: dict, *, out_dir: Path = STIX_BUNDLES_DIR, store=None, 
         result = extract_article(art, show_tools=show_tools)
     objects, support = article_objects(result, art)
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / f"article_{art['id']}.json").write_text(article_bundle(result, art, objects, support).serialize(pretty=True), encoding="utf-8")
+    # indent et non pretty=True : le tri des clés dans l'ordre de la spécification prenait 150 s sur un bundle de 2 000 objets
+    (out_dir / f"article_{art['id']}.json").write_text(article_bundle(result, art, objects, support).serialize(indent=1), encoding="utf-8")
     if store is not None:
         # Neo4j : sans les IOC jugés bénins (l'indicateur d'une valeur est partagé entre articles, un verdict écraserait l'autre)
         nodes = [as_dict(o) for o in article_bundle(result, art, without_benign(objects)).objects]

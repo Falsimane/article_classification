@@ -52,6 +52,44 @@ class Candidates(unittest.TestCase):
         units = segment("# R\n\nAcmeLabs researchers observed TA505 in 2024.")
         self.assertNotIn("AcmeLabs", {c.name for c in ce.find_candidates(units, get_attack_kb(), publisher="acmelabs")})
 
+    def test_galaxy_aliases_form_one_candidate_with_a_hint(self):
+        from backend.extracting.evidence import normalize_name
+        from backend.stix import galaxy
+
+        index = galaxy.names_index()
+        if not index:
+            self.skipTest("index MISP Galaxy absent (python -m backend.stix.galaxy)")
+        cluster = next(
+            c for cs in index.values() for c in cs
+            if c.key.startswith("galaxy:") and c.stix_type == "intrusion-set" and c.name.isascii() and " " not in c.name
+            and galaxy.lookup(c.name) == c and any(s.isascii() and galaxy.lookup(s) == c and normalize_name(s) != normalize_name(c.name) for s in c.synonyms)
+        )  # fmt: skip
+        alias = next(s for s in cluster.synonyms if s.isascii() and galaxy.lookup(s) == cluster and normalize_name(s) != normalize_name(cluster.name))
+        units = segment(f"# R\n\nIn 2024 the group {cluster.name} sent phishing emails. Other vendors call it {alias}.")
+        found = [c for c in ce.find_candidates(units, get_attack_kb()) if c.key == cluster.key]
+        self.assertEqual(len(found), 1)
+        self.assertIsNone(found[0].stix_type)  # le type reste au modèle, qui reçoit l'indice de la base
+        self.assertIn(cluster.name, found[0].known)
+        self.assertEqual(len(found[0].surfaces), 2)
+
+
+class Attribution(unittest.TestCase):
+    def test_heading_and_earlier_mention_name_the_actor_of_a_pronoun(self):
+        from backend.extracting.agent_tools import DraftGraph
+        from backend.extracting.evidence import mentions_prepared, prepare_text
+        from backend.stix.objects import ArticleContext
+
+        text = "# R\n\n## Zorblax loader\n\nZorblax arrives by email. The file is large. Analysts saw it twice. Nothing else is known. It collects the hostname and the username."
+        units = segment(text)
+        draft = DraftGraph(units, ArticleContext(1, "Acme", "http://x", "R"))
+        sid, err = draft.declare("malware|Zorblax")
+        self.assertIsNone(err)
+        eligible = [u for u in units if u.kind in ("sentence", "item")]
+        mentioned = {u.uid: [sid] if mentions_prepared(prepare_text(u.text), draft.terms[sid]) else [] for u in eligible}
+        last = next(u for u in eligible if u.text.startswith("It collects"))
+        self.assertEqual(ce.section_actors(draft, last.uid, mentioned, [sid], []), [sid])  # nommé plus haut, hors de la fenêtre
+        self.assertEqual(ce.section_actors(draft, last.uid, {}, [sid], [sid]), [sid])  # nommé par le titre seul
+
 
 class Pipeline(unittest.TestCase):
     def test_closed_pipeline_builds_verified_relations(self):

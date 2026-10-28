@@ -59,6 +59,17 @@ export interface ArticleGraph {
   edges: GraphEdge[];
 }
 
+/** Texte de l'article tel que l'extraction l'a lu : markdown nettoyé (backend/stix_dashboard.py `article_text`). */
+export interface ArticleText {
+  id: number;
+  title: string;
+  url: string;
+  site_name: string | null;
+  published: string | null;
+  category: string | null;
+  markdown: string;
+}
+
 export type IocStatus = "active" | "aging" | "stale" | "unknown";
 
 export interface IocRow {

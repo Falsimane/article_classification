@@ -68,13 +68,15 @@ Le projet sépare strictement le backend Python/Rust, le frontend Web/React Flow
 │   │   │                         #   iocs.py (IOC datés), rules.py (règles YARA/Sigma en indicator)
 │   │
 │   ├── cti_core/                 # Moteur déterministe natif Rust (PyO3) : nettoyage, sections, découpage
-│   ├── server.py                 # Serveur Web HTTP & API REST (sert frontend/) ; /api/stats|articles|graph servent le graphe STIX, /api/iocs et /api/rules les onglets Indicateurs et Détection
+│   ├── server.py                 # Serveur Web HTTP & API REST (sert frontend/) ; /api/stats|articles|graph servent le graphe STIX, /api/iocs et /api/rules les onglets Indicateurs et Détection,
+│   │                             #   /api/article le markdown nettoyé lu par l'extraction (SQLite), /api/bundle le bundle STIX écrit par l'extraction (en-tête X-Bundle-Matches-Graph)
 │   ├── stix_dashboard.py         # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML) ; /api/actors pour les profils
 │   └── __init__.py
 │
 ├── frontend/                     # Interface Web : React 18 + TypeScript + Tailwind CSS 3 + React Flow 12 (Vite)
 │   ├── src/
-│   │   ├── components/           # Shell, ReportsView (rapport = onglets Graphe, Indicateurs, Détection (RuleTable : règles YARA/Sigma, texte exact) ; graphe d'un article : nœuds ronds + icône,
+│   │   ├── components/           # Shell, ReportsView (rapport = onglets Graphe, Indicateurs, Détection (RuleTable : règles YARA/Sigma, texte exact),
+│   │   │                         #   Article (ArticleView : markdown via react-markdown, HTML brut affiché en texte, images non chargées), bouton Exporter STIX ; graphe d'un article : nœuds ronds + icône,
 │   │   │                         #   acteurs en rectangles, flèches flottantes),
 │   │   │                         #   ActorsView (onglets) + OrgChart (organigramme React Flow), EntryTable,
 │   │   │                         #   GraphCanvas, Inspector (attributs, relations, preuves), FamilyFilter
@@ -156,6 +158,10 @@ uv run cti-eval --bundles db_outputs/eval/agent   # re-score sans appel au modè
 
 ### C. Serveur Web & Dashboard CTI
 ```bash
+# Tout en une commande : npm install et build du frontend si besoin, puis le serveur (:8095) ; --dev : backend + Vite (:5173), Ctrl+C arrête les deux
+scripts/dashboard.sh
+scripts/dashboard.sh --dev
+
 # Démarrer le serveur Web sur le port 8095 (http://localhost:8095 ; 8080 et 8090 sont pris par la pile OpenCTI). Le graphe STIX est servi dès qu'un article est
 # extrait ; ?model=legacy force l'ancien graphe (Entity/Article), ?model=stix force le nouveau.
 uv run cti-dashboard --port 8095

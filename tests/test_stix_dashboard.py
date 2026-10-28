@@ -1,8 +1,11 @@
 """Tests de l'API de données du tableau de bord STIX (sans Neo4j) : `uv run python -m unittest tests.test_stix_dashboard -v`."""
 
 import json
+import sqlite3
+import tempfile
 import unittest
 from datetime import datetime, timezone
+from pathlib import Path
 
 from backend import stix_dashboard as sd
 
@@ -239,6 +242,38 @@ class Actors(unittest.TestCase):
 
     def test_unknown_actor(self):
         self.assertIsNone(sd.actor_graph("nope", self.Store()))
+
+
+class ArticleSource(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_article_text_is_the_clean_markdown_verbatim(self):
+        db = self.dir / "articles.db"
+        with sqlite3.connect(db) as conn:
+            conn.execute("CREATE TABLE knowledge (id INTEGER, title TEXT, url TEXT, site_name TEXT, publication_date TEXT)")
+            conn.execute("CREATE TABLE article_classifications (knowledge_id INTEGER, primary_category TEXT, clean_markdown TEXT)")
+            conn.execute("INSERT INTO knowledge VALUES (7, 'Rapport', 'https://x.org/a', 'x', '2026-04-22T00:00:00')")
+            conn.execute("INSERT INTO article_classifications VALUES (7, 'operational', '## Titre\n\n<script>alert(1)</script> texte')")
+        text = sd.article_text(7, db)
+        self.assertEqual((text["title"], text["published"], text["category"]), ("Rapport", "2026-04-22", "operational"))
+        self.assertEqual(text["markdown"], "## Titre\n\n<script>alert(1)</script> texte")  # échappé par le frontend, pas ici
+        self.assertIsNone(sd.article_text(8, db))
+
+    def test_bundle_is_served_as_written_and_checked_against_the_graph(self):
+        graph = FakeStore().dashboard_graph(7)
+        objects = [{"id": x["id"]} for x in graph["nodes"] + graph["edges"]]
+        (self.dir / "article_7.json").write_text(json.dumps({"type": "bundle", "objects": objects}))
+        raw, matches = sd.article_bundle(7, FakeStore(), self.dir)
+        self.assertEqual(json.loads(raw)["objects"], objects)
+        self.assertTrue(matches)
+        (self.dir / "article_7.json").write_text(json.dumps({"type": "bundle", "objects": objects[1:]}))  # ré-extraction en --dry-run
+        self.assertFalse(sd.article_bundle(7, FakeStore(), self.dir)[1])
+        self.assertIsNone(sd.article_bundle(8, FakeStore(), self.dir))
 
 
 if __name__ == "__main__":

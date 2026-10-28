@@ -30,3 +30,4 @@ OPENAI_BASE_URL = os.environ.get("CTI_OPENAI_URL", "http://127.0.0.1:8010/v1").r
 OPENAI_MODEL = os.environ.get("CTI_OPENAI_MODEL", "cti-qwen")
 LLM_MODEL = OPENAI_MODEL if LLM_BACKEND == "openai" else OLLAMA_MODEL
 LLM_SLOTS = max(1, int(os.environ.get("CTI_LLM_SLOTS") or 10)) if LLM_BACKEND == "openai" else OLLAMA_SLOTS
+
