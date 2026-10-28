@@ -1,4 +1,4 @@
-"""Découpage d'un article en unités numérotées, et regroupement en passes d'extraction.
+"""Découpage d'un article en unités numérotées, et texte numéroté montré au modèle.
 
 Pourquoi des phrases numérotées : la preuve d'une relation n'est plus une citation que le modèle doit recopier mot
 pour mot (des dizaines de tokens de sortie par relation, et la principale source d'hallucination), mais un NUMÉRO de
@@ -158,47 +158,16 @@ def segment(clean_markdown: str) -> list[Unit]:
     return units
 
 
-@dataclass(frozen=True)
-class Pass:
-    """Un lot de phrases consécutives envoyé au modèle en un seul appel."""
-
-    index: int
-    units: tuple[Unit, ...]
-
-    @property
-    def heading_path(self) -> str:
-        return self.units[0].heading_path if self.units else ""
-
-    def render(self) -> str:
-        """Texte numéroté montré au modèle ; un changement de section est annoncé."""
-        lines: list[str] = []
-        current = None
-        for u in self.units:
-            if u.heading_path != current:
-                current = u.heading_path
-                lines.append(f"## {current}" if current else "##")
-            if u.kind in ("code", "table"):
-                lines.append(f"[{u.uid}] ({u.kind})\n{u.prompt_text}")
-            else:
-                lines.append(f"[{u.uid}] {u.prompt_text}")
-        return "\n".join(lines)
-
-
-def make_passes(units: list[Unit], max_chars: int = 9000) -> list[Pass]:
-    """Regroupe les unités en passes d'au plus `max_chars` caractères montrés, sans couper une unité. Dès qu'une
-    passe dépasse la moitié du budget, elle se ferme au prochain changement de section : on évite de séparer le
-    début d'une section de sa fin quand c'est possible."""
-    passes: list[Pass] = []
-    cur: list[Unit] = []
-    size = 0
+def render(units: list[Unit]) -> str:
+    """Texte numéroté montré au modèle ; un changement de section est annoncé."""
+    lines: list[str] = []
+    current = None
     for u in units:
-        cost = len(u.prompt_text) + 8
-        boundary = cur and u.heading_path != cur[-1].heading_path
-        if cur and (size + cost > max_chars or (boundary and size > max_chars // 2)):
-            passes.append(Pass(len(passes), tuple(cur)))
-            cur, size = [], 0
-        cur.append(u)
-        size += cost
-    if cur:
-        passes.append(Pass(len(passes), tuple(cur)))
-    return passes
+        if u.heading_path != current:
+            current = u.heading_path
+            lines.append(f"## {current}" if current else "##")
+        if u.kind in ("code", "table"):
+            lines.append(f"[{u.uid}] ({u.kind})\n{u.prompt_text}")
+        else:
+            lines.append(f"[{u.uid}] {u.prompt_text}")
+    return "\n".join(lines)

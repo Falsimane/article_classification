@@ -58,9 +58,6 @@ class UniversalCTICleaner:
 
     _engine = cti_core.CtiEngine()
 
-    # Budget maximal de prose narrative envoyé au LLM pour la classification (~5 000 tokens)
-    MAX_PROSE_CHARS = 22000
-
     _boilerplate_cache: Dict[str, List[str]] = {}
 
     @classmethod
@@ -192,17 +189,6 @@ class UniversalCTICleaner:
             if pattern.search(t_lower):
                 return phase_name
         return None
-
-    @classmethod
-    def detect_kill_chain_phases(cls, prep_result: cti_core.PreprocessingResult) -> List[str]:
-        """Détecte les phases d'intrusion (Kill-Chain / MITRE) présentes dans les titres de sections."""
-        found_phases = []
-        for sec in prep_result.sections:
-            t_lower = (sec.title or "").lower()
-            for pattern, phase_name in _PHASE_PATTERNS:
-                if pattern.search(t_lower) and phase_name not in found_phases:
-                    found_phases.append(phase_name)
-        return found_phases
 
     # Budget de texte envoyé au LLM pour la classification (~2 500 tokens). Classer n'exige pas de lire
     # tout l'article : titre, plan, introduction, un échantillon par section et la conclusion suffisent.

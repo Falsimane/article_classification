@@ -30,21 +30,11 @@ TYPE_FAMILIES: dict[str, frozenset[str]] = {
     "target": frozenset({"identity", "location", "incident"}),
 }
 ACTOR_TYPES = ("threat-actor", "intrusion-set", "campaign")
-STIX_BUNDLES_DIR = ROOT_DIR / "db_outputs" / "stix_bundles"  # écrit par l'extraction (stix_agent.STIX_BUNDLES_DIR)
+STIX_BUNDLES_DIR = ROOT_DIR / "db_outputs" / "stix_bundles"  # écrit par l'extraction (extract.STIX_BUNDLES_DIR)
 
 
 def family_of(stix_type: str) -> str:
     return next((f for f, types in TYPE_FAMILIES.items() if stix_type in types), "target")
-
-
-def has_data(store: StixStore | None = None) -> bool:
-    """Le graphe STIX contient-il au moins un article extrait ? (faux si Neo4j est injoignable)"""
-    try:
-        store = store or StixStore()
-        ok, _ = store._store.check_connection()
-        return bool(ok and store.totals()["reports"])
-    except Exception:  # noqa: BLE001 : l'interface doit rester utilisable sans STIX
-        return False
 
 
 def _json_list(node: dict, key: str) -> list:

@@ -32,7 +32,6 @@ from backend.preprocessing.cleaner import (  # noqa: E402
     BOILERPLATE_MIN_DOCS,
     BOILERPLATE_MIN_RATIO,
     DB_PATH,
-    UniversalCTICleaner,
     site_key,
 )
 

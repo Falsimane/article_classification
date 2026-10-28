@@ -9,9 +9,6 @@ Modèle de propriétés (objets créés par `stix2`, voir `backend/stix/`) :
 
 Provenance : `article_ids` liste les articles qui ont établi un nœud ou une arête. Retirer un article
 (`purge_article`) ne supprime que ce qu'aucun autre article n'étaye.
-
-Les labels `Stix`, `ThreatActor`, `IntrusionSet`… sont distincts de ceux de l'ancien graphe (`Entity`, `Article`) : les
-deux modèles coexistent sans collision tant que le tableau de bord n'a pas migré.
 """
 
 import json

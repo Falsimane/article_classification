@@ -7,7 +7,7 @@ from pathlib import Path
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical, VerticalScroll, Container
-from textual.widgets import Header, Footer, Static, Markdown, Button, Label
+from textual.widgets import Header, Footer, Markdown, Button, Label
 from textual.reactive import reactive
 from rich.console import Console
 from rich.prompt import Prompt

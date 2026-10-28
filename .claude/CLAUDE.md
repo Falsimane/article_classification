@@ -8,90 +8,64 @@ Ce projet a pour objectif d'ingérer des articles bruts de Cyber Threat Intellig
 
 Le pipeline permet de :
 1. **Prétraiter et classifier** les articles CTI (tactique, opérationnel, stratégique, hors-sujet) en éliminant le bruit web (bannières, boutons sociaux, disclaimers).
-2. **Extraire** les entités CTI (Threat Actors, Malwares, LOLBins, Infrastructures, TTPs MITRE ATT&CK, Vulnérabilités, IOCs) avec leurs relations et citations textuelles exactes (Grounding).
+2. **Extraire** les entités CTI (Threat Actors, Malwares, outils, Infrastructures, TTPs MITRE ATT&CK, Vulnérabilités, IOCs) avec leurs relations et citations textuelles exactes (Grounding).
 3. **Explorer visuellement** les renseignements via un tableau de bord Web (OpenCTI-like) :
-   - **Rapports CTI** : Visualisation du graphe unitaire par incident (Vis-Network).
-   - **Threat Actors** : Profiling hiérarchique interactif sous forme d'arborescence (React Flow) reliant le sponsor étatique, l'acteur, ses infrastructures C2, ses TTPs et son arsenal.
+   - **Rapports CTI** : graphe unitaire par incident.
+   - **Threat Actors** : profil hiérarchique (organigramme React Flow) reliant le sponsor étatique, l'acteur, ses infrastructures C2, ses TTPs et son arsenal.
 
 ---
 
-## 2. Infrastructure & LLM Distant (Ollama)
+## 2. Infrastructure & LLM distants
 
 > [!IMPORTANT]
-> **Ollama s'exécute sur un SERVEUR DISTANT (ou accessible via tunnel sur `http://localhost:11434`).**
-> - **Ne JAMAIS exécuter de commandes shell locales** comme `ollama list`, `ollama run`, `ollama pull` ou `systemctl restart ollama`.
-> - Les scripts Python interagissent avec le LLM (`qwen3:32b`) **uniquement via des requêtes HTTP REST** (`POST http://localhost:11434/api/generate`).
+> **Les serveurs d'inférence sont DISTANTS, joints par tunnel SSH sur `localhost`.**
+> - **Ne JAMAIS exécuter de commandes shell locales** comme `ollama list`, `ollama run`, `ollama pull` ou `systemctl restart ollama`. Claude n'a pas d'accès SSH au serveur : c'est l'utilisateur qui le relance.
+> - **Extraction** : serveur vLLM (API OpenAI, `http://localhost:8010/v1`, nom servi `cti-qwen`), joint uniquement par `backend/extracting/llm.py`. Il doit être lancé avec un analyseur d'appels d'outils (`--enable-auto-tool-choice --tool-call-parser qwen3_coder`) et un contexte qui contient l'article entier (`--max-model-len 32768`).
+> - **Classification** : serveur Ollama (`http://localhost:11434/api/generate`), joint par `backend/preprocessing/cti_classifier.py`. Un seul `num_ctx` (`OLLAMA_NUM_CTX`, 12288) : deux valeurs différentes forcent Ollama à recharger le modèle.
 > - La variable d'environnement `NO_PROXY="localhost,127.0.0.1"` est appliquée pour éviter tout détournement de trafic.
-> - **Un seul `num_ctx` pour tous les clients** (`OLLAMA_NUM_CTX`, `backend/config.py`, 12288) : deux valeurs différentes forcent Ollama à recharger le modèle en attendant la fin des requêtes en cours (blocage observé le 2026-10-22). Côté serveur, `OLLAMA_CONTEXT_LENGTH` à la même valeur pour `ollama run`.
-> - **Jamais plus de requêtes simultanées que de slots** (`OLLAMA_NUM_PARALLEL`, lu aussi par le client) : derrière le tunnel SSH, une requête abandonnée par le client continue d'occuper le serveur. `llm.py` attend un slot libre avant d'envoyer, et son délai de 55 s ne court qu'à partir de l'envoi.
+> - **Jamais plus de requêtes simultanées que de slots** (`CTI_LLM_SLOTS`) : derrière le tunnel SSH, une requête abandonnée par le client continue d'occuper le serveur. `llm.py` attend un slot libre avant d'envoyer.
 
 ---
 
 ## 3. Architecture du Projet
 
-Le projet sépare strictement le backend Python/Rust, le frontend Web/React Flow et la persistance.
-
 ```text
 ├── backend/
 │   ├── preprocessing/            # Ingestion, refanging universel, fast-reject & classification
-│   │   ├── __init__.py
 │   │   ├── cleaner.py            # UniversalCTICleaner appelant le moteur Rust cti_core (gabarit par source, découpage atomique)
 │   │   ├── evaluate_cleaning.py  # Rapport qualité du preprocessing (fidélité IOC, résidus, source inconnue)
-│   │   ├── cti_classifier.py     # Pipeline de classification & triage LLM (Qwen)
+│   │   ├── cti_classifier.py     # Classification & triage LLM (Ollama)
 │   │   └── audit_classifier.py   # Interface TUI (Textual) pour l'audit et la validation humaine
 │   │
 │   ├── extracting/               # Construction sémantique du Knowledge Graph CTI
-│   │   ├── __init__.py
-│   │   ├── cti_extractor.py      # CLI d'extraction STIX (articles classifiés -> objets STIX validés -> Neo4j)
-│   │   ├── pipeline.py           # Extraction d'un article : entités, vérification, relations par candidats, validation
-│   │   ├── stages.py             # Prompts, schémas de sortie fermés et analyse des réponses de chaque étape LLM
+│   │   ├── extract.py            # CLI `cti-extract` : articles classifiés -> pipeline -> bundle STIX (fichier) -> Neo4j
+│   │   ├── pipeline.py           # Extraction d'un article, trois étapes sur le texte entier : entités et techniques (un appel),
+│   │   │                         #   techniques vérifiées contre ATT&CK (identifiant existant ET nom correspondant ; refusées corrigées
+│   │   │                         #   par le modèle avec search_attack / get_attack), relations entre éléments numérotés (+ une correction)
+│   │   ├── draft.py              # DraftGraph (vérification STIX : stix2 strict, table de relations, ATT&CK, phrases citées) et outils ATT&CK
+│   │   ├── segment.py            # Phrases numérotées (la preuve d'une relation est un numéro de phrase) ; `render` = texte montré au modèle
+│   │   ├── llm.py                # Client vLLM : sortie contrainte (`generate`), tours avec outils (`chat`), slots, tokens comptés par le serveur
 │   │   ├── iocs.py               # IOC : valeurs par règles, rôle et rattachement par le modèle ; jugés non malveillants gardés (indicateur benign)
-│   │   ├── rules.py              # Règles YARA (compilées par libyara) et Sigma (YAML lu) par analyse syntaxique, sans LLM ; seule l'entité détectée est choisie par le modèle ; hors du graphe (onglet Détection)
-│   │   ├── segment.py            # Phrases numérotées (la preuve d'une relation est un numéro de phrase)
-│   │   ├── llm.py                # Client Ollama : sortie contrainte (`generate`), tours d'agent avec outils natifs (`chat`, /api/chat), durées et tokens mesurés par le serveur
-│   │   ├── stix_agent.py         # CLI `cti-agent` : agent d'extraction STIX, une conversation avec outils par passage, bundle validé (stix2 strict)
-│   │   ├── agent_tools.py        # Outils de l'agent : search_attack / get_attack / lookup_name (ATT&CK v20.0) et submit (vérification STIX : types, table de relations, ATT&CK, phrases citées)
+│   │   ├── rules.py              # Règles YARA (libyara) et Sigma (YAML) par analyse syntaxique ; seule l'entité détectée est choisie par le modèle
+│   │   ├── evidence.py, places.py  # noms normalisés, ancrage, dates ; lieux -> ISO 3166-1 / région STIX
+│   │   └── update_ioc_reference.py # mise à jour des listes TLD / domaines populaires (reference/)
 │   │
 │   ├── evaluation/               # Mesure de l'extraction contre les articles annotés à la main (Annotations/)
 │   │   ├── score.py              # Méthode d'Annotations/methode_annotation.md : rappel, précision, crédit partiel, hallucinations, ancrage
-│   │   ├── cti_eval.py           # CLI `cti-eval` : extrait les articles du manifeste (agent ou pipeline), score, report.md / report.json
+│   │   └── cti_eval.py           # CLI `cti-eval` : extrait les articles du manifeste, score, report.md / report.json
 │   │
-│   ├── database/                 # Couche de persistance et de requêtage
-│   │   ├── __init__.py
-│   │   ├── neo4j_store.py        # Connexion Neo4j (singleton) réutilisée par stix_store ; lectures de l'ancien graphe Entity/Article
+│   ├── database/
+│   │   ├── neo4j_store.py        # Connexion Neo4j (singleton) réutilisée par stix_store
 │   │   └── stix_store.py         # Graphe STIX : nœuds (:Stix:<Type>), arêtes typées, provenance par article
 │   │
-│   ├── ontology/                 # Ontologie CTI
-│   │   ├── stix/                 # Ontologie STIX 2.1 (source de vérité, voir stix/README.md) : types, relations,
-│   │   │                         #   profils d'extraction, validation, base ATT&CK, export bundle/Neo4j/RDF,
-│   │   │                         #   attack_kb.py (index SQLite FTS5 d'ATT&CK v20.0 complet : descriptions, 17 636 procédures, alias ; non versionné, construit depuis le bundle officiel),
-│   │   │                         #   iocs.py (IOC datés), rules.py (règles YARA/Sigma en indicator)
-│   │
+│   ├── stix/                     # Objets STIX 2.1 (stix2), index SQLite FTS5 d'ATT&CK v20.0 (attack.py), IOC datés, règles en indicator
 │   ├── cti_core/                 # Moteur déterministe natif Rust (PyO3) : nettoyage, sections, découpage
-│   ├── server.py                 # Serveur Web HTTP & API REST (sert frontend/) ; /api/stats|articles|graph servent le graphe STIX, /api/iocs et /api/rules les onglets Indicateurs et Détection,
-│   │                             #   /api/article le markdown nettoyé lu par l'extraction (SQLite), /api/bundle le bundle STIX écrit par l'extraction (en-tête X-Bundle-Matches-Graph)
-│   ├── stix_dashboard.py         # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML) ; /api/actors pour les profils
-│   └── __init__.py
+│   ├── server.py                 # Serveur Web HTTP & API REST STIX (sert frontend/dist) : /api/stats|articles|graph|iocs|rules|article|bundle|actors
+│   └── stix_dashboard.py         # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML)
 │
-├── frontend/                     # Interface Web : React 18 + TypeScript + Tailwind CSS 3 + React Flow 12 (Vite)
-│   ├── src/
-│   │   ├── components/           # Shell, ReportsView (rapport = onglets Graphe, Indicateurs, Détection (RuleTable : règles YARA/Sigma, texte exact),
-│   │   │                         #   Article (ArticleView : markdown via react-markdown, HTML brut affiché en texte, images non chargées), bouton Exporter STIX ; graphe d'un article : nœuds ronds + icône,
-│   │   │                         #   acteurs en rectangles, flèches flottantes),
-│   │   │                         #   ActorsView (onglets) + OrgChart (organigramme React Flow), EntryTable,
-│   │   │                         #   GraphCanvas, Inspector (attributs, relations, preuves), FamilyFilter
-│   │   ├── lib/                  # api.ts (client REST), layout.ts (d3-force), rules.ts (filtre et copie des règles), org.ts (organigramme), icons.ts (icône par type STIX), theme.ts
-│   │   └── types.ts              # Formes JSON de l'API (miroir de backend/stix_dashboard.py)
-│   ├── tailwind.config.js        # Palette sobre inspirée de Blueprint (Palantir) : aucun dégradé, une seule couleur d'accent
-│   ├── dist/                     # Build servi par backend/server.py (non versionné : `npm run build`)
-│   └── legacy/                   # Ancienne interface HTML/CSS/Vis-Network/React Flow 11, archivée, plus servie
-│
-├── .gemini-vibe/                 # Directives de vibe, contexte et style
-│   └── README.md
-│
-├── db_outputs/                   # Base relationnelle SQLite source (cti_knowledge.db)
-├── tests/                        # Tests unitaires
-│   └── test_extractor.py
+├── frontend/                     # React 18 + TypeScript + Tailwind CSS 3 + React Flow 12 (Vite) ; voir frontend/README.md
+├── Annotations/                  # Gold STIX annoté à la main, manifest.json, méthode d'annotation
+├── db_outputs/                   # SQLite source (cti_knowledge.db), bundles STIX, rapports d'évaluation
 └── pyproject.toml                # Configuration du package, dépendances uv et scripts CLI
 ```
 
@@ -101,8 +75,8 @@ Le projet sépare strictement le backend Python/Rust, le frontend Web/React Flow
 
 | Base de Données | Rôle | Politique d'accès |
 | :--- | :--- | :--- |
-| **Neo4j** (`bolt://localhost:7687`) | **L'UNIQUE base de persistance du Knowledge Graph CTI** (nœuds d'entités, relations typées, postures d'usage, articles indexés). | Lecture / Écriture via `backend/database/neo4j_store.py`. |
-| **SQLite** (`db_outputs/cti_knowledge.db`) | Contient les articles bruts scrappés (`knowledge`) et les résultats de classification (`article_classifications`). | **STRICTEMENT LECTURE SEULE** pour le pipeline d'extraction et le dashboard. Aucune entité de graphe n'y est enregistrée. |
+| **Neo4j** (`bolt://localhost:7687`) | **L'UNIQUE base de persistance du Knowledge Graph CTI** (graphe STIX, provenance par article). | Lecture / Écriture via `backend/database/stix_store.py`. |
+| **SQLite** (`db_outputs/cti_knowledge.db`) | Contient les articles bruts scrappés (`knowledge`) et les résultats de classification (`article_classifications`). | **STRICTEMENT LECTURE SEULE** pour l'extraction et le dashboard. Aucune entité de graphe n'y est enregistrée. |
 
 ---
 
@@ -112,65 +86,50 @@ Toutes les commandes Python s'exécutent avec `uv` :
 
 ### A. Preprocessing & Classification LLM
 ```bash
-# Lancer le pipeline de nettoyage et de classification des articles
-uv run cti-classifier
-
-# Lancer l'interface TUI d'audit terminal (validation humaine)
-uv run cti-audit
+uv run cti-classifier      # nettoyage et classification des articles
+uv run cti-audit           # interface TUI d'audit (validation humaine)
 ```
 
 ### B. Extraction du Knowledge Graph vers Neo4j
 ```bash
 # Extraire les 10 prochains articles éligibles vers Neo4j (graphe STIX)
-uv run cti-extractor --limit 10
+uv run cti-extract --limit 10
 
-# Un article, avec les relations et leur phrase de preuve, sans écrire dans Neo4j, bundle STIX 2.1 en fichier
-uv run cti-extractor --article-id 686 --show-triples --dry-run --out /tmp/bundles
+# Un article, sans écrire dans Neo4j, avec les refus de la vérification et les appels d'outils
+uv run cti-extract --article-id 1553 --dry-run --show-log
 
 # Le bundle STIX 2.1 final de chaque article est toujours écrit dans db_outputs/stix_bundles/article_<id>.json
 # (même en --dry-run ; --out change de dossier). Une ré-extraction écrase le fichier : annoter une copie.
 # Le bundle contient aussi les IOC jugés non malveillants (indicator_types benign) ; Neo4j ne les reçoit pas.
 
-# Règles YARA et Sigma retenues (et écartées, avec la raison) et entité détectée
-uv run cti-extractor --article-id 640 --dry-run --show-rules
-
-# Statistiques du graphe STIX
-uv run cti-extractor --stats
-
-# Re-traiter des articles déjà extraits (retire d'abord leur ancienne contribution)
-uv run cti-extractor --limit 5 --force
-
+uv run cti-extract --stats              # statistiques du graphe STIX
+uv run cti-extract --limit 5 --force    # re-traiter des articles déjà extraits (retire d'abord leur ancienne contribution)
 ```
 
-### B bis. Agent d'extraction (outils ATT&CK v20.0) et évaluation contre le gold
+### C. Évaluation contre le gold
 ```bash
-# Index ATT&CK v20.0 (une fois ; bundle officiel enterprise-attack-20.0.json dans ontology/stix/reference/ ou Annotations/)
-uv run python -m backend.ontology.stix.attack_kb
+# Index ATT&CK v20.0 (versionné ; à reconstruire seulement depuis le bundle officiel enterprise-attack-20.0.json)
+uv run python -m backend.stix.attack
 
-# Agent : un article, chaque appel d'outil affiché, refus de la vérification STIX
-uv run cti-agent --article-id 1553 --show-tools --show-log
-
-# Évaluation sur les articles annotés (Annotations/manifest.json : article_id -> gold) ; rapport dans db_outputs/eval/<système>/report.md
-uv run cti-eval --system agent --run
-uv run cti-eval --system pipeline --run     # référence : cti-extractor, chemin rapide
-uv run cti-eval --bundles db_outputs/eval/agent   # re-score sans appel au modèle
+# Articles annotés (Annotations/manifest.json : article_id -> gold) ; rapport dans <bundles>/report.md
+uv run cti-eval --run --workers 4 --bundles db_outputs/eval/<nom>
+uv run cti-eval --bundles db_outputs/eval/<nom>   # re-score sans appel au modèle
 ```
+Le backend Python n'a pas de tests unitaires : toute modification de l'extraction se mesure avec `cti-eval` sur les 9 articles
+annotés et se compare au dernier rapport (référence : `db_outputs/eval/staged_q38_27b_9art`, entités R 47,9 % / P 51,5 %,
+relations R 21,7 % / P 35,9 %).
 
-### C. Serveur Web & Dashboard CTI
+### D. Serveur Web & Dashboard CTI
 ```bash
-# Tout en une commande : npm install et build du frontend si besoin, puis le serveur (:8095) ; --dev : backend + Vite (:5173), Ctrl+C arrête les deux
+# npm install et build du frontend si besoin, puis le serveur (:8095) ; --dev : backend + Vite (:5173)
 scripts/dashboard.sh
 scripts/dashboard.sh --dev
 
-# Démarrer le serveur Web sur le port 8095 (http://localhost:8095 ; 8080 et 8090 sont pris par la pile OpenCTI). Le graphe STIX est servi dès qu'un article est
-# extrait ; ?model=legacy force l'ancien graphe (Entity/Article), ?model=stix force le nouveau.
+# Serveur seul sur le port 8095 (8080 et 8090 sont pris par la pile OpenCTI)
 uv run cti-dashboard --port 8095
-
-# Ou directement avec Python
-.venv/bin/python backend/server.py --port 8095
 ```
 
-### D. Frontend (React + Tailwind + React Flow)
+### E. Frontend (React + Tailwind + React Flow)
 ```bash
 cd frontend
 npm install
@@ -179,9 +138,8 @@ npm run dev          # serveur de développement :5173, l'API est proxifiée ver
 npm test             # layouts du graphe, aucun innerHTML sur du texte d'article
 ```
 
-### E. Moteur Rust (`cti_core`)
+### F. Moteur Rust (`cti_core`)
 ```bash
-# Recompiler l'extension Rust dans l'environnement virtuel Python
 cd backend/cti_core
 cargo test
 maturin develop --release
@@ -191,31 +149,13 @@ cd ../..
 uv run python backend/preprocessing/evaluate_cleaning.py [--site <source>]
 ```
 
-### F. Tests Unitaires
-```bash
-# Ontologie STIX (relations contre les données ATT&CK, validateur, export)
-uv run python -m unittest tests.test_stix_ontology -v
-
-# Extraction (faux modèle : segmentation, candidats, vérifications, pipeline complet)
-uv run python -m unittest tests.test_extraction_pipeline -v
-
-# IOC et règles de détection YARA / Sigma (analyse, faux modèle, objets STIX)
-uv run python -m unittest tests.test_iocs tests.test_rules -v
-
-# Index ATT&CK v20.0, score contre le gold, agent (vérification STIX, boucle d'outils avec faux modèle)
-uv run python -m unittest tests.test_attack_kb tests.test_evaluation tests.test_stix_agent -v
-
-# API de données du tableau de bord STIX (formes JSON, filtres, preuves par article, profils d'acteurs)
-uv run python -m unittest tests.test_stix_dashboard -v
-
-```
-
 ---
 
 ## 6. Règles Métier & Invariants CTI
 
-1. **Isolation par Article :** Le dashboard ne présente plus aucun graphe global agrégé. Chaque rapport CTI affiche exclusivement son propre sous-graphe d'incident.
+1. **Isolation par Article :** Le dashboard ne présente aucun graphe global agrégé. Chaque rapport CTI affiche exclusivement son propre sous-graphe d'incident.
 2. **Profil d'acteur (onglet Acteurs) :** ce n'est PAS un graphe de connaissances mais un organigramme en rectangles (identité/pays en haut, acteur, divisions, puis Arsenal / Techniques / Infrastructure / Cibles) avec des onglets Organigramme, Arsenal, Techniques (par tactique ATT&CK), Infrastructure, Cibles, Références. Calculé côté serveur (`stix_dashboard._profile`) à partir des arêtes directes ; une rubrique sans donnée reste vide (« origine non établie »), jamais déduite. Seule vue qui agrège plusieurs articles. Dans un graphe de rapport : nœuds ronds avec icône par type, rectangles réservés aux acteurs de la menace.
-3. **Débit du serveur Ollama :** il traite les requêtes l'une après l'autre (mesuré : 1, 2, 3, 4 requêtes simultanées durent 5, 10, 15, 21 s, débit constant de 38 tokens/s ; 20 tokens/s mesurés le 2026-10-19). Lancer des appels en parallèle n'accélère rien ; l'extraction est rapide parce qu'elle fait GÉNÉRER très peu de tokens (chaque réponse est un identifiant de candidat, pas du texte). `llm.generate` impose un JSON sur une ligne et coupe la génération dès que le JSON est fermé (sinon le modèle continue `}]}}…` jusqu'à `num_predict`).
+3. **Coût du modèle :** il est dominé par les tokens GÉNÉRÉS ; la lecture du prompt est rapide et presque gratuite quand il commence comme le précédent (cache de préfixe). Les appels « entités » et « relations » commencent donc par le même texte d'article, et le modèle n'écrit que des lignes courtes. `llm.generate` impose un JSON sur une ligne.
 4. **Preprocessing universel :** aucune liste d'éditeurs, d'acteurs ou d'outils dans Rust. Le bruit est détecté par structure (densité de liens, tête/queue de document) puis par apprentissage du gabarit de chaque source sur le corpus (`site_boilerplate`, relu à chaque lancement de `cti-classifier`). Les IOC restent à leur place dans le récit.
-5. **Anti-Bruit :** Les chercheurs en sécurité, éditeurs CTI et entreprises victimes ne doivent jamais être labellisés en `cti:ThreatActor`. Les utilitaires natifs (`powershell.exe`, `certutil.exe`) sont catégorisés en outils à double usage, jamais en infrastructure C2.
+5. **Anti-Bruit :** Les chercheurs en sécurité, éditeurs CTI et entreprises victimes ne doivent jamais être labellisés en acteur de la menace. Les utilitaires natifs (`powershell.exe`, `certutil.exe`) sont catégorisés en outils à double usage, jamais en infrastructure C2.
+6. **Pas de fuite du gold :** aucun nom propre ni identifiant tiré des articles annotés dans les prompts ou le code (exemples avec des gabarits : `<malware>`, `T####.###`).

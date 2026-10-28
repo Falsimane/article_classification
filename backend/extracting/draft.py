@@ -1,9 +1,7 @@
-"""Outils de l'agent d'extraction : connaissance ATT&CK v20.0 et vérification STIX 2.1 d'un brouillon de graphe.
+"""Brouillon du graphe d'un article et sa vérification STIX 2.1, plus la recherche dans ATT&CK v20.0 offerte au modèle.
 
     search_attack(query, tactic?)  techniques qui correspondent à un comportement (index FTS5, quelques ms)
     get_attack(id)                 fiche d'une technique, d'un groupe, d'un logiciel ou d'une campagne ATT&CK
-    lookup_name(name)              un nom (ou alias) est-il connu d'ATT&CK, sous quel identifiant et quel type ?
-    submit(entities, relations)    ajoute au graphe ce qui passe la vérification ; renvoie chaque refus au modèle
 
 La vérification STIX est celle de la bibliothèque `stix2` : chaque entité et chaque relation proposée est CRÉÉE par sa classe
 `stix2` (`Malware`, `Relationship`…) en mode strict, et l'exception éventuelle (propriété manquante ou inconnue, valeur
@@ -98,18 +96,6 @@ def get_attack(kb: AttackKB, aid: str, max_chars: int = 700) -> str:
     return "\n".join(lines)
 
 
-def lookup_name(kb: AttackKB, name: str) -> str:
-    hits = kb.lookup(name)
-    if not hits:
-        return f"« {name} » n'est pas un groupe, logiciel ou campagne d'ATT&CK v{kb.version} (le déclarer quand même s'il est nommé dans le texte)."
-    out = []
-    for h in hits[:4]:
-        status = "" if h["status"] == "active" else f", {h['status']}" + (f" -> {h['replaced_by']}" if h["replaced_by"] else "")
-        aliases = f" ; alias : {', '.join(h['aliases'][:8])}" if h["aliases"] else ""
-        out.append(f"{h['attack_id']} {h['name']} (type STIX {h['type']}{status}){aliases} — {h['summary'][:160]}")
-    return "\n".join(out)
-
-
 def parse_relation(line: str) -> tuple[str, str, str, str] | None:
     """(source, relation, cible, numéros) d'une ligne « source|relation|cible|12,13 ». Les types que le modèle intercale
     (« software|FortiOS|has|vulnerability|CVE-2018-13379|1,9 ») sont retirés."""
@@ -170,7 +156,7 @@ class DraftGraph:
         status, replaced = self.attack.status(aid)
         if status == "unknown":
             self.hallucinated.append(aid)
-            return None, f"{aid} n'existe pas dans ATT&CK v{self.attack.version} : le chercher avec search_attack ou lookup_name"
+            return None, f"{aid} n'existe pas dans ATT&CK v{self.attack.version} : le chercher avec search_attack"
         if status == "revoked" and replaced:
             self.log.append(f"fix {aid} révoqué -> {replaced}")
             aid = replaced
@@ -300,23 +286,6 @@ class DraftGraph:
         known += [q for q in quotes if q not in known]
         return None
 
-    def submit(self, entities: list, relations: list) -> tuple[str, int, int]:
-        """Vérifie et ajoute un lot. Retourne (compte rendu pour le modèle, éléments acceptés, refus)."""
-        errors, accepted = [], 0
-        for line in entities or []:
-            _, err = self.declare(str(line))
-            errors += [err] if err else []
-            accepted += not err
-        for line in relations or []:
-            err = self.relate(str(line))
-            errors += [err] if err else []
-            accepted += not err
-        self.log += [f"reject {e}" for e in errors]
-        report = f"{accepted} élément(s) accepté(s), {len(errors)} refusé(s)."
-        if errors:
-            report += " À corriger (renvoyer seulement les lignes corrigées avec submit, ou abandonner une ligne non étayée) :\n" + "\n".join(f"- {e}" for e in errors)
-        return report, accepted, len(errors)
-
     # --- Sortie ----------------------------------------------------------------------------------------------------------
     def relationships(self) -> list:
         """`stix2.Relationship` de chaque relation acceptée, avec toutes ses citations ; confiance tirée de la plus affirmative."""
@@ -330,8 +299,3 @@ class DraftGraph:
     def entity_rows(self) -> list[dict]:
         """Entités reliées sous forme simple (identifiant, type, nom, alias) : pour rattacher IOC et règles."""
         return [{"id": o["id"], "type": o["type"], "name": o.get("name", ""), "aliases": sorted(self.terms.get(o["id"], set()) - {o.get("name", "")})} for o in self.linked()]
-
-    def table(self) -> str:
-        """Entités déjà déclarées, pour le passage suivant (une ligne par entité, sans les techniques)."""
-        rows = [f"{o['type']}|{o.get('name', '')}" for o in self.objects.values() if o["type"] != "attack-pattern"]
-        return "\n".join(rows) or "(aucune)"
