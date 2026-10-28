@@ -136,13 +136,19 @@ L'extraction ne prend que les articles `is_processable = 1` dont la catégorie e
 
 ## `extracting/` : extraction STIX
 
-### Point d'entrée : `extract.py` (`cti-extract`)
+### Point d'entrée : `cli.py` (`cti-extract`) et `runner.py`
 
-`cti-extract` lit les articles éligibles, appelle `pipeline.extract_article`, puis écrit le bundle et l'enregistre dans
-Neo4j. Options : `--article-id` (répétable), `--limit`, `--force`, `--dry-run`, `--out`, `--show-log`, `--stats`.
+`cti-extract` lit les articles éligibles et les passe à `runner.run_batch`. Options : `--article-id` (répétable),
+`--limit`, `--workers`, `--force`, `--dry-run`, `--out`, `--show-log`, `--stats`. Le lot se termine par un bilan (ok,
+partiels, en échec, durée, tokens générés). Code de sortie : 0 (partiels compris), 1 si un article a échoué, 2 si Neo4j est
+injoignable, 130 si interrompu.
 
-`process_article()` est la fonction que réutilise l'évaluation. Elle écrit toujours `<out>/article_<id>.json` (même en
-`--dry-run`) et, si un `StixStore` est donné, enregistre l'article dans Neo4j sans les IOC jugés bénins.
+`runner.run_batch` est partagé avec l'évaluation. Il extrait `--workers` articles à la fois (le sémaphore de `llm.py` borne
+toujours les requêtes en vol), écrit chaque `<out>/article_<id>.json` de façon atomique (fichier temporaire puis
+`os.replace`, même en `--dry-run`), puis enregistre l'article dans Neo4j sans les IOC jugés bénins, depuis **un seul fil** :
+`StixStore._write` relit les listes d'un nœud partagé avant de les réécrire. Une exception dans un article est rapportée
+avec sa trace sans arrêter le lot. Un article dont une étape LLM a échoué est enregistré avec `llm_failures` > 0 et n'est
+pas compté comme extrait : le lancement suivant le reprend.
 
 ### `pipeline.py` : trois étapes sur l'article entier
 

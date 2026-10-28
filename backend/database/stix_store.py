@@ -193,8 +193,10 @@ class StixStore:
 
     # --- lecture ----------------------------------------------------------------------------------------------------
     def extracted_article_ids(self) -> set[int]:
+        """Articles extraits en entier : un article dont une étape LLM a échoué (`llm_failures` > 0) sera repris."""
+        query = "MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL AND coalesce(r.llm_failures, 0) = 0 RETURN r.source_id AS id"
         with self.driver.session() as session:
-            return {r["id"] for r in session.run("MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL RETURN r.source_id AS id")}
+            return {r["id"] for r in session.run(query)}
 
     def stats(self) -> dict[str, Any]:
         with self.driver.session() as session:

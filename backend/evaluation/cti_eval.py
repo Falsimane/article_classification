@@ -13,10 +13,10 @@ import json
 import sys
 import time
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 root_dir = Path(__file__).resolve().parents[2]
@@ -46,34 +46,29 @@ def fetch_article(article_id: int) -> dict:
     return rows[0]
 
 
-def run_one(art: dict, out_dir: Path) -> dict:
-    """Extrait un article, sans Neo4j ; le bundle est écrit dans `out_dir/article_<id>.json`."""
-    from backend.extracting.cli import process_article
-
-    t0 = time.perf_counter()
-    result = process_article(art, out_dir=out_dir)
+def run_entry(out) -> dict:
+    """Ligne de `runs.json` d'un article extrait (`runner.Outcome`)."""
+    result = out.result
     return {
-        "seconds": round(time.perf_counter() - t0, 1), "output_tokens": result.output_tokens, "llm_calls": len(result.calls),
+        "seconds": round(out.seconds, 1), "output_tokens": result.output_tokens, "llm_calls": len(result.calls),
         "calls_by_stage": dict(Counter(c.stage for c in result.calls)), "failures": result.failures,
     }  # fmt: skip
 
 
 def run_all(arts: list[dict], out_dir: Path, workers: int, runs: dict) -> float:
-    """Extrait les articles, `workers` à la fois (le serveur groupe leurs requêtes).
+    """Extrait les articles, `workers` à la fois (le serveur groupe leurs requêtes), sans Neo4j.
     Un article échoué est signalé et laissé sans bundle. Retourne la durée totale, celle que voit l'utilisateur."""
-    out_dir.mkdir(parents=True, exist_ok=True)
+    from backend.extracting.runner import run_batch, write_atomic
+
     t0 = time.perf_counter()
-    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        futures = {pool.submit(run_one, art, out_dir): art for art in arts}
-        for future in as_completed(futures):
-            art = futures[future]
-            try:
-                runs[art["id"]] = future.result()
-            except Exception as exc:  # noqa: BLE001 : un article perdu n'arrête pas les autres
-                console.print(f"[red]Échec[/] article {art['id']} : {type(exc).__name__}: {exc}")
-                continue
-            console.print(f"[bold]Extrait[/] article {art['id']} — {art['title']} ({runs[art['id']]['seconds']} s)")
-            (out_dir / "runs.json").write_text(json.dumps(runs, indent=1), encoding="utf-8")
+    for out in run_batch(arts, out_dir, workers):
+        if out.error:
+            console.print(f"[red]Échec[/] article {out.art['id']} : {escape(out.error)}")
+            console.print(out.trace, style="dim", markup=False, highlight=False)
+            continue
+        runs[out.art["id"]] = run_entry(out)
+        console.print(f"[bold]Extrait[/] article {out.art['id']} — {escape(out.art['title'] or '')} ({runs[out.art['id']]['seconds']} s)")
+        write_atomic(out_dir / "runs.json", json.dumps(runs, indent=1))
     return time.perf_counter() - t0
 
 

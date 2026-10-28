@@ -46,6 +46,7 @@ Le pipeline permet de :
 │   │   ├── pipeline.py           # Extraction d'un article, trois étapes sur le texte entier : entités et techniques (un appel),
 │   │   │                         #   techniques vérifiées contre ATT&CK (identifiant existant ET nom correspondant ; refusées corrigées
 │   │   │                         #   par le modèle avec search_attack / get_attack), relations entre éléments numérotés (+ une correction)
+│   │   ├── runner.py             # Lot d'articles (cti-extract et cti-eval) : --workers en parallèle, un seul fil écrit Neo4j, bundle atomique
 │   │   ├── llm.py                # Client vLLM : sortie contrainte (`generate`), tours avec outils (`chat`), slots, tokens comptés par le serveur
 │   │   ├── graph/
 │   │   │   ├── draft.py          # DraftGraph (vérification STIX : stix2 strict, table de relations, ATT&CK, phrases citées) et outils ATT&CK
@@ -111,6 +112,7 @@ uv run cti-extract --article-id 1553 --dry-run --show-log
 
 uv run cti-extract --stats              # statistiques du graphe STIX
 uv run cti-extract --limit 5 --force    # re-traiter des articles déjà extraits (retire d'abord leur ancienne contribution)
+# Un article dont une étape LLM a échoué (llm_failures > 0 dans Neo4j) est repris au lancement suivant ; --workers N : N articles à la fois
 ```
 
 ### C. Évaluation contre le gold

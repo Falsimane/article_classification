@@ -17,6 +17,7 @@ dans le contexte du serveur (`--max-model-len`) ; sinon le serveur refuse l'appe
 
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from backend.extracting import llm
@@ -357,7 +358,9 @@ def extract_article(art: dict) -> ExtractionResult:
     except (TimeoutError, llm.requests.RequestException) as exc:
         result.failures.append(f"article : {type(exc).__name__}: {exc}")
     entity_rows = draft.entity_rows()
-    result.iocs = extract_iocs(title, units, entity_rows, url=art.get("url"), published=parse_date(art.get("publication_date")))
-    result.rules = extract_rules(title, art["clean_markdown"], entity_rows)
+    with ThreadPoolExecutor(max_workers=2) as pool:  # indépendants : tous deux ne lisent que les entités
+        iocs = pool.submit(extract_iocs, title, units, entity_rows, url=art.get("url"), published=parse_date(art.get("publication_date")))
+        rules = pool.submit(extract_rules, title, art["clean_markdown"], entity_rows)
+        result.iocs, result.rules = iocs.result(), rules.result()
     result.seconds = time.perf_counter() - t0
     return result

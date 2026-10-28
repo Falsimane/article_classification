@@ -174,6 +174,7 @@ uv run cti-extract --limit 10                           # 10 articles vers Neo4j
 uv run cti-extract --article-id 1553 --dry-run          # un article, sans écrire dans Neo4j (le bundle est écrit)
 uv run cti-extract --article-id 1553 --dry-run --show-log   # chaque refus de la vérification, chaque appel d'outil
 uv run cti-extract --limit 5 --force                    # ré-extraire des articles déjà présents dans Neo4j
+uv run cti-extract --limit 20 --workers 2               # deux articles à la fois (Neo4j reste écrit par un seul fil)
 uv run cti-extract --stats                              # nœuds et relations du graphe par type STIX
 ```
 
