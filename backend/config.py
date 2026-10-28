@@ -8,7 +8,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = Path(os.environ.get("CTI_DATA_DIR") or ROOT_DIR / "backend" / "data")
 SOURCE_ARTICLES_DB = DATA_DIR / "sources" / "cti_knowledge.db"  # articles et classifications (SQLite)
 BUNDLES_DIR = DATA_DIR / "bundles"  # bundle STIX final de chaque article (écrit par cti-extract, lu par le dashboard)
-EVAL_DIR = DATA_DIR / "eval"  # un dossier par exécution de cti-eval
+EVAL_DIR = ROOT_DIR / "backend" / "evaluation" / "eval"  # un dossier par exécution de cti-eval (hors DATA_DIR)
 
 os.environ["NO_PROXY"] = "localhost,127.0.0.1"  # les serveurs d'inférence sont joints par un tunnel local, jamais par un proxy
 

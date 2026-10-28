@@ -21,14 +21,14 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-cti-core = { path = "backend/cti_core", editable = true }
+cti-core = { path = "backend/preprocessing/cleaning/cti_core", editable = true }
 
 [project.scripts]
-cti-classifier = "backend.preprocessing.cti_classifier:main"
+cti-classifier = "backend.preprocessing.classifying.cti_classifier:main"
 cti-extract = "backend.extracting.cli:main"
 cti-eval = "backend.evaluation.cti_eval:main"
 cti-dashboard = "backend.dashboard.server:main"
-cti-audit = "backend.preprocessing.audit_classifier:main"
+cti-audit = "backend.preprocessing.classifying.audit_classifier:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -18,12 +18,12 @@ from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from backend.stix.iocs import HASH_ALGOS, HASH_PRIORITY, ROLES, IocFinding
+from backend.extracting.stix.iocs import HASH_ALGOS, HASH_PRIORITY, ROLES, IocFinding
 
-from backend.text.evidence import mentions_prepared, parse_date, prepare_text
+from backend.preprocessing.cleaning.text.evidence import mentions_prepared, parse_date, prepare_text
 
 from backend.extracting import llm
-from backend.text.segment import FILE_EXT, Unit
+from backend.preprocessing.cleaning.text.segment import FILE_EXT, Unit
 
 REFERENCE = Path(__file__).resolve().parent / "reference"
 ATTACH_TYPES = frozenset({"malware", "tool", "threat-actor", "intrusion-set", "campaign", "infrastructure", "incident"})

@@ -16,7 +16,7 @@ from typing import Any
 
 from backend.config import BUNDLES_DIR, SOURCE_ARTICLES_DB
 from backend.database.stix_store import StixStore
-from backend.stix.iocs import ioc_status
+from backend.extracting.stix.iocs import ioc_status
 
 # Familles de types STIX regroupées par les filtres du frontend
 TYPE_FAMILIES: dict[str, frozenset[str]] = {

@@ -1,6 +1,6 @@
 """Texte de l'article : comparaison de noms, ancrage des preuves, confiance exprimée par l'auteur, dates.
 
-Rien ici ne relève de STIX (les objets sont construits par la bibliothèque `stix2`, voir `backend/stix/`) : ce sont les
+Rien ici ne relève de STIX (les objets sont construits par la bibliothèque `stix2`, voir `backend/extracting/stix/`) : ce sont les
 outils qui relient une affirmation extraite au texte qui la porte.
 """
 

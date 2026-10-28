@@ -18,9 +18,9 @@ from dataclasses import dataclass, field
 import yaml
 import yara
 
-from backend.stix.rules import DetectionRule
+from backend.extracting.stix.rules import DetectionRule
 
-from backend.text.evidence import mentions_prepared, prepare_text
+from backend.preprocessing.cleaning.text.evidence import mentions_prepared, prepare_text
 
 from backend.extracting import llm
 from backend.extracting.observables.iocs import Attachable, _trim, attachables

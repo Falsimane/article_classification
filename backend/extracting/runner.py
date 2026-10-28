@@ -15,10 +15,10 @@ from typing import Iterator
 
 from backend.config import LLM_MODEL
 from backend.extracting.pipeline import ExtractionResult, clean_title, extract_article
-from backend.stix.iocs import build_ioc_objects, without_benign
-from backend.stix.objects import as_dict, bundle, report
-from backend.stix.rules import build_rule_objects
-from backend.text.evidence import parse_date
+from backend.extracting.stix.iocs import build_ioc_objects, without_benign
+from backend.extracting.stix.objects import as_dict, bundle, report
+from backend.extracting.stix.rules import build_rule_objects
+from backend.preprocessing.cleaning.text.evidence import parse_date
 
 
 @dataclass

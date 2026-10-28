@@ -34,7 +34,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cti-core", editable = "backend/cti_core" },
+    { name = "cti-core", editable = "backend/preprocessing/cleaning/cti_core" },
     { name = "json-repair", specifier = ">=0.64.0" },
     { name = "maturin", specifier = ">=1.15.0" },
     { name = "neo4j", specifier = ">=6.4.1" },
@@ -189,7 +189,7 @@ wheels = [
 [[package]]
 name = "cti-core"
 version = "0.2.0"
-source = { editable = "backend/cti_core" }
+source = { editable = "backend/preprocessing/cleaning/cti_core" }
 
 [[package]]
 name = "idna"

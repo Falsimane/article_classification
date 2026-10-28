@@ -44,15 +44,17 @@ mesurer rappel, précision et hallucinations de l'extraction.
 ```text
 .
 ├── backend/                 # Python : preprocessing, extraction, STIX, Neo4j, évaluation, API Web   → backend/README.md
-│   ├── cti_core/            #   moteur de nettoyage natif en Rust (PyO3), compilé par uv à l'installation
 │   ├── preprocessing/       #   nettoyage, classification LLM, audit humain (TUI)
-│   ├── text/                #   noms normalisés, ancrage, dates, phrases numérotées (partagé par extraction, STIX, évaluation)
+│   │   ├── classifying/     #     classification LLM, audit humain (TUI), rapport qualité du nettoyage
+│   │   └── cleaning/        #     cleaner.py, façade Python du moteur Rust
+│   │       ├── cti_core/    #       moteur de nettoyage natif en Rust (PyO3), compilé par uv à l'installation
+│   │       └── text/        #       noms normalisés, ancrage, dates, phrases numérotées (partagé par extraction, STIX, évaluation)
 │   ├── extracting/          #   extraction STIX en trois étapes (graph/ : entités, techniques vérifiées, relations), observables/ : IOC, règles
-│   ├── stix/                #   objets STIX 2.1 (stix2), index ATT&CK v20.0
+│   │   └── stix/            #     objets STIX 2.1 (stix2), index ATT&CK v20.0
 │   ├── database/            #   persistance Neo4j
-│   ├── evaluation/          #   score contre le gold annoté
+│   ├── evaluation/          #   score contre le gold annoté ; eval/ (hors git) : un dossier par exécution de cti-eval
 │   ├── dashboard/           #   serveur HTTP (API REST + build du frontend), graphe Neo4j → JSON pour l'interface
-│   └── data/                #   données hors git : sources/ (SQLite), bundles/, eval/, raw/, archive/ (CTI_DATA_DIR)
+│   └── data/                #   données hors git : sources/ (SQLite), bundles/, raw/, archive/ (CTI_DATA_DIR)
 ├── frontend/                # React 18 + TypeScript + Tailwind + React Flow 12 (Vite)                 → frontend/README.md
 ├── Annotations/             # articles annotés à la main (gold STIX), manifest.json, méthode d'annotation
 ├── scripts/dashboard.sh     # build du frontend si besoin + lancement du serveur
@@ -119,13 +121,13 @@ docker compose up -d neo4j
 cd frontend && npm install && npm run build && cd ..
 ```
 
-L'index ATT&CK v20.0 (`backend/stix/reference/attack_v20.sqlite`) est versionné : il n'y a rien à construire pour
+L'index ATT&CK v20.0 (`backend/extracting/stix/reference/attack_v20.sqlite`) est versionné : il n'y a rien à construire pour
 commencer. Pour le reconstruire, voir [backend/README.md](backend/README.md#stix--objets-stix-21-et-bases-de-référence).
 
 Après une modification du code Rust :
 
 ```bash
-cd backend/cti_core && cargo test && maturin develop --release && cd ../..
+cd backend/preprocessing/cleaning/cti_core && cargo test && maturin develop --release && cd ../../../..
 ```
 
 ---
@@ -162,7 +164,7 @@ uv run cti-eval --run --workers 4
 uv run cti-classifier                                   # nettoyage Rust + classification LLM des articles non classés
 CTI_CLASSIFIER_WORKERS=3 uv run cti-classifier          # classifications en parallèle (défaut : 2)
 uv run cti-audit                                        # interface terminal (Textual) de validation humaine
-uv run python backend/preprocessing/evaluate_cleaning.py [--site <source>]   # qualité du nettoyage, sans LLM
+uv run python backend/preprocessing/classifying/evaluate_cleaning.py [--site <source>]   # qualité du nettoyage, sans LLM
 ```
 
 ### Extraction STIX vers Neo4j
@@ -187,8 +189,8 @@ appel pour les relations entre les éléments numérotés retenus (plus un appel
 
 ```bash
 uv run cti-eval --run --workers 4                       # extrait les articles de Annotations/manifest.json (4 à la fois) puis score
-uv run cti-eval --run --bundles backend/data/eval/<nom>   # dans un dossier nommé, pour comparer deux versions
-uv run cti-eval --bundles backend/data/eval/<nom>         # re-score des bundles existants, sans appel au modèle
+uv run cti-eval --run --bundles backend/evaluation/eval/<nom>   # dans un dossier nommé, pour comparer deux versions
+uv run cti-eval --bundles backend/evaluation/eval/<nom>         # re-score des bundles existants, sans appel au modèle
 uv run cti-eval --article-id 1553 --bundles <dossier>   # limiter à un article
 ```
 
@@ -206,7 +208,7 @@ uv run cti-dashboard --port 8095        # serveur seul (sert frontend/dist)
 ### Données de référence
 
 ```bash
-uv run python -m backend.stix.attack [chemin/enterprise-attack-20.0.json]   # reconstruire l'index ATT&CK v20.0
+uv run python -m backend.extracting.stix.attack [chemin/enterprise-attack-20.0.json]   # reconstruire l'index ATT&CK v20.0
 uv run python -m backend.extracting.observables.update_reference                     # TLD IANA et domaines populaires (Tranco)
 ```
 
@@ -238,8 +240,8 @@ Toutes les variables sont lues dans l'environnement du processus (voir `backend/
 | `backend/data/sources/cti_knowledge.db` | `knowledge` (articles bruts), `article_classifications` (catégorie, markdown nettoyé), `site_boilerplate` (gabarits appris) | écrit par `cti-classifier` et `cti-audit` ; **lecture seule** pour l'extraction et le tableau de bord |
 | Neo4j `bolt://localhost:7687` | graphe STIX : nœuds `(:Stix:<Type>)`, arêtes typées, provenance par article | **seule** base du graphe de connaissances |
 | `backend/data/bundles/article_<id>.json` | bundle STIX 2.1 complet de chaque extraction (IOC bénins compris) | réécrit à chaque extraction, même en `--dry-run` |
-| `backend/data/eval/<nom>/` | bundles de l'évaluation, `runs.json`, `report.md`, `report.json` (défaut : `latest`) | écrit par `cti-eval` |
-| `backend/stix/reference/` | index ATT&CK v20.0 (SQLite FTS5) | versionné / reconstruit à la demande |
+| `backend/evaluation/eval/<nom>/` | bundles de l'évaluation, `runs.json`, `report.md`, `report.json` (défaut : `latest`) | écrit par `cti-eval` |
+| `backend/extracting/stix/reference/` | index ATT&CK v20.0 (SQLite FTS5) | versionné / reconstruit à la demande |
 
 ---
 
@@ -253,7 +255,7 @@ Le backend Python n'a pas de tests unitaires : la qualité de l'extraction se me
 cd frontend && npm test
 
 # Moteur Rust
-cd backend/cti_core && cargo test
+cd backend/preprocessing/cleaning/cti_core && cargo test
 ```
 
 ---

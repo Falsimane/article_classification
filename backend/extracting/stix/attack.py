@@ -1,6 +1,6 @@
 """MITRE ATT&CK v20.0 : le bundle STIX officiel, lu par `stix2`, et un index de recherche pour l'agent.
 
-    uv run python -m backend.stix.attack [chemin/enterprise-attack-20.0.json]   # construit l'index (≈ 10 s, une fois)
+    uv run python -m backend.extracting.stix.attack [chemin/enterprise-attack-20.0.json]   # construit l'index (≈ 10 s, une fois)
 
 Le bundle officiel (52 Mo) est chargé par `stix2.MemoryStore` et interrogé par `stix2.Filter`. Chaque objet ATT&CK utile
 (technique, groupe, logiciel, campagne, tactique, mitigation) est rangé dans un fichier SQLite (`reference/attack_v20.sqlite`,
@@ -24,7 +24,7 @@ from pathlib import Path
 
 from stix2 import Filter, MemoryStore, parse
 
-from backend.text.evidence import normalize_name
+from backend.preprocessing.cleaning.text.evidence import normalize_name
 
 REFERENCE_DIR = Path(__file__).resolve().parent / "reference"
 INDEX_FILE = REFERENCE_DIR / "attack_v20.sqlite"
@@ -32,7 +32,7 @@ ATTACK_VERSION = "20.0"
 # Le bundle officiel n'est pas versionné : on le cherche dans ces emplacements, dans l'ordre
 BUNDLE_CANDIDATES = (
     REFERENCE_DIR / "enterprise-attack-20.0.json",
-    Path(__file__).resolve().parents[2] / "Annotations" / "enterprise-attack-20.0.json",
+    Path(__file__).resolve().parents[3] / "Annotations" / "enterprise-attack-20.0.json",
 )
 BUNDLE_URL = "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-20.0.json"
 
@@ -197,7 +197,7 @@ class AttackKB:
 
     def __init__(self, path: Path = INDEX_FILE):
         if not path.exists():
-            raise FileNotFoundError(f"{path} introuvable. Construire avec : uv run python -m backend.stix.attack")
+            raise FileNotFoundError(f"{path} introuvable. Construire avec : uv run python -m backend.extracting.stix.attack")
         self.path = path
         self._local = threading.local()
         self.version = self._db().execute("SELECT value FROM meta WHERE key = 'attack_version'").fetchone()[0]
@@ -313,7 +313,7 @@ def get_attack_kb() -> AttackKB:
         if bundle is None:
             raise FileNotFoundError(
                 f"{INDEX_FILE} introuvable et aucun bundle ATT&CK 20.0 local ({', '.join(map(str, BUNDLE_CANDIDATES))}). "
-                f"Télécharger {BUNDLE_URL} puis : uv run python -m backend.stix.attack <bundle>"
+                f"Télécharger {BUNDLE_URL} puis : uv run python -m backend.extracting.stix.attack <bundle>"
             )
         build_from_file(bundle)
     return AttackKB(INDEX_FILE)

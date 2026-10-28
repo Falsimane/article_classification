@@ -1,6 +1,6 @@
 """Persistance Neo4j des objets STIX 2.1 extraits.
 
-Modèle de propriétés (objets créés par `stix2`, voir `backend/stix/`) :
+Modèle de propriétés (objets créés par `stix2`, voir `backend/extracting/stix/`) :
 - chaque objet STIX est un nœud `(:Stix:<Type>)` identifié par son `id` STIX déterministe, donc ré-extraire le même
   fait met à jour le même nœud : le graphe ne se fragmente pas d'un article à l'autre ;
 - chaque relation STIX est une arête typée `(:Stix)-[:USES]->(:Stix)` portant `confidence`, `description` et une
@@ -15,8 +15,8 @@ import json
 import re
 from typing import Any
 
-from backend.stix.iocs import HASH_PRIORITY, IOC_OBJECT_TYPES
-from backend.stix.rules import RULE_KINDS
+from backend.extracting.stix.iocs import HASH_PRIORITY, IOC_OBJECT_TYPES
+from backend.extracting.stix.rules import RULE_KINDS
 
 from .neo4j_store import Neo4jStore
 

@@ -21,7 +21,7 @@ Le pipeline permet de :
 > **Les serveurs d'inférence sont DISTANTS, joints par tunnel SSH sur `localhost`.**
 > - **Ne JAMAIS exécuter de commandes shell locales** comme `ollama list`, `ollama run`, `ollama pull` ou `systemctl restart ollama`. Claude n'a pas d'accès SSH au serveur : c'est l'utilisateur qui le relance.
 > - **Extraction** : serveur vLLM (API OpenAI, `http://localhost:8010/v1`, nom servi `cti-qwen`), joint uniquement par `backend/extracting/llm.py`. Il doit être lancé avec un analyseur d'appels d'outils (`--enable-auto-tool-choice --tool-call-parser qwen3_coder`) et un contexte qui contient l'article entier (`--max-model-len 32768`).
-> - **Classification** : serveur Ollama (`http://localhost:11434/api/generate`), joint par `backend/preprocessing/cti_classifier.py`. Un seul `num_ctx` (`OLLAMA_NUM_CTX`, 12288) : deux valeurs différentes forcent Ollama à recharger le modèle.
+> - **Classification** : serveur Ollama (`http://localhost:11434/api/generate`), joint par `backend/preprocessing/classifying/cti_classifier.py`. Un seul `num_ctx` (`OLLAMA_NUM_CTX`, 12288) : deux valeurs différentes forcent Ollama à recharger le modèle.
 > - La variable d'environnement `NO_PROXY="localhost,127.0.0.1"` est appliquée pour éviter tout détournement de trafic.
 > - **Jamais plus de requêtes simultanées que de slots** (`CTI_LLM_SLOTS`) : derrière le tunnel SSH, une requête abandonnée par le client continue d'occuper le serveur. `llm.py` attend un slot libre avant d'envoyer.
 
@@ -32,14 +32,16 @@ Le pipeline permet de :
 ```text
 ├── backend/
 │   ├── preprocessing/            # Ingestion, refanging universel, fast-reject & classification
-│   │   ├── cleaner.py            # UniversalCTICleaner appelant le moteur Rust cti_core (gabarit par source, découpage atomique)
-│   │   ├── evaluate_cleaning.py  # Rapport qualité du preprocessing (fidélité IOC, résidus, source inconnue)
-│   │   ├── cti_classifier.py     # Classification & triage LLM (Ollama)
-│   │   └── audit_classifier.py   # Interface TUI (Textual) pour l'audit et la validation humaine
-│   │
-│   ├── text/                     # Partagé par extraction, STIX et évaluation (n'importe ni stix/ ni extracting/)
-│   │   ├── evidence.py           # noms normalisés, ancrage des citations, confiance, dates
-│   │   └── segment.py            # Phrases numérotées (la preuve d'une relation est un numéro de phrase) ; `render` = texte montré au modèle
+│   │   ├── classifying/
+│   │   │   ├── cti_classifier.py     # Classification & triage LLM (Ollama)
+│   │   │   ├── audit_classifier.py   # Interface TUI (Textual) pour l'audit et la validation humaine
+│   │   │   └── evaluate_cleaning.py  # Rapport qualité du preprocessing (fidélité IOC, résidus, source inconnue)
+│   │   └── cleaning/
+│   │       ├── cleaner.py            # UniversalCTICleaner appelant le moteur Rust cti_core (gabarit par source, découpage atomique)
+│   │       ├── cti_core/             # Moteur déterministe natif Rust (PyO3) : nettoyage, sections, découpage
+│   │       └── text/                 # Partagé par extraction, STIX et évaluation (n'importe pas extracting/)
+│   │           ├── evidence.py       # noms normalisés, ancrage des citations, confiance, dates
+│   │           └── segment.py        # Phrases numérotées (la preuve d'une relation est un numéro de phrase) ; `render` = texte montré au modèle
 │   │
 │   ├── extracting/               # Construction sémantique du Knowledge Graph CTI
 │   │   ├── cli.py                # CLI `cti-extract` : articles classifiés -> pipeline -> bundle STIX (fichier) -> Neo4j
@@ -48,6 +50,7 @@ Le pipeline permet de :
 │   │   │                         #   par le modèle avec search_attack / get_attack), relations entre éléments numérotés (+ une correction)
 │   │   ├── runner.py             # Lot d'articles (cti-extract et cti-eval) : --workers en parallèle, un seul fil écrit Neo4j, bundle atomique
 │   │   ├── llm.py                # Client vLLM : sortie contrainte (`generate`), tours avec outils (`chat`), slots, tokens comptés par le serveur
+│   │   ├── stix/                 # Objets STIX 2.1 (stix2), index SQLite FTS5 d'ATT&CK v20.0 (attack.py), IOC datés, règles en indicator
 │   │   ├── graph/
 │   │   │   ├── draft.py          # DraftGraph (vérification STIX : stix2 strict, table de relations, ATT&CK, phrases citées) et outils ATT&CK
 │   │   │   └── places.py         # lieux -> ISO 3166-1 / région STIX
@@ -57,6 +60,7 @@ Le pipeline permet de :
 │   │       └── update_reference.py # mise à jour des listes TLD / domaines populaires (reference/)
 │   │
 │   ├── evaluation/               # Mesure de l'extraction contre les articles annotés à la main (Annotations/)
+│   │   ├── eval/                 # Hors git : un dossier par exécution de cti-eval (bundles, runs.json, report.md / report.json)
 │   │   ├── score.py              # Méthode d'Annotations/methode_annotation.md : rappel, précision, crédit partiel, hallucinations, ancrage
 │   │   └── cti_eval.py           # CLI `cti-eval` : extrait les articles du manifeste, score, report.md / report.json
 │   │
@@ -64,13 +68,11 @@ Le pipeline permet de :
 │   │   ├── neo4j_store.py        # Connexion Neo4j (singleton) réutilisée par stix_store
 │   │   └── stix_store.py         # Graphe STIX : nœuds (:Stix:<Type>), arêtes typées, provenance par article
 │   │
-│   ├── stix/                     # Objets STIX 2.1 (stix2), index SQLite FTS5 d'ATT&CK v20.0 (attack.py), IOC datés, règles en indicator
-│   ├── cti_core/                 # Moteur déterministe natif Rust (PyO3) : nettoyage, sections, découpage
 │   ├── dashboard/
 │   │   ├── server.py             # Serveur Web HTTP & API REST STIX (sert frontend/dist) : /api/stats|articles|graph|iocs|rules|article|bundle|actors
 │   │   └── stix_dashboard.py     # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML)
 │   ├── config.py                 # Seul endroit qui définit les chemins de données (DATA_DIR, surchargé par CTI_DATA_DIR) et les serveurs LLM
-│   └── data/                     # Hors git : sources/ (cti_knowledge.db, urls_collection.db), bundles/, eval/, raw/ (scrapes), archive/
+│   └── data/                     # Hors git : sources/ (cti_knowledge.db, urls_collection.db), bundles/, raw/ (scrapes), archive/
 │
 ├── frontend/                     # React 18 + TypeScript + Tailwind CSS 3 + React Flow 12 (Vite) ; voir frontend/README.md
 ├── Annotations/                  # Gold STIX annoté à la main, manifest.json, méthode d'annotation
@@ -118,14 +120,14 @@ uv run cti-extract --limit 5 --force    # re-traiter des articles déjà extrait
 ### C. Évaluation contre le gold
 ```bash
 # Index ATT&CK v20.0 (versionné ; à reconstruire seulement depuis le bundle officiel enterprise-attack-20.0.json)
-uv run python -m backend.stix.attack
+uv run python -m backend.extracting.stix.attack
 
 # Articles annotés (Annotations/manifest.json : article_id -> gold) ; rapport dans <bundles>/report.md
-uv run cti-eval --run --workers 4 --bundles backend/data/eval/<nom>
-uv run cti-eval --bundles backend/data/eval/<nom>   # re-score sans appel au modèle
+uv run cti-eval --run --workers 4 --bundles backend/evaluation/eval/<nom>
+uv run cti-eval --bundles backend/evaluation/eval/<nom>   # re-score sans appel au modèle
 ```
 Le backend Python n'a pas de tests unitaires : toute modification de l'extraction se mesure avec `cti-eval` sur les 9 articles
-annotés et se compare au dernier rapport (référence : `backend/data/eval/staged_q38_27b_9art`, entités R 47,9 % / P 51,5 %,
+annotés et se compare au dernier rapport (référence : `backend/evaluation/eval/staged_q38_27b_9art`, entités R 47,9 % / P 51,5 %,
 relations R 21,7 % / P 35,9 %).
 
 ### D. Serveur Web & Dashboard CTI
@@ -149,13 +151,13 @@ npm test             # layouts du graphe, aucun innerHTML sur du texte d'article
 
 ### F. Moteur Rust (`cti_core`)
 ```bash
-cd backend/cti_core
+cd backend/preprocessing/cleaning/cti_core
 cargo test
 maturin develop --release
-cd ../..
+cd ../../../..
 
 # Rapport qualité du preprocessing (à lancer avant d'ingérer une nouvelle source)
-uv run python backend/preprocessing/evaluate_cleaning.py [--site <source>]
+uv run python backend/preprocessing/classifying/evaluate_cleaning.py [--site <source>]
 ```
 
 ---

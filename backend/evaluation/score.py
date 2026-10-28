@@ -23,8 +23,8 @@ import difflib
 import re
 from dataclasses import dataclass, field
 
-from backend.text.evidence import evidence_in_source, normalize_name, normalize_quote, tokens
-from backend.stix.attack import AttackKB, get_attack_kb
+from backend.preprocessing.cleaning.text.evidence import evidence_in_source, normalize_name, normalize_quote, tokens
+from backend.extracting.stix.attack import AttackKB, get_attack_kb
 
 IOC_TYPES = frozenset(
     {

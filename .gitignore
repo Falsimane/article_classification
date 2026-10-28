@@ -5,12 +5,13 @@ build/
 dist/
 wheels/
 *.egg-info
+.ruff_cache/
 
 # Virtual environments
 .venv
 backend/data
-cti_core/cargo.lock
-backend/cti_core/target
+backend/evaluation/eval/
+backend/preprocessing/cleaning/cti_core/target
 frontend/node_modules/
 frontend/dist
 frontend/legacy/
@@ -19,6 +20,7 @@ frontend/legacy/
 neo4j_data/
 neo4j_logs/
 neo4j_plugins/
-# Index ATT&CK v20.0 (construit par `python -m backend.ontology.stix.attack_kb`) et bundle officiel (52 Mo)
-backend/ontology/stix/reference/attack_v20.sqlite
-backend/ontology/stix/reference/enterprise-attack-*.json
+# Bundle officiel ATT&CK (52 Mo) déposé pour reconstruire l'index (`python -m backend.extracting.stix.attack`) ;
+# l'index attack_v20.sqlite, lui, est versionné
+backend/extracting/stix/reference/enterprise-attack-*.json
+Annotations/enterprise-attack-*.json

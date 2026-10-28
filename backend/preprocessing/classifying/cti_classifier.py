@@ -26,12 +26,12 @@ from rich.progress import (
 )
 from rich.prompt import Confirm
 import sys
-root_dir = Path(__file__).resolve().parents[2]
+root_dir = Path(__file__).resolve().parents[3]
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 from backend.config import OLLAMA_API_URL, OLLAMA_MODEL, OLLAMA_NUM_CTX, SOURCE_ARTICLES_DB
-from backend.preprocessing.cleaner import UniversalCTICleaner
+from backend.preprocessing.cleaning.cleaner import UniversalCTICleaner
 
 DB_PATH = SOURCE_ARTICLES_DB
 

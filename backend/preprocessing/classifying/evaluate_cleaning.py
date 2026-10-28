@@ -2,8 +2,8 @@
 
 À lancer avant d'ingérer une nouvelle source :
 
-    uv run python backend/preprocessing/evaluate_cleaning.py
-    uv run python backend/preprocessing/evaluate_cleaning.py --site rapid7
+    uv run python backend/preprocessing/classifying/evaluate_cleaning.py
+    uv run python backend/preprocessing/classifying/evaluate_cleaning.py --site rapid7
 
 Il mesure, sans appeler aucun LLM et sans rien écrire en base :
 - les rejets amont et le taux de conservation du texte ;
@@ -22,13 +22,13 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-root_dir = Path(__file__).resolve().parents[2]
+root_dir = Path(__file__).resolve().parents[3]
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 import cti_core  # noqa: E402
 
-from backend.preprocessing.cleaner import (  # noqa: E402
+from backend.preprocessing.cleaning.cleaner import (  # noqa: E402
     BOILERPLATE_MIN_DOCS,
     BOILERPLATE_MIN_RATIO,
     DB_PATH,

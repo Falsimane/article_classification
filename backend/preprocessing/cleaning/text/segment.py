@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 from functools import cached_property
 
-from backend.preprocessing.cleaner import UniversalCTICleaner
+from backend.preprocessing.cleaning.cleaner import UniversalCTICleaner
 
 MAX_CODE_LINES = 8  # lignes de code montrées au modèle par bloc
 MAX_TABLE_ROWS = 14

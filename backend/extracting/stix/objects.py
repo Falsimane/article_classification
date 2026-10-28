@@ -31,7 +31,7 @@ from stix2 import (
     Vulnerability,
 )
 
-from backend.text.evidence import normalize_name
+from backend.preprocessing.cleaning.text.evidence import normalize_name
 
 # Espace de noms fixe du projet : ne jamais le modifier, sous peine de changer tous les identifiants.
 PROJECT_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "https://cti-knowledge-graph.local/stix/2.1")

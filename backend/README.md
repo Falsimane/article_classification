@@ -13,10 +13,10 @@ commandes, voir le [README racine](../README.md).
 1. [Flux de données](#flux-de-données)
 2. [Principes de conception](#principes-de-conception)
 3. [`config.py` : configuration partagée](#configpy--configuration-partagée)
-4. [`cti_core/` : moteur de nettoyage Rust](#cti_core--moteur-de-nettoyage-rust)
+4. [`preprocessing/cleaning/cti_core/` : moteur de nettoyage Rust](#preprocessingcleaningcti_core--moteur-de-nettoyage-rust)
 5. [`preprocessing/` : nettoyage et classification](#preprocessing--nettoyage-et-classification)
 6. [`extracting/` : extraction STIX](#extracting--extraction-stix)
-7. [`stix/` : objets STIX 2.1 et bases de référence](#stix--objets-stix-21-et-bases-de-référence)
+7. [`extracting/stix/` : objets STIX 2.1 et bases de référence](#extractingstix--objets-stix-21-et-bases-de-référence)
 8. [`database/` : persistance Neo4j](#database--persistance-neo4j)
 9. [`evaluation/` : score contre le gold](#evaluation--score-contre-le-gold)
 10. [`dashboard/` : API Web](#dashboard--api-web)
@@ -28,7 +28,7 @@ commandes, voir le [README racine](../README.md).
 ```text
 SQLite knowledge (article brut)
    │
-   │  preprocessing/cti_classifier.py              ── uv run cti-classifier
+   │  preprocessing/classifying/cti_classifier.py              ── uv run cti-classifier
    │    0. rejet amont déterministe (check_viability : trop court, pas un article…)
    │    1. cti_core : nettoyage, refang, sections                     (Rust, millisecondes)
    │    2. contexte compact (titre, prose, marqueurs code/table) ──▶ LLM : catégorie + justification
@@ -36,7 +36,7 @@ SQLite knowledge (article brut)
 SQLite article_classifications (primary_category, clean_markdown, is_processable…)
    │
    │  extracting/cli.py -> pipeline.py              ── uv run cti-extract
-   │    1. text/segment.py : phrases numérotées (unités), article entier montré au modèle
+   │    1. preprocessing/cleaning/text/segment.py : phrases numérotées (unités), article entier montré au modèle
    │    2. appel « entités » : entités et techniques ATT&CK (identifiant|nom|phrases)
    │    3. techniques vérifiées contre ATT&CK v20.0 ; les refusées corrigées par le modèle avec search_attack / get_attack
    │    4. appel « relations » entre éléments numérotés (+ une correction) ; DraftGraph : stix2 strict, phrases citées
@@ -90,7 +90,7 @@ deux exécutions donnent la même extraction.
 
 Lit l'environnement une fois et expose les constantes utilisées par les clients LLM et les lecteurs d'articles. C'est le
 seul endroit qui définit les chemins de données : `DATA_DIR` (`backend/data`, ou `CTI_DATA_DIR`) et, dessous, la base SQLite
-(`SOURCE_ARTICLES_DB` = `sources/cti_knowledge.db`), les bundles (`BUNDLES_DIR`) et les évaluations (`EVAL_DIR`) ;
+(`SOURCE_ARTICLES_DB` = `sources/cti_knowledge.db`), les bundles (`BUNDLES_DIR`) ; les évaluations (`EVAL_DIR`) sont dans `backend/evaluation/eval/` ;
 `raw/` (pages scrapées) et `archive/` n'y sont pas lus. Pour l'extraction, URL et modèle du serveur vLLM/SGLang (`OPENAI_BASE_URL`,
 `LLM_MODEL`) et requêtes en vol (`LLM_SLOTS`) ; pour la classification, URL, modèle et contexte d'Ollama
 (`OLLAMA_NUM_CTX`). Il force aussi `NO_PROXY=localhost,127.0.0.1` pour que les tunnels ne passent jamais par un proxy.
@@ -101,7 +101,7 @@ modèle en attendant la fin des requêtes en cours.
 
 ---
 
-## `cti_core/` : moteur de nettoyage Rust
+## `preprocessing/cleaning/cti_core/` : moteur de nettoyage Rust
 
 Extension native (PyO3, construite par `maturin`) qui fait tout le travail déterministe sur le texte, en quelques
 millisecondes par article. Classe exposée : `CtiEngine`.
@@ -124,10 +124,10 @@ IOC défangés, code indenté, listes de CVE avec liens internes).
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `cleaner.py` | `UniversalCTICleaner`, façade Python de `cti_core`. Clé de source (`site_key`), apprentissage et stockage des gabarits dans la table `site_boilerplate`, contexte compact pour le classifieur (`build_classifier_context` : titre, prose utile, marqueurs de blocs de code et de tables). |
-| `cti_classifier.py` | CLI `cti-classifier`. Demande au lancement s'il faut réinitialiser les tables, réapprend les gabarits, puis traite par lots les articles non classés (ou en erreur) avec `CTI_CLASSIFIER_WORKERS` threads. Le LLM répond `{evidence, category, confidence}` sous schéma JSON ; catégories : `tactical`, `operational`, `strategic`, `out_of_scope`. Résultat dans `article_classifications`, avec le `clean_markdown` que lira l'extraction. Un nettoyage réussi est conservé même si l'appel au LLM échoue. |
-| `audit_classifier.py` | CLI `cti-audit` : interface Textual pour relire les classifications douteuses et saisir une catégorie humaine (`human_category`). |
-| `evaluate_cleaning.py` | Rapport qualité du nettoyage, sans LLM ni écriture : taux de conservation, fidélité des IOC (hachages, IP, CVE du brut présents dans le nettoyé), résidus de bruit, propriétés du découpage, fuite de gabarit sur une source inconnue (*leave-one-source-out*). À lancer avant d'ingérer une nouvelle source. |
+| `cleaning/cleaner.py` | `UniversalCTICleaner`, façade Python de `cti_core`. Clé de source (`site_key`), apprentissage et stockage des gabarits dans la table `site_boilerplate`, contexte compact pour le classifieur (`build_classifier_context` : titre, prose utile, marqueurs de blocs de code et de tables). |
+| `classifying/cti_classifier.py` | CLI `cti-classifier`. Demande au lancement s'il faut réinitialiser les tables, réapprend les gabarits, puis traite par lots les articles non classés (ou en erreur) avec `CTI_CLASSIFIER_WORKERS` threads. Le LLM répond `{evidence, category, confidence}` sous schéma JSON ; catégories : `tactical`, `operational`, `strategic`, `out_of_scope`. Résultat dans `article_classifications`, avec le `clean_markdown` que lira l'extraction. Un nettoyage réussi est conservé même si l'appel au LLM échoue. |
+| `classifying/audit_classifier.py` | CLI `cti-audit` : interface Textual pour relire les classifications douteuses et saisir une catégorie humaine (`human_category`). |
+| `classifying/evaluate_cleaning.py` | Rapport qualité du nettoyage, sans LLM ni écriture : taux de conservation, fidélité des IOC (hachages, IP, CVE du brut présents dans le nettoyé), résidus de bruit, propriétés du découpage, fuite de gabarit sur une source inconnue (*leave-one-source-out*). À lancer avant d'ingérer une nouvelle source. |
 
 L'extraction ne prend que les articles `is_processable = 1` dont la catégorie est `tactical`, `operational` ou
 `strategic`.
@@ -167,9 +167,9 @@ d'outils refuse l'étape 2 de la même façon : les techniques déjà valides so
 | Fichier | Rôle |
 | :--- | :--- |
 | `llm.py` | Client du serveur vLLM/SGLang (`/v1/chat/completions`). `generate` : un appel sous schéma JSON (`response_format`), JSON demandé sur une ligne, réponse tronquée récupérée élément par élément. `chat` : un tour de conversation avec outils. `map_parallel` : appels parallèles bornés par le sémaphore de slots. `try_generate` : variante qui renvoie une réponse par défaut honnête en cas d'échec (IOC : rôle `unknown`). Chaque résultat porte les tokens lus et générés comptés par le serveur. |
-| `text/segment.py` | Découpe le markdown nettoyé en **unités numérotées** (phrases ; blocs de code et tables gardés entiers, montrés en extrait) ; `render` produit le texte numéroté montré au modèle. |
+| `preprocessing/cleaning/text/segment.py` | Découpe le markdown nettoyé en **unités numérotées** (phrases ; blocs de code et tables gardés entiers, montrés en extrait) ; `render` produit le texte numéroté montré au modèle. |
 | `graph/draft.py` | **`DraftGraph`**, le brouillon vérifié de l'article, et les outils de recherche dans ATT&CK (`search_attack`, `get_attack`). `declare` crée une entité par sa classe `stix2` ; `relate` crée une relation et contrôle : couple de types permis par la table de relations STIX, identifiant ATT&CK existant en v20.0 (révoqué → remplaçant), phrases citées existantes qui nomment l'entité reliée (ou les trois phrases précédentes, ou le titre de section). Les techniques, groupes et logiciels connus d'ATT&CK sont les objets officiels de MITRE, pas des copies. |
-| `text/evidence.py` | Comparaison de noms normalisés, ancrage des preuves, confiance exprimée par l'auteur, analyse des dates. |
+| `preprocessing/cleaning/text/evidence.py` | Comparaison de noms normalisés, ancrage des preuves, confiance exprimée par l'auteur, analyse des dates. |
 | `graph/places.py` | Résout un nom de lieu (« Russia », « Russie », « Eastern Europe ») en code ISO 3166-1 ou en région du vocabulaire STIX `region-ov`. Un nom non résolu est refusé, jamais inventé. |
 | `observables/iocs.py` | IOC : valeurs candidates par règles (adresses, domaines, URL, courriels, hachages), filtres (adresses privées, domaines populaires, domaine de l'éditeur, extensions de fichier prises pour des TLD), regroupement par phrase ou section d'annexe, puis réponse fermée du modèle : rôle (`c2`, `payload-delivery`…) et entité de rattachement. Les IOC jugés non malveillants sont gardés dans le bundle avec `indicator_types: ["benign"]`, pas dans Neo4j. |
 | `observables/rules.py` | Règles de détection lues dans le markdown complet (pas dans les unités, qui fusionnent les espaces). YARA compilée par `libyara`, Sigma lue en YAML avec `title`, `logsource` et `detection.condition`. Une règle invalide n'est jamais réparée : elle est écartée avec sa raison. Le modèle choisit l'entité détectée. |
@@ -187,7 +187,7 @@ relations : source|relation|cible|numéros de phrases
 
 ---
 
-## `stix/` : objets STIX 2.1 et bases de référence
+## `extracting/stix/` : objets STIX 2.1 et bases de référence
 
 | Fichier | Rôle |
 | :--- | :--- |
@@ -196,10 +196,10 @@ relations : source|relation|cible|numéros de phrases
 | `iocs.py` | IOC en STIX : observable (`DomainName`, `IPv4Address`, `URL`, `File`…) ← `based-on` ← `Indicator` (motif assemblé par `stix2.patterns`) → `indicates` → entité ; un `Sighting` daté par article ; `Infrastructure` → `consists-of` → observables. Le statut (actif, vieillissant, périmé) n'est jamais stocké : il est calculé à la lecture avec la table `LIFETIMES` (par exemple, une adresse IP est « active » 30 jours après sa dernière observation et « périmée » après 180 ; valeurs heuristiques, non calibrées). |
 | `rules.py` | Une règle YARA ou Sigma devient un `Indicator` dont `pattern` est le texte exact de la règle et `pattern_type` son langage. Identifiant dérivé du langage et du texte. |
 
-Reconstruire l'index ATT&CK (bundle officiel attendu dans backend/stix/reference/ ou Annotations/) :
+Reconstruire l'index ATT&CK (bundle officiel attendu dans backend/extracting/stix/reference/ ou Annotations/) :
 
 ```bash
-uv run python -m backend.stix.attack [chemin/enterprise-attack-20.0.json]
+uv run python -m backend.extracting.stix.attack [chemin/enterprise-attack-20.0.json]
 ```
 
 ---
@@ -234,7 +234,7 @@ Le dossier `Annotations/` contient des articles annotés à la main en STIX (`*_
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `cti_eval.py` | CLI `cti-eval`. `--run` extrait les articles du manifeste (`--workers N` articles à la fois), sinon re-score les bundles de `--bundles` (défaut : `backend/data/eval/latest`). Écrit `runs.json` (durées, appels par étape, échecs), `report.json` et `report.md` dans le dossier des bundles. |
+| `cti_eval.py` | CLI `cti-eval`. `--run` extrait les articles du manifeste (`--workers N` articles à la fois), sinon re-score les bundles de `--bundles` (défaut : `backend/evaluation/eval/latest`). Écrit `runs.json` (durées, appels par étape, échecs), `report.json` et `report.md` dans le dossier des bundles. |
 | `score.py` | Méthode de score décrite ci-dessous. |
 
 - **Rappel** (métrique principale) = objets `required` trouvés / total `required`.
