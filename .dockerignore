@@ -8,12 +8,12 @@ build/
 dist/
 wheels/
 *.egg-info
-db_outputs/
+backend/data/
 *.db
 *.db-shm
 *.db-wal
-cti_core/target/
-cti_core/cargo.lock
+backend/preprocessing/cleaning/cti_core/target/
+backend/preprocessing/cleaning/cti_core/cargo.lock
 neo4j_data/
 neo4j_logs/
 neo4j_plugins/

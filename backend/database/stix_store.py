@@ -1,6 +1,6 @@
 """Persistance Neo4j des objets STIX 2.1 extraits.
 
-Modèle de propriétés (objets créés par `stix2`, voir `backend/stix/`) :
+Modèle de propriétés (objets créés par `stix2`, voir `backend/extracting/stix/`) :
 - chaque objet STIX est un nœud `(:Stix:<Type>)` identifié par son `id` STIX déterministe, donc ré-extraire le même
   fait met à jour le même nœud : le graphe ne se fragmente pas d'un article à l'autre ;
 - chaque relation STIX est une arête typée `(:Stix)-[:USES]->(:Stix)` portant `confidence`, `description` et une
@@ -9,17 +9,14 @@ Modèle de propriétés (objets créés par `stix2`, voir `backend/stix/`) :
 
 Provenance : `article_ids` liste les articles qui ont établi un nœud ou une arête. Retirer un article
 (`purge_article`) ne supprime que ce qu'aucun autre article n'étaye.
-
-Les labels `Stix`, `ThreatActor`, `IntrusionSet`… sont distincts de ceux de l'ancien graphe (`Entity`, `Article`) : les
-deux modèles coexistent sans collision tant que le tableau de bord n'a pas migré.
 """
 
 import json
 import re
 from typing import Any
 
-from backend.stix.iocs import HASH_PRIORITY, IOC_OBJECT_TYPES
-from backend.stix.rules import RULE_KINDS
+from backend.extracting.stix.iocs import HASH_PRIORITY, IOC_OBJECT_TYPES
+from backend.extracting.stix.rules import RULE_KINDS
 
 from .neo4j_store import Neo4jStore
 
@@ -196,8 +193,10 @@ class StixStore:
 
     # --- lecture ----------------------------------------------------------------------------------------------------
     def extracted_article_ids(self) -> set[int]:
+        """Articles extraits en entier : un article dont une étape LLM a échoué (`llm_failures` > 0) sera repris."""
+        query = "MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL AND coalesce(r.llm_failures, 0) = 0 RETURN r.source_id AS id"
         with self.driver.session() as session:
-            return {r["id"] for r in session.run("MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL RETURN r.source_id AS id")}
+            return {r["id"] for r in session.run(query)}
 
     def stats(self) -> dict[str, Any]:
         with self.driver.session() as session:

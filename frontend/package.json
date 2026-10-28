@@ -3,7 +3,7 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "description": "Interface du Knowledge Graph CTI : React, Tailwind CSS et React Flow, servie par backend/server.py",
+  "description": "Interface du Knowledge Graph CTI : React, Tailwind CSS et React Flow, servie par backend/dashboard/server.py",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

@@ -1,11 +1,8 @@
 """Évaluation de l'extraction contre les articles annotés à la main (Annotations/manifest.json).
 
-    uv run cti-eval --run                          # extrait les articles annotés avec l'agent, puis score
-    uv run cti-eval --system fast --run            # même chose avec l'extraction rapide (fast_extract), dans db_outputs/eval/fast
-    uv run cti-eval --bundles db_outputs/eval/agent   # score des bundles déjà produits, sans appel au modèle
-
-Avec un serveur SGLang/vLLM (CTI_LLM_BACKEND=openai, tunnel vers CTI_OPENAI_URL) les articles s'extraient en parallèle :
-    CTI_LLM_BACKEND=openai uv run cti-eval --system fast --run --workers 4 --bundles db_outputs/eval/fast_sglang
+    uv run cti-eval --run --workers 4                  # extrait les articles annotés (4 à la fois), puis score
+    uv run cti-eval --run --bundles backend/evaluation/eval/<nom>   # même chose, dans un dossier nommé (comparer deux versions)
+    uv run cti-eval --bundles backend/evaluation/eval/<nom>         # score des bundles déjà produits, sans appel au modèle
 
 Chaque exécution écrit dans le dossier des bundles : `report.json` (scores, manques, prédictions à revoir) et `report.md`.
 La méthode de score est celle de `score.py` (rappel principal, précision, crédit partiel, hallucinations, ancrage).
@@ -16,21 +13,20 @@ import json
 import sys
 import time
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 root_dir = Path(__file__).resolve().parents[2]
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-from backend.config import SOURCE_ARTICLES_DB  # noqa: E402
+from backend.config import EVAL_DIR, SOURCE_ARTICLES_DB  # noqa: E402
 from backend.evaluation.score import ArticleScore, score_article, total  # noqa: E402
 
 MANIFEST = root_dir / "Annotations" / "manifest.json"
-EVAL_DIR = root_dir / "db_outputs" / "eval"
 
 console = Console()
 
@@ -42,7 +38,7 @@ def load_manifest(path: Path = MANIFEST) -> list[dict]:
 
 def fetch_article(article_id: int) -> dict:
     """Article et classification, sans les filtres d'éligibilité de l'extraction (le gold peut porter sur tout article)."""
-    from backend.extracting.stix_agent import read_articles
+    from backend.extracting.cli import read_articles
 
     rows = read_articles("k.id = ?", [article_id])
     if not rows:
@@ -50,34 +46,29 @@ def fetch_article(article_id: int) -> dict:
     return rows[0]
 
 
-def run_agent(art: dict, out_dir: Path, system: str = "agent") -> dict:
-    """Extrait un article (agent ou extraction rapide), sans Neo4j ; le bundle est écrit dans `out_dir/article_<id>.json`."""
-    from backend.extracting.stix_agent import process_article
-
-    t0 = time.perf_counter()
-    result = process_article(art, out_dir=out_dir, fast=system == "fast", closed=system == "closed", oneshot=system == "oneshot")
+def run_entry(out) -> dict:
+    """Ligne de `runs.json` d'un article extrait (`runner.Outcome`)."""
+    result = out.result
     return {
-        "seconds": round(time.perf_counter() - t0, 1), "output_tokens": result.output_tokens, "llm_calls": len(result.turns),
-        "calls_by_stage": dict(Counter(name for t in result.turns for name in t.tool_calls)), "failed_passages": result.failed_passages,
+        "seconds": round(out.seconds, 1), "output_tokens": result.output_tokens, "llm_calls": len(result.calls),
+        "calls_by_stage": dict(Counter(c.stage for c in result.calls)), "failures": result.failures,
     }  # fmt: skip
 
 
-def run_all(arts: list[dict], out_dir: Path, system: str, workers: int, runs: dict) -> float:
-    """Extrait les articles, `workers` à la fois (le serveur groupe leurs requêtes ; Ollama, lui, les traite l'une après l'autre).
+def run_all(arts: list[dict], out_dir: Path, workers: int, runs: dict) -> float:
+    """Extrait les articles, `workers` à la fois (le serveur groupe leurs requêtes), sans Neo4j.
     Un article échoué est signalé et laissé sans bundle. Retourne la durée totale, celle que voit l'utilisateur."""
-    out_dir.mkdir(parents=True, exist_ok=True)
+    from backend.extracting.runner import run_batch, write_atomic
+
     t0 = time.perf_counter()
-    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        futures = {pool.submit(run_agent, art, out_dir, system): art for art in arts}
-        for future in as_completed(futures):
-            art = futures[future]
-            try:
-                runs[art["id"]] = future.result()
-            except Exception as exc:  # noqa: BLE001 : un article perdu n'arrête pas les autres
-                console.print(f"[red]Échec[/] article {art['id']} : {type(exc).__name__}: {exc}")
-                continue
-            console.print(f"[bold]Extrait[/] article {art['id']} — {art['title']} ({runs[art['id']]['seconds']} s)")
-            (out_dir / "runs.json").write_text(json.dumps(runs, indent=1), encoding="utf-8")
+    for out in run_batch(arts, out_dir, workers):
+        if out.error:
+            console.print(f"[red]Échec[/] article {out.art['id']} : {escape(out.error)}")
+            console.print(out.trace, style="dim", markup=False, highlight=False)
+            continue
+        runs[out.art["id"]] = run_entry(out)
+        console.print(f"[bold]Extrait[/] article {out.art['id']} — {escape(out.art['title'] or '')} ({runs[out.art['id']]['seconds']} s)")
+        write_atomic(out_dir / "runs.json", json.dumps(runs, indent=1))
     return time.perf_counter() - t0
 
 
@@ -141,14 +132,13 @@ def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs
 def main() -> None:
     parser = argparse.ArgumentParser(description="Évaluation de l'extraction contre les articles annotés")
     parser.add_argument("--run", action="store_true", help="Extrait d'abord les articles annotés (appels au modèle)")
-    parser.add_argument("--system", choices=("agent", "fast", "closed", "oneshot"), default="agent", help="Extracteur lancé par --run")
-    parser.add_argument("--bundles", type=Path, help="Dossier des bundles prédits (défaut : db_outputs/eval/<système>)")
+    parser.add_argument("--bundles", type=Path, default=EVAL_DIR / "latest", help="Dossier des bundles prédits (défaut : backend/evaluation/eval/latest)")
     parser.add_argument("--article-id", type=int, action="append", help="Limiter à ces articles (option répétable)")
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
-    parser.add_argument("--workers", type=int, default=1, help="Articles extraits en même temps (utile avec CTI_LLM_BACKEND=openai ; Ollama traite une requête à la fois)")
+    parser.add_argument("--workers", type=int, default=1, help="Articles extraits en même temps")
     args = parser.parse_args()
 
-    out_dir = args.bundles or EVAL_DIR / args.system
+    out_dir = args.bundles
     entries = [a for a in load_manifest(args.manifest) if not args.article_id or a["article_id"] in args.article_id]
     runs_file = out_dir / "runs.json"
     runs: dict[int, dict] = {int(k): v for k, v in json.loads(runs_file.read_text()).items()} if runs_file.exists() else {}
@@ -157,7 +147,7 @@ def main() -> None:
     if args.run:
         for art in arts.values():
             console.print(f"[bold]Extraction[/] article {art['id']} — {art['title']}")
-        wall = run_all(list(arts.values()), out_dir, args.system, args.workers, runs)
+        wall = run_all(list(arts.values()), out_dir, args.workers, runs)
     scores = []
     for entry in entries:
         art = arts[entry["article_id"]]

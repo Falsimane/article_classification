@@ -8,15 +8,12 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "ioc-finder>=9.4.1",
     "json-repair>=0.64.0",
     "maturin>=1.15.0",
     "requests>=2.34.2",
     "rich>=15.0.0",
     "textual>=8.2.8",
     "cti-core",
-    "rdflib>=7.6.0",
-    "pydantic>=2.14.1",
     "neo4j>=6.4.1",
     "stix2>=3.0.2",
     "yara-python>=4.5.4",
@@ -24,14 +21,14 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-cti-core = { path = "backend/cti_core", editable = true }
+cti-core = { path = "backend/preprocessing/cleaning/cti_core", editable = true }
 
 [project.scripts]
-cti-classifier = "backend.preprocessing.cti_classifier:main"
-cti-agent = "backend.extracting.stix_agent:main"
+cti-classifier = "backend.preprocessing.classifying.cti_classifier:main"
+cti-extract = "backend.extracting.cli:main"
 cti-eval = "backend.evaluation.cti_eval:main"
-cti-dashboard = "backend.server:main"
-cti-audit = "backend.preprocessing.audit_classifier:main"
+cti-dashboard = "backend.dashboard.server:main"
+cti-audit = "backend.preprocessing.classifying.audit_classifier:main"
 
 [build-system]
 requires = ["hatchling"]
