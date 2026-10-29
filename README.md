@@ -54,7 +54,7 @@ mesurer rappel, précision et hallucinations de l'extraction.
 │   ├── database/            #   persistance Neo4j
 │   ├── evaluation/          #   score contre le gold annoté ; eval/ (hors git) : un dossier par exécution de cti-eval
 │   ├── dashboard/           #   serveur HTTP (API REST + build du frontend), graphe Neo4j → JSON pour l'interface
-│   └── data/                #   données hors git : sources/ (SQLite), bundles/, raw/, archive/ (CTI_DATA_DIR)
+│   └── data/                #   données hors git : sources/ (SQLite), bundles/, raw/, cleaned/ (CTI_DATA_DIR)
 ├── frontend/                # React 18 + TypeScript + Tailwind + React Flow 12 (Vite)                 → frontend/README.md
 ├── Annotations/             # articles annotés à la main (gold STIX), manifest.json, méthode d'annotation
 ├── scripts/dashboard.sh     # build du frontend si besoin + lancement du serveur

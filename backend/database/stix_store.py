@@ -9,11 +9,17 @@ Modèle de propriétés (objets créés par `stix2`, voir `backend/extracting/st
 
 Provenance : `article_ids` liste les articles qui ont établi un nœud ou une arête. Retirer un article
 (`purge_article`) ne supprime que ce qu'aucun autre article n'étaye.
+
+Suppression (`delete_article`, depuis le tableau de bord) : la contribution est retirée comme ci-dessus et l'article est
+marqué `(:DeletedArticle {source_id})`, hors du graphe STIX ; `cti-extract` ne le reprend plus, sauf demandé par
+`--article-id` ou `--force` (une nouvelle extraction efface la marque).
 """
 
 import json
 import re
 from typing import Any
+
+from neo4j import unit_of_work
 
 from backend.extracting.stix.iocs import HASH_PRIORITY, IOC_OBJECT_TYPES
 from backend.extracting.stix.rules import RULE_KINDS
@@ -101,6 +107,7 @@ class StixStore:
         return {"nodes": len(nodes), "edges": len(edges)}
 
     def _replace(self, tx, nodes: list[dict], edges: list[dict], article_id: int, report: dict, publisher_id: str, meta: dict) -> None:
+        tx.run("MATCH (d:DeletedArticle {source_id: $a}) DELETE d", a=article_id)  # ré-extraction demandée d'un article supprimé
         if tx.run("MATCH (r:Stix:Report {source_id: $a}) RETURN count(r) > 0 AS seen", a=article_id).single()["seen"]:
             self._purge(tx, article_id)
         self._write(tx, nodes, edges, article_id, report, publisher_id, meta)
@@ -154,7 +161,12 @@ class StixStore:
             props = to_neo4j_properties({k: v for k, v in edge.items() if k not in ("created_by_ref", "object_marking_refs")})
             props.pop("relationship_type", None)
             props.pop("external_references_json", None)  # les preuves sont portées par `evidence`
-            evidence = [json.dumps({"article": article_id, "quote": ref.get("description", "")}, ensure_ascii=False) for ref in edge.get("external_references", [])]
+            # La procédure (description d'un « uses » vers une technique) est propre à l'article : gardée avec ses preuves
+            procedure = edge.get("description") if edge["relationship_type"] == "uses" and edge["target_ref"].startswith("attack-pattern--") else None
+            evidence = [
+                json.dumps({"article": article_id, "quote": ref.get("description", ""), **({"procedure": procedure} if procedure else {})}, ensure_ascii=False)
+                for ref in edge.get("external_references", [])
+            ]
             by_type.setdefault(_safe(neo4j_relationship_type(edge["relationship_type"])), []).append(
                 {"id": edge["id"], "src": edge["source_ref"], "dst": edge["target_ref"], "props": props, "evidence": evidence, "article": article_id}
             )
@@ -191,12 +203,33 @@ class StixStore:
         ).single()["n"]
         return {"edges_deleted": rels, "nodes_deleted": nodes}
 
+    def delete_article(self, article_id: int) -> dict[str, int] | None:
+        """Supprime un article du graphe : sa contribution (acteurs, malwares, relations… qu'aucun autre article n'étaye) et son
+        rapport, puis le marque supprimé pour que `cti-extract` ne le reprenne pas. None si l'article n'est pas dans le graphe."""
+        with self.driver.session() as session:
+            return session.execute_write(self._delete, article_id)
+
+    @staticmethod
+    @unit_of_work(timeout=60.0)  # appelé par une requête HTTP : la transaction ne garde pas ses verrous indéfiniment
+    def _delete(tx, article_id: int) -> dict[str, int] | None:
+        if not tx.run("MATCH (r:Stix:Report {source_id: $a}) RETURN count(r) > 0 AS seen", a=article_id).single()["seen"]:
+            return None
+        counts = StixStore._purge(tx, article_id)
+        tx.run("MATCH (r:Stix:Report {source_id: $a}) DETACH DELETE r", a=article_id)  # un rapport sans `article_ids` (ancien format)
+        tx.run("MERGE (d:DeletedArticle {source_id: $a}) SET d.deleted_at = datetime()", a=article_id)
+        return counts
+
     # --- lecture ----------------------------------------------------------------------------------------------------
     def extracted_article_ids(self) -> set[int]:
         """Articles extraits en entier : un article dont une étape LLM a échoué (`llm_failures` > 0) sera repris."""
         query = "MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL AND coalesce(r.llm_failures, 0) = 0 RETURN r.source_id AS id"
         with self.driver.session() as session:
             return {r["id"] for r in session.run(query)}
+
+    def deleted_article_ids(self) -> set[int]:
+        """Articles supprimés depuis le tableau de bord : `cti-extract` les saute."""
+        with self.driver.session() as session:
+            return {r["id"] for r in session.run("MATCH (d:DeletedArticle) RETURN d.source_id AS id")}
 
     def stats(self) -> dict[str, Any]:
         with self.driver.session() as session:
@@ -258,9 +291,10 @@ class StixStore:
         return {"nodes": nodes, "edges": edges, "reports": reports, "lolbins": lolbins, "iocs": iocs}
 
     def actors(self) -> list[dict]:
-        """Acteurs, ensembles d'intrusion et campagnes de tous les articles, du plus relié au moins relié."""
+        """Candidats à l'onglet Acteurs (threat-actor et intrusion-set) de tous les articles, du plus relié au moins relié ;
+        `stix_dashboard.has_profile` retient ceux qui ont un profil."""
         query = """
-            MATCH (a:Stix) WHERE a.type IN ['threat-actor', 'intrusion-set', 'campaign']
+            MATCH (a:Stix) WHERE a.type IN ['threat-actor', 'intrusion-set']
             OPTIONAL MATCH (a)-[x]-(:Stix) WHERE x.id IS NOT NULL
             WITH a, count(DISTINCT x) AS relations
             OPTIONAL MATCH (r:Stix:Report)-[:OBJECT_REF]->(a)

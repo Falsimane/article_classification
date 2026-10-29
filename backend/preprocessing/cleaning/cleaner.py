@@ -1,5 +1,8 @@
+from collections import Counter
 from pathlib import Path
+import hashlib
 import json
+import math
 import re
 import sqlite3
 from urllib.parse import urlparse
@@ -7,7 +10,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 import cti_core
 
-from backend.config import SOURCE_ARTICLES_DB as DB_PATH
+from backend.config import CLEANED_DIR, HTML_PAGES_DIR, SOURCE_ARTICLES_DB as DB_PATH
 
 # Phases d'intrusion reconnues dans les titres de sections (sémantique : côté Python uniquement).
 KNOWN_PHASES = {
@@ -37,10 +40,14 @@ KNOWN_PHASES = {
 }
 _PHASE_PATTERNS = [(re.compile(r"(?<!\w)" + re.escape(k) + r"(?!\w)"), v) for k, v in KNOWN_PHASES.items()]
 
-# Apprentissage du gabarit de chaque site : une ligne en fenêtre tête/queue, présente dans >= 40 % des
-# articles d'un même éditeur (et au moins 5 articles), est du boilerplate (menu, bannière, CTA, pied de page).
+# Apprentissage du gabarit de chaque site : le texte d'un bloc feuille du DOM présent dans >= 40 % des pages d'un même
+# éditeur (et au moins 5 pages) est du boilerplate (menu, bannière, CTA, pied de page). Une phrase entière (>= 6 mots)
+# reprise mot pour mot dans 15 % des articles l'est aussi (encart promotionnel d'une période, « contactez-nous ») ; un
+# texte plus court peut être un intitulé de section (« Indicators of compromise ») et garde le seuil de 40 %.
 BOILERPLATE_MIN_DOCS = 5
 BOILERPLATE_MIN_RATIO = 0.4
+BOILERPLATE_SENTENCE_RATIO = 0.15
+BOILERPLATE_SENTENCE_WORDS = 6
 
 def site_key(site_name: Optional[str], url: Optional[str] = None) -> Optional[str]:
     """Clé d'une source : `site_name` si connu, sinon le domaine de l'URL (nouvelle source sans métadonnée)."""
@@ -53,6 +60,44 @@ def site_key(site_name: Optional[str], url: Optional[str] = None) -> Optional[st
     return None
 
 
+def page_id(url: str) -> str:
+    """Nom de fichier d'un article, commun à sa page HTML et à son texte nettoyé."""
+    return hashlib.sha1(url.encode()).hexdigest()[:16]
+
+
+def html_path(site_name: Optional[str], url: str, pages_dir: Path = HTML_PAGES_DIR) -> Optional[Path]:
+    """Page HTML brute d'un article : `<site_name>/<sha1(url)[:16]>.html`, cherchée dans tous les sites si besoin."""
+    name = page_id(url) + ".html"
+    if site_name:
+        path = pages_dir / site_name / name
+        if path.is_file():
+            return path
+    return next(pages_dir.glob(f"*/{name}"), None)
+
+
+def load_html(site_name: Optional[str], url: str) -> Optional[str]:
+    path = html_path(site_name, url) if url else None
+    return path.read_text(encoding="utf-8", errors="replace") if path else None
+
+
+def cleaned_path(site_name: Optional[str], url: str, cleaned_dir: Path = CLEANED_DIR) -> Path:
+    """Copie lisible du texte nettoyé d'un article : `<site_name>/<sha1(url)[:16]>.md`, à côté du nom de sa page HTML. La source
+    est `article_classifications.clean_markdown` : l'antivirus du poste peut mettre une copie en quarantaine."""
+    return cleaned_dir / (site_key(site_name, url) or "_") / f"{page_id(url)}.md"
+
+
+def save_cleaned(site_name: Optional[str], url: str, text: Optional[str]) -> None:
+    """Écrit le texte nettoyé (écriture atomique) ; None ou vide retire le fichier d'un article devenu non exploitable."""
+    path = cleaned_path(site_name, url)
+    if not text:
+        path.unlink(missing_ok=True)
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".md.tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
 class UniversalCTICleaner:
     """Wrapper Python appelant le moteur déterministe Rust cti_core et gérant la préparation pour le LLM."""
 
@@ -63,24 +108,24 @@ class UniversalCTICleaner:
     @classmethod
     def process(
         cls,
-        raw_markdown: str,
+        html: str,
         site_name: Optional[str] = None,
         source_url: Optional[str] = None,
     ) -> cti_core.PreprocessingResult:
-        """Exécute la dé-neutralisation, le nettoyage anti-bruit et la segmentation en Rust.
+        """Page HTML brute -> Markdown canonique nettoyé (dé-neutralisé, sans gabarit) et ses sections, en Rust.
 
         `site_name` active le gabarit appris pour l'éditeur ; `source_url` sert à reconnaître
         ses liens internes (navigation) et à les distinguer des références externes.
         """
         key = site_key(site_name, source_url)
         boilerplate = cls.get_boilerplate(key) if key else None
-        return cls._engine.process_article(raw_markdown or "", boilerplate or None, source_url)
+        return cls._engine.process_html(html or "", boilerplate or None, source_url)
 
     @classmethod
     def get_boilerplate(cls, site_name: str) -> List[str]:
-        """Gabarit appris pour cette source (vide tant qu'elle a moins de BOILERPLATE_MIN_DOCS articles)."""
+        """Gabarit appris pour cette source (vide tant qu'elle a moins de BOILERPLATE_MIN_DOCS pages)."""
         if site_name not in cls._boilerplate_cache:
-            lines: List[str] = []
+            keys: List[str] = []
             try:
                 with sqlite3.connect(DB_PATH, timeout=30.0) as conn:
                     conn.execute("PRAGMA journal_mode=WAL;")
@@ -88,17 +133,41 @@ class UniversalCTICleaner:
                         "SELECT lines_json FROM site_boilerplate WHERE site_name = ?", (site_name,)
                     ).fetchone()
                     if row:
-                        lines = json.loads(row[0])
+                        keys = json.loads(row[0])
             except sqlite3.OperationalError:
                 pass  # table pas encore créée : aucun gabarit appris
-            cls._boilerplate_cache[site_name] = lines
+            cls._boilerplate_cache[site_name] = keys
         return cls._boilerplate_cache[site_name]
 
     @classmethod
-    def learn_site_boilerplate(cls, db_path: Path = DB_PATH) -> Dict[str, Tuple[int, int]]:
-        """(Ré)apprend le gabarit de chaque site depuis la table `knowledge` et le persiste.
+    def template_counts(cls, rows) -> Dict[str, Tuple[int, Counter]]:
+        """{site: (nb de pages, nb de pages où figure chaque clé de gabarit)} pour des lignes (site_name, url)."""
+        by_site: Dict[str, Tuple[int, Counter]] = {}
+        for site, url in rows:
+            key = site_key(site, url)
+            html = load_html(site, url) if key else None
+            if html is None:
+                continue
+            n, counts = by_site.get(key, (0, Counter()))
+            counts.update(cls._engine.html_template_keys(html))
+            by_site[key] = (n + 1, counts)
+        return by_site
 
-        Retourne {site_name: (nb_articles, nb_lignes_de_gabarit)}.
+    @staticmethod
+    def frequent_keys(n_docs: int, counts: Counter) -> List[str]:
+        """Clés présentes dans assez de pages du site (voir BOILERPLATE_*)."""
+        threshold = max(BOILERPLATE_MIN_DOCS, math.ceil(BOILERPLATE_MIN_RATIO * n_docs))
+        sentence = max(BOILERPLATE_MIN_DOCS, math.ceil(BOILERPLATE_SENTENCE_RATIO * n_docs))
+        return sorted(
+            k for k, c in counts.items()
+            if c >= threshold or (c >= sentence and len(k.split()) >= BOILERPLATE_SENTENCE_WORDS)
+        )
+
+    @classmethod
+    def learn_site_boilerplate(cls, db_path: Path = DB_PATH) -> Dict[str, Tuple[int, int]]:
+        """(Ré)apprend le gabarit de chaque site depuis les pages HTML des articles de `knowledge` et le persiste.
+
+        Retourne {site_name: (nb_pages, nb_clés_de_gabarit)}.
         """
         stats: Dict[str, Tuple[int, int]] = {}
         with sqlite3.connect(db_path, timeout=30.0) as conn:
@@ -113,41 +182,17 @@ class UniversalCTICleaner:
                 );
                 """
             )
-            by_site: Dict[str, List[str]] = {}
-            for site, url, content in conn.execute(
-                "SELECT site_name, url, content FROM knowledge WHERE content IS NOT NULL ORDER BY id"
-            ):
-                key = site_key(site, url)
-                if key:
-                    by_site.setdefault(key, []).append(content)
-
-            def store(key: str, n_docs: int, lines: List[str]) -> None:
+            rows = conn.execute("SELECT site_name, url FROM knowledge WHERE url IS NOT NULL ORDER BY id").fetchall()
+            for key, (n_docs, counts) in cls.template_counts(rows).items():
+                keys = cls.frequent_keys(n_docs, counts)
                 conn.execute(
                     "INSERT OR REPLACE INTO site_boilerplate (site_name, n_docs, lines_json) VALUES (?, ?, ?)",
-                    (key, n_docs, json.dumps(lines, ensure_ascii=False)),
+                    (key, n_docs, json.dumps(keys, ensure_ascii=False)),
                 )
-                stats[key] = (n_docs, len(lines))
-
-            for key, docs in by_site.items():
-                store(key, len(docs), cls._engine.learn_boilerplate(docs, BOILERPLATE_MIN_DOCS, BOILERPLATE_MIN_RATIO))
-
+                stats[key] = (n_docs, len(keys))
             conn.commit()
         cls._boilerplate_cache.clear()
         return stats
-
-    @classmethod
-    def refang(cls, text: str) -> str:
-        """Dé-neutralise une chaîne de caractères via Rust."""
-        if not text:
-            return ""
-        return cls._engine.refang(text)
-
-    @classmethod
-    def check_viability(cls, raw_markdown: str) -> Tuple[bool, str | None]:
-        """Vérifie en amont si l'article est viable (fast-reject)."""
-        if not raw_markdown:
-            return False, "Article vide (0 caractère)"
-        return cls._engine.check_viability(raw_markdown)
 
     @classmethod
     def get_sections_metadata(cls, prep_result: cti_core.PreprocessingResult) -> List[Dict[str, Any]]:

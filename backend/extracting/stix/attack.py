@@ -10,7 +10,9 @@ et le bundle de l'article le contient tel que MITRE le publie.
 `stix2` n'offre pas de recherche plein texte (et `MemoryStore.related_to` prend ~8 s sur ce bundle) : la recherche d'une
 technique à partir d'un comportement passe par SQLite FTS5. Classement : fusion des rangs (RRF) de deux recherches BM25,
 l'une sur le nom et la description des techniques, l'autre sur leurs 17 636 exemples de procédures (« APT29 used
-systeminfo to… »), meilleur pont lexical entre un article et ATT&CK.
+systeminfo to… »), meilleur pont lexical entre un article et ATT&CK. Chaque procédure garde la clé des rapports qu'elle cite
+(`report_key`) : l'extraction d'un article écarte celles qui en sont tirées, sans quoi la recherche retrouverait une paraphrase
+de l'article lui-même (un rapport neuf n'est pas encore dans ATT&CK).
 """
 
 import json
@@ -44,6 +46,7 @@ _STOPWORDS = frozenset(
     "might will would such other another some any all each both more most not no".split()
 )
 _ID = re.compile(r"^(T\d{4}(?:\.\d{3})?|TA\d{4}|G\d{4}|S\d{4}|C\d{4}|M\d{4})$", re.I)
+_DROPPED = frozenset({"description", "created_by_ref", "object_marking_refs"})  # propriétés d'un objet ATT&CK non reprises
 _TYPES = ("attack-pattern", "intrusion-set", "malware", "tool", "campaign", "x-mitre-tactic", "course-of-action")
 
 
@@ -66,6 +69,18 @@ def fts_query(text: str) -> str:
     """Requête FTS5 sûre : mots du texte (sans mots vides) reliés par OR, chacun entre guillemets."""
     words = [w for w in re.findall(r"[a-z0-9]+", (text or "").casefold()) if len(w) > 1 and w not in _STOPWORDS]
     return " OR ".join(f'"{w}"' for w in dict.fromkeys(words))
+
+
+def report_key(url: str | None) -> str | None:
+    """Clé d'un rapport tirée de son URL, stable entre ses copies (http/https, www, langue, barre finale, extension) : le dernier
+    segment significatif du chemin (« scattered-spider-attempts-to-avoid-detection… »), sinon l'hôte et le chemin."""
+    url = re.sub(r"^[a-z]+://(www\.)?", "", (url or "").strip().lower()).split("?")[0].split("#")[0].rstrip("/")
+    if not url:
+        return None
+    host, _, path = url.partition("/")
+    parts = [re.sub(r"\.(html?|php|aspx?|pdf)$", "", p) for p in path.split("/") if p]
+    parts = [p for p in parts if not re.fullmatch(r"[a-z]{2}(-[a-z]{2})?|blogs?|posts?|\d+|index", p)]
+    return parts[-1] if parts and len(parts[-1]) >= 12 else f"{host}/{'/'.join(parts)}"
 
 
 def attack_id(obj) -> str | None:
@@ -96,7 +111,7 @@ CREATE INDEX names_norm ON names(norm);
 CREATE TABLE uses(source_id TEXT, target_id TEXT);
 CREATE INDEX uses_source ON uses(source_id);
 CREATE VIRTUAL TABLE tech_fts USING fts5(attack_id UNINDEXED, name, description, tokenize='porter unicode61');
-CREATE VIRTUAL TABLE proc_fts USING fts5(attack_id UNINDEXED, text, tokenize='porter unicode61');
+CREATE VIRTUAL TABLE proc_fts USING fts5(attack_id UNINDEXED, sources UNINDEXED, text, tokenize='porter unicode61');
 """
 
 
@@ -168,7 +183,8 @@ def build_index(store: MemoryStore, out: Path = INDEX_FILE) -> dict:
             # le nom de l'auteur de la procédure n'aide pas à reconnaître la technique : il est retiré
             for label in {src["name"], *(src.get("aliases", []) or []), *(src.get("x_mitre_aliases", []) or [])}:
                 text = re.sub(rf"\b{re.escape(label)}\b", "", text)
-            db.execute("INSERT INTO proc_fts VALUES (?, ?)", (attack_id(dst), text))
+            sources = " ".join(filter(None, {report_key(ref.get("url")) for ref in r.get("external_references", []) or []}))
+            db.execute("INSERT INTO proc_fts VALUES (?, ?, ?)", (attack_id(dst), sources, text))
             n_proc += 1
     counts["procedures"] = n_proc
     db.commit()
@@ -220,9 +236,15 @@ class AttackKB:
         return out
 
     def stix_object(self, attack_id: str):
-        """L'objet ATT&CK officiel, tel que MITRE le publie, rendu par `stix2.parse` (propriétés `x_mitre_*` comprises)."""
+        """L'objet ATT&CK de MITRE (même identifiant) réduit à ce qu'un rapport en retient : nom, alias, tactiques et la référence
+        `mitre-attack` (identifiant, page). La description, les dizaines de sources qu'elle cite, l'auteur, le marquage et les
+        propriétés `x_mitre_*` (sauf les alias) restent dans ATT&CK."""
         row = self._db().execute("SELECT stix FROM objects WHERE attack_id = ?", ((attack_id or "").strip().upper(),)).fetchone()
-        return parse(row[0], allow_custom=True) if row else None
+        if row is None:
+            return None
+        data = {k: v for k, v in json.loads(row[0]).items() if k not in _DROPPED and (not k.startswith("x_mitre_") or k == "x_mitre_aliases")}
+        data["external_references"] = [r for r in data.get("external_references", []) if r.get("source_name") == "mitre-attack"]
+        return parse(data, allow_custom=True)
 
     def support_objects(self, refs: set[str]) -> list:
         """Objets que référencent les objets ATT&CK cités (identité de MITRE, marquage), par `stix2.parse`."""
@@ -252,9 +274,10 @@ class AttackKB:
         hits = [h for h in hits if h and h["type"] in types]
         return sorted(hits, key=lambda h: (h["status"] != "active", h["attack_id"]))
 
-    def search_techniques(self, query: str, tactic: str | None = None, limit: int = 8) -> list[TechniqueHit]:
+    def search_techniques(self, query: str, tactic: str | None = None, limit: int = 8, exclude_source: str | None = None) -> list[TechniqueHit]:
         """Techniques actives qui correspondent le mieux à une description de comportement. `tactic` restreint aux
-        techniques de cette tactique (nom court ATT&CK : « discovery », « command-and-control »…)."""
+        techniques de cette tactique (nom court ATT&CK : « discovery », « command-and-control »…) ; `exclude_source` (clé
+        `report_key` de l'article analysé) écarte les procédures tirées de ce rapport."""
         query = (query or "").strip()
         if _ID.match(query):
             obj = self.get(query)
@@ -268,7 +291,9 @@ class AttackKB:
             "SELECT attack_id FROM tech_fts WHERE tech_fts MATCH ? ORDER BY bm25(tech_fts, 0, 8.0, 1.0) LIMIT ?", (match, pool)
         )]  # fmt: skip
         proc: list[str] = []
-        for (tid,) in db.execute("SELECT attack_id FROM proc_fts WHERE proc_fts MATCH ? ORDER BY rank LIMIT ?", (match, pool * 8)):
+        for tid, sources in db.execute("SELECT attack_id, sources FROM proc_fts WHERE proc_fts MATCH ? ORDER BY rank LIMIT ?", (match, pool * 8)):
+            if exclude_source and exclude_source in sources.split():
+                continue
             if tid not in proc:
                 proc.append(tid)
             if len(proc) >= pool:

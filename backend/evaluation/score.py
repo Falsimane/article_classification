@@ -10,7 +10,11 @@
   normalisé (nom, alias, `x_gold_name_variants`). Types équivalents : malware/tool, intrusion-set/threat-actor,
   campaign/incident (une intrusion décrite par l'article est un `incident` chez le pipeline, une `campaign` dans le gold).
 - Crédit partiel des techniques : même identifiant = 1 ; même technique parente (T1059 contre T1059.001, ou deux
-  sous-techniques soeurs) = 0,5. Une relation vaut le plus petit crédit de ses deux extrémités.
+  sous-techniques soeurs) = 0,5. Une relation vaut le plus petit crédit de ses deux extrémités. Le score strict (sans crédit
+  partiel) est publié à côté.
+- Score relâché des relations « uses » : la source prédite peut être toute entité du même groupe d'activité que la source du
+  gold (campagne, groupe auquel elle est attribuée, malwares et outils qu'ils emploient, reliés entre eux dans le gold). Il
+  répond à la question de l'attribution (la technique a-t-elle été vue dans cette activité ?) sans la convention du porteur.
 - Appariement un pour un (glouton, meilleur crédit d'abord) : un doublon prédit est un faux positif.
 - Campagnes : sans nom commun (le gold les nomme en français), elles sont appariées par le plus grand nombre de
   relations partagées.
@@ -157,7 +161,7 @@ def load_bundle(bundle: dict, kb: AttackKB, gold: bool) -> tuple[dict[str, Entit
 
 
 # --- Appariement -------------------------------------------------------------------------------------------------------
-def entity_credit(gold: Entity, pred: Entity) -> float:
+def entity_credit(gold: Entity, pred: Entity, strict: bool = False) -> float:
     if gold.klass != pred.klass or pred.hallucinated and not pred.keys & gold.keys:
         return 0.0
     if gold.stix_type == "attack-pattern":
@@ -165,7 +169,7 @@ def entity_credit(gold: Entity, pred: Entity) -> float:
             return 0.0
         if gold.technique == pred.technique:
             return 1.0
-        return 0.5 if gold.technique.split(".")[0] == pred.technique.split(".")[0] else 0.0
+        return 0.5 if not strict and gold.technique.split(".")[0] == pred.technique.split(".")[0] else 0.0
     return 1.0 if gold.keys & pred.keys else 0.0
 
 
@@ -179,12 +183,12 @@ def _greedy(pairs: list[tuple[float, str, str]]) -> dict[str, tuple[str, float]]
     return out
 
 
-def _candidates(gold: dict[str, Entity], pred: dict[str, Entity]) -> dict[str, dict[str, float]]:
+def _candidates(gold: dict[str, Entity], pred: dict[str, Entity], strict: bool = False) -> dict[str, dict[str, float]]:
     """{prédit: {gold: crédit}} pour toutes les paires compatibles (plusieurs par entité prédite possibles)."""
     out: dict[str, dict[str, float]] = {}
     for p in pred.values():
         for g in gold.values():
-            c = entity_credit(g, p)
+            c = entity_credit(g, p, strict)
             if c:
                 out.setdefault(p.sid, {})[g.sid] = c
     return out
@@ -216,6 +220,44 @@ def _align_operations(gold, pred, gold_rels, pred_rels, cands) -> None:
             pairs.append((overlap + (0.5 if len(g_ops) == len(p_ops) == 1 else 0), p.sid, g.sid))
     for p_sid, (g_sid, _) in _greedy(pairs).items():
         cands.setdefault(p_sid, {})[g_sid] = 1.0
+
+
+_ACTIVITY = frozenset({"campaign", "intrusion-set", "malware"})  # classes (malware inclut tool, intrusion-set inclut threat-actor)
+
+
+def activity_groups(gold: dict[str, Entity], gold_rels: list[Relation]) -> dict[str, set[str]]:
+    """Entité gold du côté de l'attaquant -> son groupe d'activité : les entités de ces classes reliées entre elles dans le gold
+    (campagne attribuée à un groupe, qui emploie ou dépose tel malware…)."""
+    parent = {sid: sid for sid, e in gold.items() if e.klass in _ACTIVITY}
+
+    def find(x: str) -> str:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for r in gold_rels:
+        if r.source in parent and r.target in parent:
+            parent[find(r.source)] = find(r.target)
+    groups: dict[str, set[str]] = {}
+    for sid in parent:
+        groups.setdefault(find(sid), set()).add(sid)
+    return {sid: groups[find(sid)] for sid in parent}
+
+
+def _match_relations(gold_rels: list[Relation], pred_rels: list[Relation], cands: dict, sources=None) -> dict[str, tuple[str, float]]:
+    """Appariement un pour un des relations : même type, extrémités compatibles. `sources(relation gold)` élargit les sources
+    gold admises (score relâché)."""
+    pairs = []
+    for i, pr in enumerate(pred_rels):
+        for gr in gold_rels:
+            if gr.rel != pr.rel:
+                continue
+            allowed = sources(gr) if sources else (gr.source,)
+            cs, ct = max((cands.get(pr.source, {}).get(g, 0) for g in allowed), default=0), cands.get(pr.target, {}).get(gr.target, 0)
+            if cs and ct:
+                pairs.append((min(cs, ct), str(i), gr.sid))
+    return _greedy(pairs)
 
 
 @dataclass
@@ -257,12 +299,18 @@ class ArticleScore:
     missed_relations: list[str]
     review_entities: list[str]  # prédictions absentes du gold : à revoir par un analyste
     review_relations: list[dict]
+    entities_strict: Counts = field(default_factory=Counts)  # sans crédit partiel des techniques
+    relations_strict: Counts = field(default_factory=Counts)
+    relations_relaxed: Counts = field(default_factory=Counts)  # source « uses » dans le même groupe d'activité
 
     def as_dict(self) -> dict:
         return {
             "article_id": self.article_id,
             "entities": self.entities.as_dict(),
             "relations": self.relations.as_dict(),
+            "entities_strict": self.entities_strict.as_dict(),
+            "relations_strict": self.relations_strict.as_dict(),
+            "relations_relaxed": self.relations_relaxed.as_dict(),
             "entities_by_type": {k: v.as_dict() for k, v in sorted(self.by_type.items())},
             "relations_by_pattern": {k: v.as_dict() for k, v in sorted(self.by_pattern.items())},
             "hallucinations": self.hallucinations,
@@ -357,19 +405,19 @@ def score_article(article_id: int, gold_bundle: dict, pred_bundle: dict, source_
     ents, by_type = _tally(gold, pred, matched, lambda e, _: e.stix_type)
 
     # Relations : extrémités prédites -> toutes leurs entités gold compatibles (doublons d'entités compris)
-    pairs = []
-    for i, pr in enumerate(pred_rels):
-        for gr in gold_rels:
-            if gr.rel != pr.rel:
-                continue
-            cs, ct = cands.get(pr.source, {}).get(gr.source, 0), cands.get(pr.target, {}).get(gr.target, 0)
-            if cs and ct:
-                pairs.append((min(cs, ct), str(i), gr.sid))
-    rel_match = _greedy(pairs)
-    rels, by_pattern = _tally(
-        {r.sid: r for r in gold_rels}, {str(i): r for i, r in enumerate(pred_rels)}, rel_match,
-        lambda r, is_gold: _pattern(r, gold if is_gold else pred),
-    )  # fmt: skip
+    gold_by_sid, pred_by_key = {r.sid: r for r in gold_rels}, {str(i): r for i, r in enumerate(pred_rels)}
+    rel_match = _match_relations(gold_rels, pred_rels, cands)
+    rels, by_pattern = _tally(gold_by_sid, pred_by_key, rel_match, lambda r, is_gold: _pattern(r, gold if is_gold else pred))
+
+    # Variantes : sans crédit partiel ; source « uses » prise dans le groupe d'activité de la source gold
+    strict = _candidates(gold, pred, strict=True)
+    for p_sid, gs in cands.items():  # campagnes appariées par leurs relations : même appariement
+        strict.setdefault(p_sid, {}).update({g: c for g, c in gs.items() if gold[g].klass == "campaign"})
+    ents_strict, _ = _tally(gold, pred, _greedy([(c, p, g) for p, gs in strict.items() for g, c in gs.items()]), lambda e, _: e.stix_type)
+    rels_strict, _ = _tally(gold_by_sid, pred_by_key, _match_relations(gold_rels, pred_rels, strict), lambda r, _: "")
+    groups = activity_groups(gold, gold_rels)
+    relaxed = _match_relations(gold_rels, pred_rels, cands, lambda gr: groups.get(gr.source, {gr.source}) if gr.rel == "uses" else (gr.source,))
+    rels_relaxed, _ = _tally(gold_by_sid, pred_by_key, relaxed, lambda r, _: "")
 
     # Ancrage des citations des relations prédites
     grounding = {"relations": len(pred_rels), "with_quote": 0, "exact": 0, "approximate": 0, "missing": 0, "missing_quotes": []}
@@ -404,15 +452,21 @@ def score_article(article_id: int, gold_bundle: dict, pred_bundle: dict, source_
         review_relations=[
             {"relation": rel_text(pr, pred), "quote": (pr.quotes or [""])[0][:300]} for i, pr in enumerate(pred_rels) if str(i) not in rel_match
         ],
+        entities_strict=ents_strict,
+        relations_strict=rels_strict,
+        relations_relaxed=rels_relaxed,
     )
 
 
 def total(scores: list[ArticleScore]) -> dict:
     """Micro-moyenne sur les articles (sommes des comptes, puis ratios)."""
     ents, rels, by_type, by_pattern = Counts(), Counts(), {}, {}
+    variants = {k: Counts() for k in ("entities_strict", "relations_strict", "relations_relaxed")}
     for s in scores:
         ents.add(s.entities)
         rels.add(s.relations)
+        for k, c in variants.items():
+            c.add(getattr(s, k))
         for src, dst in ((s.by_type, by_type), (s.by_pattern, by_pattern)):
             for k, v in src.items():
                 dst.setdefault(k, Counts()).add(v)
@@ -420,6 +474,7 @@ def total(scores: list[ArticleScore]) -> dict:
     return {
         "entities": ents.as_dict(),
         "relations": rels.as_dict(),
+        **{k: c.as_dict() for k, c in variants.items()},
         "entities_by_type": {k: v.as_dict() for k, v in sorted(by_type.items())},
         "relations_by_pattern": {k: v.as_dict() for k, v in sorted(by_pattern.items())},
         "hallucinations": sum(len(s.hallucinations) for s in scores),

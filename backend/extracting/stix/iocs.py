@@ -7,6 +7,8 @@
     Sighting   (first_seen = last_seen = date de l'article)   UNE PAR ARTICLE, jamais écrasée par la suivante
     Infrastructure --consists-of--> observable, sujet --uses--> Infrastructure   (adresses, domaines, URL, courriel)
 
+Un IOC jugé non malveillant (documentation, page d'un éditeur, service légitime) n'est pas un objet du graphe : il est écarté.
+
 Le motif d'un indicateur n'est pas écrit à la main : il est assemblé avec `ObjectPath`, `EqualityComparisonExpression` et
 `ObservationExpression`, et `stix2.Indicator` le valide à la création.
 
@@ -42,7 +44,7 @@ HASH_PRIORITY = HASH_ORDER[::-1]  # valeur affichée d'un fichier : le hachage l
 IOC_OBJECT_TYPES = frozenset({"indicator", "sighting", "ipv4-addr", "ipv6-addr", "domain-name", "url", "email-addr", "file"})
 
 # rôle -> valeur du vocabulaire indicator-type-ov (les autres rôles : malicious-activity)
-INDICATOR_TYPE = {"unknown": "unknown", "not-malicious": "benign"}
+INDICATOR_TYPE = {"unknown": "unknown"}
 ROLES = ("c2", "payload-delivery", "exfiltration", "phishing", "staging-or-proxy", "malware-sample", "other-malicious", "not-malicious", "unknown")
 # rôle -> (valeur du vocabulaire infrastructure-type-ov, nom de l'infrastructure dérivée)
 ROLE_INFRASTRUCTURE = {
@@ -101,8 +103,7 @@ def pattern(f: IocFinding) -> str:
 def build_ioc_objects(findings: list[IocFinding], ctx: ArticleContext, published: datetime | None) -> list:
     """Objets `stix2` des IOC d'un article.
 
-    Un IOC `not-malicious` (jugé non malveillant par le modèle) garde son observable, un indicateur `benign` et son observation
-    (la phrase qui le cite), sans relation vers l'attaque : il reste auditable. `without_benign` le retire avant Neo4j.
+    Un IOC `not-malicious` (jugé non malveillant par le modèle) ne donne aucun objet : ni observable, ni indicateur, ni observation.
     Sans date d'article ni date explicite, aucune observation n'est émise : une date inventée fausserait le statut."""
     objects: dict[str, object] = {}
 
@@ -111,6 +112,8 @@ def build_ioc_objects(findings: list[IocFinding], ctx: ArticleContext, published
 
     marking = ctx.common["object_marking_refs"]
     for f in sorted(findings, key=lambda f: (f.kind, f.value)):
+        if f.role == "not-malicious":
+            continue
         sco = observable(f, marking)
         add(sco)
         seen = f.observed or published
@@ -129,8 +132,6 @@ def build_ioc_objects(findings: list[IocFinding], ctx: ArticleContext, published
                 description=f.quote, **ctx.common,
             ))  # fmt: skip
 
-        if f.role == "not-malicious":
-            continue  # aucune relation : ni infrastructure de l'attaquant, ni entité indiquée
         subject = f.attach_id if f.attach_id and f.attach_type else None
         if f.kind == "file" or f.role == "malware-sample":
             if subject:
@@ -150,42 +151,6 @@ def build_ioc_objects(findings: list[IocFinding], ctx: ArticleContext, published
         add(relationship("indicates", indicator.id, infra, ctx, [f.quote], f.confidence))
         add(relationship("consists-of", infra, sco.id, ctx, [f.quote], f.confidence))
     return list(objects.values())
-
-
-def without_benign(objects: list) -> list:
-    """Objets d'un article sans les IOC jugés non malveillants (indicateur `benign`, son observation, sa relation `based-on`,
-    et l'observable qu'aucun autre objet ne cite). Le bundle de l'article les garde pour l'audit ; le Knowledge Graph non :
-    l'indicateur d'une valeur est partagé entre articles, et le verdict d'un article écraserait celui d'un autre.
-    Objets `stix2` ou leur forme JSON (accès par clé), sans le `report` : l'appelant le crée ensuite sur ce qui reste."""
-    benign = {o["id"] for o in objects if o["type"] == "indicator" and "benign" in (o.get("indicator_types") or [])}
-    if not benign:
-        return objects
-    rels = [o for o in objects if o["type"] == "relationship"]
-    gone = benign | {o["id"] for o in objects if o["type"] == "sighting" and o["sighting_of_ref"] in benign}
-    gone |= {r["id"] for r in rels if r["source_ref"] in benign or r["target_ref"] in benign}
-    cited = {r[k] for r in rels if r["id"] not in gone for k in ("source_ref", "target_ref")}
-    gone |= {r["target_ref"] for r in rels if r["source_ref"] in benign and r["relationship_type"] == "based-on" and r["target_ref"] not in cited}
-    return [o for o in objects if o["id"] not in gone]
-
-
-# --- Vieillissement ----------------------------------------------------------------------------------------------------
-@dataclass(frozen=True)
-class Lifetime:
-    active_days: int  # jusqu'à cet âge, depuis la dernière observation : « actif probable »
-    stale_days: int  # au-delà : « périmé » ; entre les deux : « vieillissant »
-
-
-# ATTENTION : valeurs de départ HEURISTIQUES, non calibrées sur des données publiées (une adresse IP est réattribuée vite, un
-# domaine dure plus longtemps, un hachage reste vrai mais se change trivialement). À mesurer avant d'en tirer un blocage.
-LIFETIMES: dict[str, Lifetime] = {
-    "ipv4-addr": Lifetime(30, 180),
-    "ipv6-addr": Lifetime(30, 180),
-    "domain-name": Lifetime(90, 365),
-    "url": Lifetime(60, 270),
-    "email-addr": Lifetime(180, 730),
-    "file": Lifetime(365, 1825),
-}
-
 
 def ioc_status(kind: str, last_seen: datetime | None, now: datetime) -> str:
     """`active`, `aging`, `stale` ou `unknown` (aucune date d'observation). Calculé, jamais stocké."""

@@ -17,6 +17,9 @@ export function EntryTable({ entries, empty }: { entries: ProfileEntry[]; empty:
               {e.node.is_dual_use && <span className="border border-warn px-1 font-mono text-[10px] uppercase text-warn">double usage</span>}
               <span className="ml-auto font-mono text-xs text-faint">{relationLabel(e.relation)}{e.confidence != null && ` · ${e.confidence}`}</span>
             </div>
+            {[...new Set(e.evidence.map((ev) => ev.procedure).filter(Boolean))].map((p) => (
+              <div key={p} className="ml-7 mt-1.5 text-xs text-ink">{p}</div>
+            ))}
             {e.evidence.map((ev, i) => (
               <blockquote key={i} className="ml-7 mt-1.5 border-l-2 border-line-strong pl-3 text-xs italic text-muted">
                 {ev.quote}{ev.article != null && <span className="ml-2 not-italic text-faint">art. {ev.article}</span>}

@@ -17,8 +17,9 @@ export default function App() {
     addEventListener("popstate", onPop);
     return () => removeEventListener("popstate", onPop);
   }, []);
-  const stats = useAsync(api.stats, []);
-  const articles = useAsync(api.articles, []);
+  const [revision, setRevision] = useState(0); // incrémentée après une suppression : articles et totaux sont relus
+  const stats = useAsync(api.stats, [revision]);
+  const articles = useAsync(api.articles, [revision]);
   return (
     <Shell view={view} onView={changeView} stats={stats.data}>
       {articles.error ? (
@@ -26,7 +27,7 @@ export default function App() {
       ) : articles.data == null ? (
         <div className="flex h-full items-center justify-center text-sm text-faint">Chargement…</div>
       ) : view === "reports" ? (
-        <ReportsView articles={articles.data} />
+        <ReportsView articles={articles.data} onDeleted={() => setRevision((r) => r + 1)} />
       ) : (
         <ActorsView />
       )}

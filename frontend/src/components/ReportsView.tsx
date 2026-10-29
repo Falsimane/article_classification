@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Download } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
@@ -13,7 +13,7 @@ import { RuleTable } from "./RuleTable";
 
 const Empty = ({ children }: { children: string }) => <div className="flex h-full items-center justify-center p-8 text-sm text-faint">{children}</div>;
 
-export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
+export function ReportsView({ articles, onDeleted }: { articles: ArticleSummary[]; onDeleted: () => void }) {
   const [articleId, setArticleId] = useState<number | null>(articles[0]?.id ?? null);
   const [family, setFamily] = useState<Family | "all">("all");
   const [search, setSearch] = useState("");
@@ -37,6 +37,20 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
       link.click();
       URL.revokeObjectURL(url);
       setExportNote(matchesGraph ? null : "Le bundle exporté ne couvre plus le graphe affiché : l'article a été ré-extrait sans écrire dans Neo4j (--dry-run).");
+    } catch (e) {
+      setExportNote((e as Error).message);
+    }
+  };
+
+  const deleteArticle = async (id: number) => {
+    const title = articles.find((a) => a.id === id)?.title ?? `Article ${id}`;
+    if (!confirm(`Supprimer « ${title} » du graphe ?\n\nSes entités et relations disparaissent sauf celles qu'un autre article étaye, ainsi que ses bundles STIX. cti-extract ne le reprendra plus (sauf --article-id ${id}).`)) return;
+    try {
+      await api.deleteArticle(id);
+      const rest = articles.filter((a) => a.id !== id);
+      const index = articles.findIndex((a) => a.id === id);
+      setArticleId(rest[Math.min(index, rest.length - 1)]?.id ?? null);
+      onDeleted();
     } catch (e) {
       setExportNote((e as Error).message);
     }
@@ -73,6 +87,11 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
           {articleId != null && (
             <button onClick={() => exportBundle(articleId)} title="Télécharger le bundle STIX 2.1 de l'article (JSON)" className="ml-auto flex items-center gap-1.5 border border-line px-2 py-1 text-xs text-muted hover:border-line-strong hover:text-ink">
               <Download size={12} /> Exporter STIX
+            </button>
+          )}
+          {articleId != null && (
+            <button onClick={() => deleteArticle(articleId)} title="Supprimer l'article du graphe" className="ml-2 flex items-center gap-1.5 border border-line px-2 py-1 text-xs text-muted hover:border-danger hover:text-danger">
+              <Trash2 size={12} /> Supprimer
             </button>
           )}
         </nav>

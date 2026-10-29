@@ -24,3 +24,5 @@ neo4j_plugins/
 # l'index attack_v20.sqlite, lui, est versionné
 backend/extracting/stix/reference/enterprise-attack-*.json
 Annotations/enterprise-attack-*.json
+POUR_ANALYSE.md 
+papiers_recherche/

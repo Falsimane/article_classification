@@ -7,6 +7,8 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 # Données (hors git) : seul endroit où leur emplacement est défini ; CTI_DATA_DIR le déplace en entier
 DATA_DIR = Path(os.environ.get("CTI_DATA_DIR") or ROOT_DIR / "backend" / "data")
 SOURCE_ARTICLES_DB = DATA_DIR / "sources" / "cti_knowledge.db"  # articles et classifications (SQLite)
+HTML_PAGES_DIR = DATA_DIR / "raw" / "html_pages"  # page HTML brute de chaque article : <site_name>/<sha1(url)[:16]>.html
+CLEANED_DIR = DATA_DIR / "cleaned"  # copie lisible du texte nettoyé (la source est SQLite) : <site_name>/<sha1(url)[:16]>.md
 BUNDLES_DIR = DATA_DIR / "bundles"  # bundle STIX final de chaque article (écrit par cti-extract, lu par le dashboard)
 EVAL_DIR = ROOT_DIR / "backend" / "evaluation" / "eval"  # un dossier par exécution de cti-eval (hors DATA_DIR)
 

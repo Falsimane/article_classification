@@ -56,6 +56,14 @@ def _references(node: dict) -> list[dict]:
     return out
 
 
+def has_profile(node: dict) -> bool:
+    """Onglet Acteurs : un acteur de la menace (threat-actor) ou un groupe connu d'ATT&CK (intrusion-set rattaché à un G####).
+    Une campagne est une opération, pas un acteur ; un intrusion-set absent d'ATT&CK n'est qu'un nom de suivi cité par un article."""
+    if node["type"] == "threat-actor":
+        return True
+    return node["type"] == "intrusion-set" and any(r["source"] == "mitre-attack" and r["id"].startswith("G") for r in _references(node))
+
+
 def _tactics(node: dict | None) -> list[str]:
     if not node:
         return []
@@ -83,7 +91,8 @@ def _node(n: dict, degree: int) -> dict[str, Any]:
 
 
 def _evidence(edge: dict, article_id: int | None) -> list[dict]:
-    """Preuves d'une arête : `{article, quote}`. Pour un article donné, seulement les siennes."""
+    """Preuves d'une arête : `{article, quote, procedure?}` (procédure d'un « uses » vers une technique). Pour un article donné,
+    seulement les siennes."""
     items = []
     for raw in edge.get("evidence") or []:
         try:
@@ -91,7 +100,7 @@ def _evidence(edge: dict, article_id: int | None) -> list[dict]:
         except ValueError:
             continue
         if item.get("quote") and (article_id is None or item.get("article") == article_id):
-            items.append({"article": item.get("article"), "quote": item["quote"]})
+            items.append({"article": item.get("article"), "quote": item["quote"], **({"procedure": item["procedure"]} if item.get("procedure") else {})})
     return items
 
 
@@ -201,18 +210,42 @@ def article_text(article_id: int, db_path: Path = SOURCE_ARTICLES_DB) -> dict[st
 
 
 def article_bundle(article_id: int, store: StixStore | None = None, bundles_dir: Path = BUNDLES_DIR) -> tuple[bytes, bool] | None:
-    """Bundle STIX 2.1 de l'article, tel que l'extraction l'a écrit (`stix2.Bundle` validé, IOC bénins et objets ATT&CK de support
-    compris), et s'il couvre encore le graphe de Neo4j : une ré-extraction en --dry-run réécrit le fichier sans toucher au graphe."""
+    """Bundle STIX 2.1 de l'article tel que l'extraction l'a écrit : la couche sémantique et, à sa suite, la couche observable
+    (`article_<id>.iocs.json` : IOC et règles), objets ATT&CK de support compris ; et s'il couvre encore le graphe de Neo4j : une
+    ré-extraction en --dry-run réécrit les fichiers sans toucher au graphe."""
     path = bundles_dir / f"article_{article_id}.json"
     if not path.is_file():
         return None
     raw = path.read_bytes()
     try:
-        ids = {o.get("id") for o in json.loads(raw).get("objects", [])}
-    except (ValueError, AttributeError):
+        data = json.loads(raw)
+        extra = bundles_dir / f"article_{article_id}.iocs.json"
+        if extra.is_file():
+            seen = {o.get("id") for o in data["objects"]}
+            added = [o for o in json.loads(extra.read_bytes()).get("objects", []) if o.get("id") not in seen]
+            data["objects"] += added
+            for rep in (o for o in data["objects"] if o.get("type") == "report"):  # le rapport liste aussi les IOC et règles
+                rep["object_refs"] = [*rep["object_refs"], *(o["id"] for o in added if o.get("type") != "marking-definition")]
+            raw = json.dumps(data, ensure_ascii=False, indent=1).encode("utf-8")
+        ids = {o.get("id") for o in data.get("objects", [])}
+    except (ValueError, AttributeError, KeyError, TypeError):
         return raw, False
     graph = (store or StixStore()).dashboard_graph(article_id)
     return raw, all(x["id"] in ids for x in graph["nodes"] + graph["edges"])
+
+
+def delete_article(article_id: int, store: StixStore | None = None, bundles_dir: Path = BUNDLES_DIR) -> dict[str, Any] | None:
+    """Supprime un article : sa contribution au graphe (voir `StixStore.delete_article`), puis ses deux bundles et son journal
+    d'appels au modèle. None s'il n'est pas dans le graphe. La base SQLite des articles n'est pas touchée (lecture seule)."""
+    counts = (store or StixStore()).delete_article(article_id)
+    if counts is None:
+        return None
+    removed = []
+    for path in (bundles_dir / f"article_{article_id}.{suffix}" for suffix in ("json", "iocs.json", "llm.jsonl", "llm.live.log")):
+        if path.is_file():
+            path.unlink()
+            removed.append(path.name)
+    return {"article_id": article_id, **counts, "bundles_deleted": removed}
 
 
 def articles(store: StixStore | None = None) -> dict[str, Any]:
@@ -276,6 +309,7 @@ def actors(store: StixStore | None = None) -> dict[str, Any]:
     rows = [
         {**_node(a, a["relations"]), "relations": a["relations"], "reports": a["reports"]}
         for a in store.actors()
+        if has_profile(a)
     ]
     return {"actors": rows, "count": len(rows)}
 
@@ -320,7 +354,7 @@ def actor_graph(actor_id: str, store: StixStore | None = None, now: datetime | N
     """Profil d'un acteur : lui, ses voisins directs, et ce que TOUS les articles en disent (preuves comprises)."""
     store = store or StixStore()
     sub = store.actor_subgraph(actor_id)
-    if sub is None:
+    if sub is None or not has_profile(sub["actor"]):
         return None
     by_id = {n["id"]: n for n in sub["nodes"]}
     by_id[sub["actor"]["id"]] = sub["actor"]

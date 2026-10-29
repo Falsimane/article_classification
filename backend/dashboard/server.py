@@ -5,6 +5,10 @@
     /api/iocs|rules|article?article_id=  onglets Indicateurs, Détection et Article d'un rapport
     /api/bundle?article_id=              bundle STIX écrit par l'extraction (en-tête X-Bundle-Matches-Graph)
     /api/actors, /api/actors/<id>        profils d'acteurs (seule vue qui agrège plusieurs articles)
+    DELETE /api/articles/<id>            supprime l'article du graphe et ses bundles (stix_dashboard.delete_article)
+
+Pas d'en-tête Access-Control-Allow-Methods : un navigateur refuse donc le DELETE venu d'une autre origine (pré-vérification CORS
+sans réponse).
 """
 
 import argparse
@@ -44,6 +48,23 @@ class CTIWebServerHandler(SimpleHTTPRequestHandler):
             if path != "/" and not target.is_file():
                 self.path = "/index.html"
             super().do_GET()
+
+    def do_DELETE(self) -> None:
+        path = urlparse(self.path).path
+        raw = path[len("/api/articles/"):] if path.startswith("/api/articles/") else ""
+        if not raw.isdigit():
+            self.send_json_response({"error": "Endpoint non trouvé"}, status=404)
+            return
+        try:
+            deleted = stix_dashboard.delete_article(int(raw))
+        except Exception as e:  # noqa: BLE001
+            self.send_json_response({"error": str(e)}, status=500)
+            return
+        if deleted is None:
+            self.send_json_response({"error": f"Article {raw} absent du graphe"}, status=404)
+        else:
+            print(f"Article {raw} supprimé : {deleted['nodes_deleted']} nœuds, {deleted['edges_deleted']} arêtes, bundles {deleted['bundles_deleted']}")
+            self.send_json_response(deleted)
 
     def send_json_response(self, data: Any, status: int = 200) -> None:
         payload = json.dumps(data, ensure_ascii=False, default=str).encode("utf-8")

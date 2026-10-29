@@ -50,6 +50,29 @@ ENTITY_CLASSES = {
     "software": Software,
 }
 
+# Relations admises (sources, relations, cibles) : celles de STIX 2.1 entre ces types ; un produit visé (`software`, observable
+# STIX) est relié comme dans OpenCTI (« software has vulnerability », « … targets software »). Une vulnérabilité, un lieu, une
+# identité ne sont jamais la source d'une relation. `DraftGraph.relate` refuse le reste ; le prompt affiche la même table.
+RELATIONS = (
+    (("campaign",), ("attributed-to",), ("intrusion-set", "threat-actor")),
+    (("intrusion-set",), ("attributed-to",), ("threat-actor",)),
+    (("intrusion-set", "threat-actor", "campaign", "malware", "tool"), ("uses",), ("attack-pattern", "malware", "tool", "infrastructure")),
+    (("intrusion-set", "threat-actor", "campaign", "malware", "tool", "attack-pattern"), ("targets",), ("identity", "location", "vulnerability", "software")),
+    (("malware",), ("exploits",), ("vulnerability",)),
+    (("software",), ("has",), ("vulnerability",)),
+    (("software",), ("related-to",), ("identity",)),
+    (("malware", "tool"), ("drops",), ("malware", "tool")),
+    (("malware",), ("downloads",), ("malware", "tool")),
+    (("malware",), ("variant-of",), ("malware",)),
+    (("malware",), ("communicates-with", "beacons-to", "exfiltrates-to"), ("infrastructure",)),
+)
+ALLOWED_RELATIONS = frozenset((s, r, t) for sources, rels, targets in RELATIONS for s in sources for r in rels for t in targets)
+
+
+def relation_table() -> str:
+    """La table `RELATIONS` pour le prompt, une ligne par entrée."""
+    return "\n".join(f"- {' | '.join(s)} --{' | '.join(r)}--> {' | '.join(t)}" for s, r, t in RELATIONS)
+
 
 def deterministic_id(stix_type: str, **key: str) -> str:
     """`<type>--<uuid5>` : réextraire le même fait produit le même identifiant. `key` : propriétés qui fondent l'identité."""
@@ -105,9 +128,15 @@ def entity(stix_type: str, name: str, ctx: ArticleContext, **props):
     return ENTITY_CLASSES[stix_type](id=deterministic_id(stix_type, **key), name=name, **ctx.common, **props)
 
 
-def relationship(rel_type: str, source_ref: str, target_ref: str, ctx: ArticleContext, quotes: list[str], confidence: int | None = None) -> Relationship:
-    """`stix2.Relationship` ; ses preuves sont la description et une référence externe par citation."""
+def relationship(
+    rel_type: str, source_ref: str, target_ref: str, ctx: ArticleContext, quotes: list[str], confidence: int | None = None,
+    procedure: str | None = None,
+) -> Relationship:  # fmt: skip
+    """`stix2.Relationship` ; ses preuves sont une référence externe par citation, et la description (les citations, ou la
+    procédure d'une relation « uses » vers une technique)."""
     props = {"description": " | ".join(quotes), "external_references": ctx.citations(quotes)} if quotes else {}
+    if procedure:
+        props["description"] = procedure
     if confidence is not None:
         props["confidence"] = confidence
     return Relationship(

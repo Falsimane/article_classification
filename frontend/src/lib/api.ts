@@ -21,6 +21,12 @@ export const api = {
     if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `/api/bundle : HTTP ${res.status}`);
     return { blob: await res.blob(), matchesGraph: res.headers.get("X-Bundle-Matches-Graph") !== "0" };
   },
+  /** Supprime l'article du graphe (et ce qu'aucun autre article n'étaye) ; `cti-extract` ne le reprendra plus. */
+  deleteArticle: async (articleId: number) => {
+    const res = await fetch(`/api/articles/${articleId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `/api/articles : HTTP ${res.status}`);
+    return res.json() as Promise<{ nodes_deleted: number; edges_deleted: number }>;
+  },
   actors: () => get<{ actors: ActorRow[] }>("/api/actors").then((r) => r.actors),
   actor: (id: string) => get<ActorProfile>(`/api/actors/${encodeURIComponent(id)}`),
 };

@@ -1,45 +1,80 @@
-"""Extraction d'un article en trois étapes sur le texte entier : entités, vérification des techniques (avec outils), relations.
+"""Extraction d'un article en trois étapes sur le texte entier : entités et comportements, techniques choisies parmi des candidates
+ATT&CK, relations.
 
     [Rapport] -> phrases numérotées
-      1. ENTITÉS (un appel contraint) : toutes les entités nommées, et les techniques ATT&CK écrites par le modèle
-         (« identifiant|nom ATT&CK|numéros de phrases ») ;
-      2. VÉRIFICATION DES TECHNIQUES (code) : l'identifiant existe dans ATT&CK v20.0 et y porte le nom que le modèle lui donne.
-         Les refusées reviennent au modèle dans une courte conversation avec outils (`search_attack`, `get_attack`) : il cherche
-         la bonne technique et la soumet ; une technique encore refusée est écartée ;
+      1. ENTITÉS (un appel contraint) : toutes les entités nommées, et chaque comportement de l'attaquant décrit en anglais
+         (« numéros de phrases|comportement|identifiant ATT&CK présumé ») ;
+         1 bis. (CTI_SECTION_PASS=on, expérimental) mêmes comportements, relevés bloc par bloc d'environ 1 500 tokens ;
+         1 ter. (CTI_OPERATIONS=on) OPÉRATIONS (un appel contraint) : les campagnes que décrit le rapport, décidées à part
+         (phrases, nom descriptif, groupe auquel le texte les attribue) ; elles remplacent celles de l'appel 1 ;
+      2. TECHNIQUES : le code cherche dans ATT&CK v20.0 (FTS5 sur les définitions et les exemples de procédures, sans ceux
+         tirés de l'article lui-même) les techniques candidates de chaque comportement, plus l'identifiant présumé ; le modèle
+         choisit, par lettres, celles dont la définition décrit le même comportement que les phrases citées (un appel
+         contraint par lot). Une technique retenue existe donc toujours ; elle n'est plus écrite de mémoire. Avec
+         CTI_CARRIER=on, il désigne aussi l'entité qui exécute le comportement (« numéro:lettres:porteur ») et le code crée
+         la relation « uses ». Le comportement en anglais devient la description (la procédure) de cette relation ;
       3. RELATIONS (un appel contraint) : l'article et la liste numérotée des entités et techniques retenues ; le modèle répond
-         « numéro source|relation|numéro cible|numéros de phrases ». Un appel de correction pour les lignes refusées.
-    -> vérification STIX de `DraftGraph` (stix2 strict, phrases citées)
+         « numéro source|relation|numéro cible|numéros de phrases ». Un appel de correction pour les lignes refusées, un pour
+         relier les îlots ;
+      4. VÉRIFICATION (un appel contraint par lot) : le modèle juge chaque relation acceptée contre le texte (« o » / « n ») ; les
+         non étayées sont retirées, et avec elles les entités qui n'ont plus de relation.
+    -> vérification STIX de `DraftGraph` à chaque relation (stix2 strict, table `RELATIONS`, phrases citées)
     -> IOC (valeurs par règles) et règles YARA / Sigma (texte par analyse syntaxique), rattachés aux entités retenues
 
-Les appels 1 et 3 commencent par le même texte : le serveur le relit depuis son cache de préfixe. L'article entier doit tenir
+Les appels 1, 2 et 3 commencent par le même texte : le serveur le relit depuis son cache de préfixe. L'article entier doit tenir
 dans le contexte du serveur (`--max-model-len`) ; sinon le serveur refuse l'appel et l'article est marqué en échec avec sa raison.
 """
 
+import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from backend.extracting import llm
-from backend.extracting.graph.draft import DraftGraph, get_attack, search_attack_many
-from backend.preprocessing.cleaning.text.evidence import normalize_name, parse_date
+from backend.extracting.graph.draft import DraftGraph, relationship_type_of
+from backend.preprocessing.cleaning.text.evidence import mentions, normalize_name, parse_date
 from backend.extracting.observables.iocs import IocResult, extract_iocs
 from backend.extracting.observables.rules import RuleResult, extract_rules
-from backend.preprocessing.cleaning.text.segment import render, segment
-from backend.extracting.stix.attack import attack_id, get_attack_kb
-from backend.extracting.stix.objects import ENTITY_CLASSES, ArticleContext
+from backend.preprocessing.cleaning.text.segment import Unit, render, segment
+from backend.extracting.stix.attack import TechniqueHit, attack_id, report_key
+from backend.extracting.stix.objects import ENTITY_CLASSES, ArticleContext, relation_table
 
 ENTITY_TOKENS = 4000
 RELATION_TOKENS = 3000
 CORRECTION_TOKENS = 1200
-FIX_TURNS = 6  # tours de la conversation de correction des techniques
-FIX_TOKENS = 1400
+CHOICE_TOKENS = 600
+CANDIDATES = 6  # techniques proposées par la recherche pour un comportement, en plus de l'identifiant présumé par le modèle
+CHOICE_BATCH = 12  # comportements par appel de choix : la liste des candidates tient dans le contexte avec l'article
+VERIFY_BATCH = 40  # relations jugées par appel de vérification
+VERIFY_TOKENS_PER_ROW = 8  # « 12:o:b; »
 _TECHNIQUE = re.compile(r"T\d{4}(?:\.\d{3})?", re.I)
+_LETTERS = "abcdefghij"
+# Passe par bloc (expérimentale, CTI_SECTION_PASS=on) : après l'appel « entités », un appel par bloc d'environ 1 500 tokens relève
+# les comportements de ce bloc seul. L'article entier reste en tête du prompt (même préfixe, relu depuis le cache du serveur) ;
+# seule la consigne finale désigne le bloc. Mesure : les entités citées tard dans l'article sont moins souvent trouvées.
+def _flag(name: str) -> bool:
+    return os.environ.get(name, "off").strip().lower() in ("on", "1", "yes", "true")
+
+
+SECTION_PASS = _flag("CTI_SECTION_PASS")
+BLOCK_CHARS = 6000
+SECTION_TOKENS = 1500
+# Porteur de chaque technique choisi avec elle (CTI_CARRIER=on) : un choix fermé parmi les entités numérotées, au lieu d'une
+# décision implicite au milieu de l'appel « relations ». Mesure : 33 relations du gold ont la bonne technique et la mauvaise source.
+CARRIER = _flag("CTI_CARRIER")
+CARRIER_TOKENS = 3  # « :12 » par comportement
+# Opérations décidées par un appel à part (CTI_OPERATIONS=on) : la campagne est l'extrémité de près de la moitié des relations,
+# et l'appel « entités » en crée trop peu (ou une de trop) quand elle est sans nom.
+OPERATIONS = _flag("CTI_OPERATIONS")
+OPERATION_TOKENS = 400
+_CARRIER_TYPES = ("campaign", "intrusion-set", "threat-actor", "malware", "tool")
+_GROUP_TYPES = ("intrusion-set", "threat-actor")
 
 
 @dataclass
 class CallStat:
-    stage: str  # entities, techniques (un tour de la conversation avec outils), relations, corrections
+    stage: str  # entities, techniques (un lot de choix), relations, corrections, îlots
     prompt_tokens: int
     output_tokens: int
     seconds: float
@@ -55,6 +90,13 @@ class ExtractionResult:
     accepted: int = 0
     refused: int = 0
     failures: list[str] = field(default_factory=list)  # étapes perdues (délai dépassé, serveur injoignable, contexte dépassé)
+    # Propositions refusées par la vérification, pour situer la perte d'un élément du gold (cti-eval) : (ligne, raison) ;
+    # relations : (source, relation, cible, raison), extrémités en identifiants STIX
+    refused_entities: list[tuple[str, str]] = field(default_factory=list)
+    refused_techniques: list[tuple[str, str]] = field(default_factory=list)
+    refused_relations: list[tuple[str, str, str, str]] = field(default_factory=list)
+    # Chaque comportement relevé : phrases, candidates proposées et techniques choisies (rappel de la recherche à l'évaluation)
+    behaviors: list[dict] = field(default_factory=list)
     iocs: IocResult = field(default_factory=IocResult)
     rules: RuleResult = field(default_factory=RuleResult)
     seconds: float = 0.0
@@ -80,7 +122,10 @@ def _schema(*fields: str) -> dict:
     return {"type": "object", "properties": {f: {"type": "string"} for f in fields}, "required": list(fields)}
 
 
-ENTITY_SCHEMA = _schema("entities", "techniques")
+ENTITY_SCHEMA = _schema("entities", "behaviors")
+OPERATION_SCHEMA = _schema("operations")
+CHOICE_SCHEMA = _schema("choices")
+VERIFY_SCHEMA = _schema("verdicts")
 RELATION_SCHEMA = _schema("relations")
 
 
@@ -97,7 +142,7 @@ def _index(raw: str, size: int) -> int | None:
 
 
 def _call(result: ExtractionResult, stage: str, system: str, prompt: str, schema: dict, max_tokens: int) -> dict:
-    r = llm.generate(system, prompt, schema, max_output_tokens=max_tokens)
+    r = llm.generate(system, prompt, schema, max_output_tokens=max_tokens, stage=stage)
     result.calls.append(CallStat(stage, r.prompt_tokens, r.output_tokens, r.seconds, r.output_tokens >= max_tokens))
     return r.parsed if isinstance(r.parsed, dict) else {}
 
@@ -108,22 +153,18 @@ def system_prompt() -> str:
 
 ENTITÉS (types : {', '.join(ENTITY_CLASSES)}) :
 - intrusion-set : groupe d'attaquants nommé (nom ou code de suivi donné par le rapport ou un éditeur). threat-actor : personne ou organisation réelle identifiée.
-- campaign : l'activité malveillante que le rapport décrit (une opération contre des cibles sur une période). UNE campagne par vague distincte (cibles ou périodes différentes), nom descriptif (« Campagne <acteur> contre <cible>, <période> »). Pas de campagne si le texte ne décrit aucune opération.
+- campaign : seulement une opération que le rapport décrit (une vague ou un ensemble d'intrusions contre des cibles, sur une période ; une intrusion racontée de bout en bout en est une). UNE campagne par vague distincte (cibles ou périodes différentes), nom descriptif (« Campagne <acteur> contre <cible>, <période> »). Ne crée jamais de campagne ni d'intrusion-set pour relier les éléments : un rapport qui analyse un malware, un outil, une vulnérabilité ou une capacité d'un acteur sans décrire d'opération n'a pas de campagne, et un intrusion-set n'existe que si le texte nomme le groupe.
 - malware : code malveillant nommé, ou composant que l'article désigne par un libellé descriptif (reprendre ce libellé).
 - tool : logiciel légitime détourné par l'attaquant (binaire natif du système, outil d'administration, packer, obfuscateur). Jamais une fonction, un appel système ou une bibliothèque de programmation.
 - infrastructure : service ou infrastructure NOMMÉ utilisé par l'attaquant. Jamais une IP, un domaine ou une URL.
 - vulnerability : une CVE. software : produit légitime visé (« software|<produit>|<éditeur> »).
-- identity : victime (organisation, secteur) ou éditeur du produit visé. location : pays ou région ciblés (« location|<pays>|<code ISO 3166-1> »).
+- identity : victime (organisation, secteur) ou éditeur du produit visé, avec les mots du texte, sans les traduire (« financial institutions » reste « financial institutions ») : le code retrouve la victime dans la phrase citée. location : pays ou région ciblés (« location|<pays>|<code ISO 3166-1> »).
 JAMAIS : l'auteur du rapport, les chercheurs ou éditeurs de sécurité comme acteur ou victime ; un hachage, une IP, un domaine, une URL ou un nom de fichier ordinaire (ce sont des IOC, hors périmètre) ; ce que le rapport cite d'autres opérations passées comme activité de la campagne décrite.
 
-RELATIONS (STIX 2.1, source --relation--> cible) :
-- campaign --attributed-to--> intrusion-set | threat-actor ; intrusion-set --attributed-to--> threat-actor
-- intrusion-set | threat-actor | campaign | malware | tool --uses--> attack-pattern | malware | tool | infrastructure
-- intrusion-set | threat-actor | campaign --targets--> identity | location | vulnerability ; malware | tool --targets--> identity | location
-- malware --exploits--> vulnerability ; software --has--> vulnerability ; software --related-to--> identity (éditeur)
-- malware | tool --drops--> malware | tool ; malware --downloads--> malware | tool ; malware --variant-of--> malware
-- malware --communicates-with | beacons-to | exfiltrates-to--> infrastructure
-Qui emploie une technique : le malware ou l'outil qui l'exécute quand le texte décrit sa capacité ; la campagne quand c'est une étape de l'opération.
+RELATIONS (STIX 2.1, source --relation--> cible ; aucune autre n'est admise) :
+{relation_table()}
+« targets » mène à une victime, un lieu visé, la vulnérabilité ou le produit attaqués : jamais à l'auteur du rapport, à une agence ou un éditeur qui publie une alerte, à un chercheur. Une technique d'exploitation --targets--> la vulnérabilité et le produit qu'elle exploite. software --related-to--> identity : l'éditeur du produit.
+Qui emploie une technique : le malware quand le texte décrit sa capacité propre ; sinon celui à qui le texte attribue l'action : la campagne décrite ou, sans campagne, l'acteur nommé (y compris avec un outil, qui est alors relié à lui par « uses »). Sans campagne ni acteur, la technique reste reliée à ce qui la porte (malware, vulnérabilité et produit visés).
 N'invente rien que le texte ne dise."""
 
 
@@ -132,22 +173,85 @@ def entity_prompt(text: str) -> str:
         f"{text}\n\n---\nTÂCHE : relève les entités du rapport ENTIER (aucun IOC, aucune relation). Éléments séparés par « ; » :\n"
         "1) « entities » : toutes les entités, chacune « type|nom » ou « type|nom|alias1,alias2 » (« software|<produit>|<éditeur> », "
         "« location|<pays>|<code ISO 3166-1> »), le nom tel que le texte l'écrit. Pas de technique ici.\n"
-        "2) « techniques » : chaque comportement de l'attaquant ou d'un logiciel malveillant (exécution, persistance, découverte, "
-        "communication, chiffrement, exfiltration, livraison, obfuscation…), « identifiant ATT&CK v20.0|nom ATT&CK de la "
-        "technique|numéros des phrases qui le décrivent » (« T####.###|<nom>|12,13 »). UNE technique par comportement, la plus "
-        "précise que le texte justifie : la sous-technique quand le texte nomme le mécanisme, sinon la technique parente."
+        "2) « behaviors » : chaque comportement de l'attaquant ou d'un logiciel malveillant (accès initial, exécution, persistance, "
+        "élévation, évasion, accès aux identifiants, découverte, mouvement latéral, collecte, communication, exfiltration, impact…), "
+        "« numéros des phrases qui le décrivent|le comportement en anglais, avec les mots du mécanisme (action, moyen, but), sans "
+        "nom d'acteur ni IOC|identifiant ATT&CK v20.0 présumé ou rien » (« 12,13|<action> <mechanism> to <goal>|T####.### »). "
+        "UN comportement par ligne, écrit une seule fois même si plusieurs phrases le décrivent."
     )
 
 
-def relation_prompt(text: str, table: list[str]) -> str:
+def section_prompt(text: str, block: list[Unit]) -> str:
+    first, last = block[0].uid, block[-1].uid
+    titles = " ; ".join(dict.fromkeys(u.heading_path for u in block if u.heading_path)) or "début du rapport"
+    return (
+        f"{text}\n\n---\nTÂCHE : relis les phrases [{first}] à [{last}] SEULEMENT (sections : {titles}) et relève chaque "
+        "comportement de l'attaquant ou d'un logiciel malveillant qu'elles décrivent, détails techniques compris (accès initial, "
+        "exécution, persistance, élévation, évasion, accès aux identifiants, découverte, mouvement latéral, collecte, "
+        "communication, exfiltration, impact…). Ce qui a été observé ou attribué à l'attaquant, jamais ce que le défenseur devrait "
+        "faire. « behaviors » : éléments séparés par « ; », chacun « numéros des phrases qui le décrivent|le comportement en "
+        "anglais, avec les mots du mécanisme (action, moyen, but), sans nom d'acteur ni IOC|identifiant ATT&CK v20.0 présumé ou "
+        "rien » (« 12,13|<action> <mechanism> to <goal>|T####.### »). UN comportement par ligne ; rien si ces phrases n'en "
+        "décrivent aucun."
+    )
+
+
+def operation_prompt(text: str, groups: list[str], known: list[str]) -> str:
+    numbered = "\n".join(f"{i}. {g}" for i, g in enumerate(groups, 1)) or "(aucun)"
+    return (
+        f"{text}\n\n---\nGROUPES D'ATTAQUANTS NOMMÉS (numérotés) :\n{numbered}\n"
+        f"CAMPAGNES PROPOSÉES À L'ÉTAPE PRÉCÉDENTE : {' ; '.join(known) or '(aucune)'}\n\n"
+        "TÂCHE : décide des opérations que le rapport décrit. Une opération est une activité OBSERVÉE de l'attaquant contre des "
+        "cibles, située dans le temps ou par ses victimes : une vague de diffusion, une série d'intrusions, une compromission "
+        "racontée de bout en bout, même si le rapport ne lui donne pas de nom. N'en est PAS une : l'analyse d'un malware, d'un "
+        "outil ou d'une vulnérabilité sans activité observée, le profil ou les habitudes d'un groupe, une tendance générale, une "
+        "opération passée que le rapport ne fait que rappeler. « operations » : la liste définitive, éléments séparés par « ; », "
+        "chacun « numéros des phrases qui la décrivent|nom descriptif|numéro du groupe auquel le texte l'attribue ou - » "
+        "(« 4,5,9|Campagne <acteur> contre <cible>, <période>|1 »). UNE opération par vague distincte (cibles ou périodes "
+        "différentes) ; reprends le nom exact d'une campagne proposée si c'est la même. Chaîne vide si le rapport n'en décrit aucune."
+    )
+
+
+def choice_prompt(text: str, behaviors: list["Behavior"], carriers: list[str] | None = None) -> str:
+    blocks = []
+    for i, b in enumerate(behaviors, 1):
+        options = "\n".join(f"   {_LETTERS[j]}) {h.attack_id} {h.name} : {h.summary}" for j, h in enumerate(b.candidates))
+        blocks.append(f"{i}. [phrases {','.join(map(str, b.uids)) or '?'}] {b.query}\n{options}")
+    task = (
+        "TÂCHE : « choices » : pour chaque comportement, les lettres des techniques dont la définition décrit ce que les phrases "
+        "citées disent, « numéro:lettres » séparés par « ; » (« 1:b;2:a,c;3:- »). La sous-technique quand le texte nomme le "
+        "mécanisme, sinon la technique parente ; plusieurs lettres seulement si le texte décrit plusieurs comportements ; « - » "
+        "si aucune candidate ne décrit ce que dit le texte (une candidate seulement voisine ne suffit pas)."
+    )
+    if carriers is None:
+        return f"{text}\n\n---\nCOMPORTEMENTS RELEVÉS ET TECHNIQUES ATT&CK v20.0 CANDIDATES :\n" + "\n".join(blocks) + "\n\n" + task
+    numbered = "\n".join(f"{i}. {c}" for i, c in enumerate(carriers, 1))
+    return (
+        f"{text}\n\n---\nAUTEURS POSSIBLES (numérotés) :\n{numbered}\n\nCOMPORTEMENTS RELEVÉS ET TECHNIQUES ATT&CK v20.0 "
+        "CANDIDATES :\n" + "\n".join(blocks) + "\n\n" + task + " Ajoute à chaque comportement retenu le numéro de l'auteur qui "
+        "l'exécute : « numéro:lettres:auteur » (« 1:b:2;2:a,c:1;3:- »). L'auteur : le malware ou l'outil quand le texte décrit "
+        "sa capacité propre ; sinon la campagne décrite, ou sans campagne le groupe nommé à qui le texte attribue l'action "
+        "(même s'il emploie un outil) ; « - » si aucun auteur de la liste. Deux auteurs (« 1:b:2,4 ») seulement si le texte "
+        "attribue le comportement à chacun."
+    )
+
+
+def relation_prompt(text: str, table: list[str], carried: bool = False) -> str:
     numbered = "\n".join(f"{i}. {e}" for i, e in enumerate(table, 1)) or "(aucune)"
+    already = (
+        " Une technique marquée « déjà employée par … » est reliée à cet auteur : n'écris pour elle un autre « uses » que si le "
+        "texte l'attribue aussi à une autre entité."
+        if carried
+        else ""
+    )
     return (
         f"{text}\n\n---\nENTITÉS ET TECHNIQUES DU RAPPORT (numérotées) :\n{numbered}\n\n"
         "TÂCHE : « relations » : tous les liens que le texte affirme entre ces éléments, séparés par « ; », chacun « numéro "
         "source|relation|numéro cible|numéros de phrases » (« 3|uses|2|12,13;3|attributed-to|1|5 »). Chaque technique est reliée à "
-        "l'entité qui l'exécute (« numéro de l'entité|uses|numéro de la technique|phrases ») : le malware ou l'outil quand le texte "
-        "décrit sa capacité, la campagne quand c'est une étape de l'opération. La phrase citée (ou les 3 précédentes de sa section, "
-        "ou son titre) nomme le malware, l'outil, la CVE ou la victime reliés."
+        "l'entité qui l'exécute (« numéro de l'entité|uses|numéro de la technique|phrases ») : le malware quand le texte décrit sa "
+        "capacité propre, sinon la campagne décrite ou, sans campagne, l'acteur nommé à qui le texte attribue l'action (y compris "
+        "avec un outil) ; chaque malware, outil et victime est relié à la campagne, à l'acteur ou à l'entité qui le déploie ou le subit. La phrase citée (ou les 3 précédentes de sa section, "
+        "ou son titre) nomme le malware, l'outil, la CVE ou la victime reliés." + already
     )
 
 
@@ -158,6 +262,77 @@ def correction_prompt(prompt: str, answer: dict, refused: list[tuple[str, str]])
         "TÂCHE : renvoie SEULEMENT les lignes refusées corrigées, même format (citer la phrase qui nomme les entités reliées) ; "
         "omets celles que le texte n'étaye pas."
     )
+
+
+def island_prompt(prompt: str, answer: dict, islands: list[list[str]]) -> str:
+    groups = "\n".join(f"- îlot {i} : {', '.join(g)}" for i, g in enumerate(islands, 1))
+    return (
+        f"{prompt}\n\nTA RÉPONSE :\nrelations : {answer.get('relations', '')}\n\nLe graphe est en îlots sans lien entre eux :\n{groups}\n\n"
+        "TÂCHE : renvoie SEULEMENT des relations supplémentaires (même format, numéros de la liste) que le texte affirme entre des "
+        "éléments d'îlots différents (qui déploie, utilise ou subit quoi) ; la phrase citée nomme les deux éléments ou, avec les "
+        "3 précédentes de sa section, l'entité qui les relie. N'invente aucun lien : sans phrase qui l'étaye, n'écris rien."
+    )
+
+
+def verify_prompt(text: str, draft: DraftGraph, keys: list[tuple[str, str, str]]) -> str:
+    def label(sid: str) -> str:
+        aid = attack_id(draft.objects[sid])
+        return f"{draft.type_of(sid)}:{f'{aid} ' if aid else ''}{draft.name_of(sid)}"
+
+    blocks = []
+    for i, key in enumerate(keys, 1):
+        quotes = "\n".join(f"   {_LETTERS[j]}) « {q[:300]} »" for j, q in enumerate(draft.evidence[key][: len(_LETTERS)]))
+        blocks.append(f"{i}. {label(key[0])} --{key[1]}--> {label(key[2])}\n{quotes}")
+    return (
+        f"{text}\n\n---\nRELATIONS PROPOSÉES (avec les phrases citées) :\n" + "\n".join(blocks) + "\n\n"
+        "TÂCHE : « verdicts » : pour chaque relation, « numéro:o:lettre » si le texte l'affirme (explicitement ou par implication "
+        "directe du récit), la lettre désignant LA phrase citée qui l'établit le mieux ; « numéro:n » sinon. Séparés par « ; » "
+        "(« 1:o:b;2:n;3:o:a »). Seul le texte compte : une relation plausible que le texte ne dit pas est « n ». « n » aussi quand "
+        "la cible de « targets » n'est pas visée par l'attaque (auteur du rapport, agence ou éditeur qui publie une alerte, "
+        "chercheur) ou quand la relation relève d'une autre opération que celle décrite."
+    )
+
+
+def verify_relations(draft: DraftGraph, text: str, system: str, result: ExtractionResult) -> None:
+    """Le modèle juge chaque relation acceptée contre le texte (monde clos) : celles qu'il dit non étayées sont retirées, les
+    autres ne gardent que la phrase qu'il désigne comme preuve. Une relation sans verdict (réponse tronquée) est gardée telle quelle."""
+    keys = list(draft.evidence)
+    for k in range(0, len(keys), VERIFY_BATCH):
+        batch = keys[k : k + VERIFY_BATCH]
+        answer = _call(result, "vérification", system, verify_prompt(text, draft, batch), VERIFY_SCHEMA, VERIFY_TOKENS_PER_ROW * len(batch) + 50)
+        for row in rows(answer.get("verdicts")):
+            num, _, verdict = row.partition(":")
+            i = _index(num, len(batch))
+            verdict, _, letter = verdict.strip().lower().partition(":")
+            quotes = draft.evidence.get(batch[i], []) if i is not None else []
+            if verdict.startswith("o") and letter.strip()[:1] in _LETTERS and _LETTERS.index(letter.strip()[:1]) < len(quotes):
+                draft.evidence[batch[i]] = [quotes[_LETTERS.index(letter.strip()[:1])]]
+            elif i is not None and verdict.startswith("n"):
+                s, rel, t = batch[i]
+                draft.evidence.pop(batch[i], None)
+                draft.log.append(f"reject {draft.name_of(s)} --{rel}--> {draft.name_of(t)} : non étayée selon la vérification")
+                result.refused_relations.append((s, relationship_type_of(rel), t, "non étayée selon la vérification"))
+                result.accepted -= 1
+                result.refused += 1
+
+
+def islands(draft: DraftGraph, sids: list[str]) -> list[list[str]]:
+    """Composantes connexes (de plus d'un élément ou isolées) des éléments numérotés, les plus petites d'abord."""
+    parent = {s: s for s in sids}
+
+    def find(x: str) -> str:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for s, _, t in draft.evidence:
+        if s in parent and t in parent:
+            parent[find(s)] = find(t)
+    groups: dict[str, list[str]] = {}
+    for i, s in enumerate(sids, 1):
+        groups.setdefault(find(s), []).append(f"{i} {draft.name_of(s)}")
+    return sorted(groups.values(), key=len)
 
 
 # --- Étape 1 : entités ----------------------------------------------------------------------------------------------------
@@ -171,6 +346,7 @@ def declare_entities(draft: DraftGraph, answer: dict, result: ExtractionResult) 
         sid, err = draft.declare("|".join(fields))
         if err:
             draft.log.append(f"reject {err}")
+            result.refused_entities.append((line, err))
             result.refused += 1
         elif sid not in sids and draft.type_of(sid) != "attack-pattern":
             sids.append(sid)
@@ -178,136 +354,201 @@ def declare_entities(draft: DraftGraph, answer: dict, result: ExtractionResult) 
     return sids
 
 
-# --- Étape 2 : vérification des techniques --------------------------------------------------------------------------------
-def same_name(given: str, obj: dict) -> bool:
-    """Le nom donné par le modèle est celui de l'identifiant (« PowerShell » ou « Command and Scripting Interpreter: PowerShell »)."""
-    g, short, full = normalize_name(given), normalize_name(obj["name"]), normalize_name(obj["full_name"])
-    return bool(g) and (g in (short, full) or short in g or g in full)
-
-
-def check_technique(draft: DraftGraph, line: str) -> tuple[str | None, list[int], str | None]:
-    """« identifiant|nom|numéros » -> (identifiant STIX, phrases citées, refus). L'identifiant doit exister dans ATT&CK v20.0 et y
-    porter le nom donné : un identifiant voisin écrit de mémoire (bon concept, mauvais numéro) est refusé comme un inexistant."""
-    parts = [p.strip() for p in str(line).split("|")]
-    found = _TECHNIQUE.search(parts[0]) if parts else None
-    if not found:
-        return None, [], "format attendu identifiant ATT&CK|nom|numéros de phrases"
-    aid, name = found.group(0).upper(), parts[1] if len(parts) > 1 else ""
-    uids = [n for n in map(int, re.findall(r"\d+", " ".join(parts[2:]))) if n in draft.by_uid]
-    status, replaced = draft.attack.status(aid)
-    if status == "unknown":
-        draft.hallucinated.append(aid)
-        return None, uids, f"{aid} n'existe pas dans ATT&CK v{draft.attack.version}"
-    obj = draft.attack.get(replaced if status == "revoked" and replaced else aid)
-    if name and obj and not same_name(name, obj):
-        return None, uids, f"{obj['attack_id']} est « {obj['full_name']} » dans ATT&CK v{draft.attack.version}, pas « {name} »"
-    sid, err = draft.technique(aid)
-    return sid, uids, err
-
-
-def accept_techniques(draft: DraftGraph, lines: list, techniques: dict[str, list[int]], result: ExtractionResult) -> list[tuple[str, list[int], str]]:
-    """Ajoute les techniques valides à `techniques` (identifiant STIX -> phrases citées) ; retourne les refus."""
-    refused = []
-    for line in lines:
-        sid, uids, err = check_technique(draft, str(line))
-        if err:
-            refused.append((str(line), uids, err))
-            draft.log.append(f"reject « {line} » : {err}")
+# --- Étape 1 ter : opérations (CTI_OPERATIONS) ----------------------------------------------------------------------------
+def decide_operations(draft: DraftGraph, text: str, system: str, sids: list[str], result: ExtractionResult) -> list[str]:
+    """Le modèle décide des campagnes (phrases, nom, groupe) ; elles remplacent celles de l'appel « entités ». Le rattachement
+    au groupe devient une relation « attributed-to » étayée par les phrases de l'opération."""
+    groups = [s for s in sids if draft.type_of(s) in _GROUP_TYPES]
+    known = [draft.name_of(s) for s in sids if draft.type_of(s) == "campaign"]
+    try:
+        answer = _call(result, "opérations", system, operation_prompt(text, [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in groups], known), OPERATION_SCHEMA, OPERATION_TOKENS)
+    except (TimeoutError, llm.requests.RequestException) as exc:  # sans réponse, les campagnes de l'appel « entités » restent
+        result.failures.append(f"opérations : {type(exc).__name__}: {exc}")
+        return sids
+    campaigns: list[str] = []
+    for line in rows(answer.get("operations")):
+        parts = [p.strip() for p in line.split("|")]
+        uids = [n for n in map(int, re.findall(r"\d+", parts[0])) if n in draft.by_uid]
+        if len(parts) < 2 or not parts[1] or not uids:
+            result.refused_entities.append((line, "format attendu numéros de phrases|nom|groupe"))
             result.refused += 1
-        else:
-            known = techniques.setdefault(sid, [])
-            known += [n for n in uids if n not in known]
+            continue
+        sid, err = draft.declare(f"campaign|{parts[1]}")
+        if err:
+            draft.log.append(f"reject {err}")
+            result.refused_entities.append((line, err))
+            result.refused += 1
+            continue
+        if sid not in campaigns:
+            campaigns.append(sid)
             result.accepted += 1
-    return refused
+        g = _index(parts[2], len(groups)) if len(parts) > 2 else None
+        if g is not None:  # preuve : les phrases de l'opération qui nomment le groupe, sinon les premières
+            naming = [n for n in uids if mentions(draft.by_uid[n].text, draft.terms.get(groups[g], set()))] or uids[:3]
+            err = draft.relate(f"{_ref(draft, sid)}|attributed-to|{_ref(draft, groups[g])}|{','.join(map(str, naming[:3]))}")
+            if err:
+                draft.log.append(f"reject {err}")
+                result.refused_relations.append((sid, "attributed-to", groups[g], err.split(" : ", 1)[-1]))
+                result.refused += 1
+    return [s for s in sids if draft.type_of(s) != "campaign"] + campaigns
 
 
-FIX_SYSTEM = """Tu es analyste CTI. Des techniques MITRE ATT&CK v20.0 proposées pour un rapport de menace ont été refusées (identifiant inexistant, ou identifiant qui ne porte pas le nom donné). Pour chacune, trouve la technique qui correspond au comportement décrit par les phrases citées : appelle search_attack (une requête en anglais par comportement, toutes en un appel), get_attack pour départager deux techniques voisines, puis submit avec les lignes corrigées « identifiant|nom ATT&CK|numéros de phrases ». N'écris qu'un identifiant renvoyé par un outil. Omets un comportement qu'aucune technique ne décrit. Quand submit accepte tout, réponds « FIN »."""
+# --- Étape 1 bis : comportements bloc par bloc (CTI_SECTION_PASS) ---------------------------------------------------------
+def blocks_of(units: list[Unit], limit: int = BLOCK_CHARS) -> list[list[Unit]]:
+    """Unités consécutives par blocs d'au plus `limit` caractères montrés au modèle ; un changement de section (deux premiers
+    niveaux de titres) ferme le bloc s'il est déjà à moitié plein."""
+    out: list[list[Unit]] = []
+    cur: list[Unit] = []
+    size = 0
+
+    def section(u: Unit) -> str:
+        return " > ".join(u.heading_path.split(" > ")[:2])
+
+    for u in units:
+        n = len(u.prompt_text) + 8
+        if cur and (size + n > limit or (section(u) != section(cur[-1]) and size >= limit // 2)):
+            out.append(cur)
+            cur, size = [], 0
+        cur.append(u)
+        size += n
+    if cur:
+        out.append(cur)
+    return out
 
 
-def fix_tools() -> list[dict]:
-    tactics = [t for t, _ in get_attack_kb().tactics()]
-
-    def fn(name: str, description: str, properties: dict, required: list[str]) -> dict:
-        return {"type": "function", "function": {"name": name, "description": description, "parameters": {"type": "object", "properties": properties, "required": required}}}
-
-    return [
-        fn(
-            "search_attack",
-            "Cherche dans MITRE ATT&CK v20.0 les techniques qui correspondent aux comportements de l'attaquant. Donner en UN appel "
-            "la liste de TOUS les comportements, une requête par comportement, en anglais avec les mots du comportement (commande, "
-            "mécanisme, but), pas le nom d'un acteur. Retourne, pour chaque requête, identifiant, nom, tactiques et définition des "
-            "techniques candidates.",
-            {"queries": {"type": "array", "description": "une entrée par comportement", "items": {"type": "object", "properties": {
-                "query": {"type": "string", "description": "comportement en anglais : « <action> <mécanisme> to <but> »"},
-                "tactic": {"type": "string", "enum": tactics, "description": "facultatif : restreindre à une tactique"}},
-                "required": ["query"]}}},
-            ["queries"],
-        ),  # fmt: skip
-        fn(
-            "get_attack",
-            "Fiche ATT&CK v20.0 d'un identifiant (T####, T####.###) : définition complète, tactiques, sous-techniques. À utiliser "
-            "pour départager deux techniques voisines ou choisir la sous-technique.",
-            {"id": {"type": "string"}},
-            ["id"],
-        ),
-        fn(
-            "submit",
-            "Soumet les techniques corrigées ; chacune est vérifiée contre ATT&CK v20.0, les refus reviennent avec leur raison.",
-            {"techniques": {"type": "array", "items": {"type": "string"}, "description": "« T####.###|nom ATT&CK|numéros de phrases »"}},
-            ["techniques"],
-        ),
-    ]
+def _behavior_key(line: str) -> tuple[frozenset[int], str]:
+    parts = line.split("|")
+    guess = _TECHNIQUE.search(" ".join(parts[2:]))
+    return frozenset(map(int, re.findall(r"\d+", parts[0]))), guess.group(0).upper() if guess else ""
 
 
-def fix_prompt(draft: DraftGraph, refused: list[tuple[str, list[int], str]]) -> str:
-    blocks = []
-    for line, uids, reason in refused:
-        quotes = "\n".join(f"  [{n}] {draft.by_uid[n].text}" for n in uids) or "  (aucune phrase valide citée)"
-        blocks.append(f"- « {line} » : {reason}\n{quotes}")
-    return "TECHNIQUES REFUSÉES ET PHRASES CITÉES :\n" + "\n".join(blocks)
+def section_behaviors(units: list[Unit], text: str, system: str, known: list[str], result: ExtractionResult) -> list[str]:
+    """Comportements relevés bloc par bloc, sans ceux de l'appel global (même technique présumée sur des phrases communes) ni
+    doublons ; les phrases citées hors du bloc sont retirées de la ligne."""
+    seen = [_behavior_key(line) for line in known]
+
+    def ask(block: list[Unit]) -> list[str]:
+        try:
+            answer = _call(result, "sections", system, section_prompt(text, block), _schema("behaviors"), SECTION_TOKENS)
+        except (TimeoutError, llm.requests.RequestException) as exc:  # un bloc perdu n'empêche pas les autres
+            result.failures.append(f"comportements du bloc [{block[0].uid}-{block[-1].uid}] : {type(exc).__name__}: {exc}")
+            return []
+        inside = {u.uid for u in block}
+        lines = []
+        for line in rows(answer.get("behaviors")):
+            parts = line.split("|")
+            uids = [n for n in map(int, re.findall(r"\d+", parts[0])) if n in inside]
+            if len(parts) >= 2 and uids:
+                lines.append("|".join([",".join(map(str, uids)), *parts[1:]]))
+        return lines
+
+    out: list[str] = []
+    for lines in llm.map_parallel(ask, blocks_of(units)):
+        for line in lines:
+            uids, guess = _behavior_key(line)
+            if any(guess == g and (uids & u) for u, g in seen) or (uids, guess) in seen:
+                continue
+            seen.append((uids, guess))
+            out.append(line)
+    return out
 
 
-def fix_techniques(draft: DraftGraph, refused: list[tuple[str, list[int], str]], techniques: dict[str, list[int]], result: ExtractionResult) -> None:
-    """Conversation avec outils : le modèle cherche et soumet les techniques corrigées ; les acceptées rejoignent `techniques`."""
-    kb, tools = draft.attack, fix_tools()
-    messages = [{"role": "system", "content": FIX_SYSTEM}, {"role": "user", "content": fix_prompt(draft, refused)}]
-    for _ in range(FIX_TURNS):
-        r = llm.chat(messages, tools, max_output_tokens=FIX_TOKENS)
-        messages.append(r.message)
-        result.calls.append(CallStat("techniques", r.prompt_tokens, r.output_tokens, r.seconds, r.truncated))
-        if not r.tool_calls:
-            if not any(m.get("role") == "tool" for m in messages):
-                draft.log.append("techniques : le modèle n'a appelé aucun outil, les refusées sont écartées")
-            return
-        done = False
-        for call in r.tool_calls:
-            name, args = call["name"], call["arguments"]
-            if name == "search_attack":
-                queries = args.get("queries") or [{"query": args.get("query", ""), "tactic": args.get("tactic")}]
-                out = search_attack_many(kb, queries if isinstance(queries, list) else [queries])
-            elif name == "get_attack":
-                out = get_attack(kb, str(args.get("id", "")))
-            elif name == "submit":
-                lines = args.get("techniques") or []
-                errors = accept_techniques(draft, lines if isinstance(lines, list) else [lines], techniques, result)
-                out = "Tout est accepté." if not errors else "Refusées :\n" + "\n".join(f"- « {line} » : {err}" for line, _, err in errors)
-                done = not errors
-            else:
-                out = f"outil inconnu : {name}"
-            draft.log.append(f"outil {name} {args}")
-            messages.append({"role": "tool", "tool_call_id": call["id"], "content": out})
-        if done:
-            return
+# --- Étape 2 : techniques choisies parmi des candidates -------------------------------------------------------------------
+@dataclass
+class Behavior:
+    line: str
+    uids: list[int]  # phrases citées
+    query: str  # comportement en anglais, requête de la recherche
+    candidates: list[TechniqueHit]
+
+
+def find_candidates(draft: DraftGraph, lines: list[str], result: ExtractionResult) -> list[Behavior]:
+    """« phrases|comportement|identifiant présumé » -> candidates : l'identifiant présumé (et sa technique parente) s'il est
+    actif dans ATT&CK v20.0, puis les meilleures techniques de la recherche sur le comportement. Le code propose, le modèle
+    choisira. Les procédures d'ATT&CK tirées de l'article lui-même ne servent pas à la recherche."""
+    kb, out = draft.attack, []
+    own = report_key(draft.ctx.article_ref.get("url"))
+    for line in lines:
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) < 2 or not parts[1]:
+            result.refused_techniques.append((line, "format attendu numéros de phrases|comportement|identifiant présumé"))
+            result.refused += 1
+            continue
+        hits: list[TechniqueHit] = []
+        guess = _TECHNIQUE.search(" ".join(parts[2:]))
+        if guess:
+            status, replaced = kb.status(guess.group(0).upper())
+            aid = replaced if status == "revoked" and replaced else guess.group(0).upper() if status == "active" else None
+            for a in (aid, aid.split(".")[0]) if aid else ():
+                hits += kb.search_techniques(a)  # un identifiant seul renvoie sa fiche
+        hits += kb.search_techniques(parts[1], limit=CANDIDATES, exclude_source=own)
+        unique = list({h.attack_id: h for h in hits}.values())[: len(_LETTERS)]
+        uids = [n for n in map(int, re.findall(r"\d+", parts[0])) if n in draft.by_uid]
+        if unique:
+            out.append(Behavior(line, uids, parts[1], unique))
+        else:
+            result.refused_techniques.append((line, "aucune technique ATT&CK candidate"))
+            result.refused += 1
+    return out
+
+
+def accept_choices(
+    draft: DraftGraph, answer: dict, behaviors: list[Behavior], techniques: dict[str, list[int]], result: ExtractionResult,
+    carriers: list[str] | None = None, carried: dict[str, list[str]] | None = None,
+) -> None:  # fmt: skip
+    """« numéro:lettres[:auteurs] » -> techniques retenues (identifiant STIX -> phrases citées) ; un comportement sans choix est
+    noté refusé. Avec `carriers` (identifiants STIX des auteurs numérotés), la relation « auteur uses technique » est créée ici,
+    vérifiée comme toute autre (le texte doit nommer le malware ou l'outil) ; `carried` reçoit technique -> auteurs reliés."""
+    chosen: dict[int, list[str]] = {}
+    authors: dict[int, list[str]] = {}
+    for row in rows(answer.get("choices")):
+        num, _, rest = row.partition(":")
+        letters, _, who = rest.partition(":")
+        i = _index(num, len(behaviors))
+        if i is not None:
+            cands = behaviors[i].candidates
+            chosen.setdefault(i, []).extend(cands[_LETTERS.index(c)].attack_id for c in re.findall(r"[a-j]", letters.lower()) if _LETTERS.index(c) < len(cands))
+            if carriers:
+                authors.setdefault(i, []).extend(carriers[k] for k in (_index(n, len(carriers)) for n in re.findall(r"\d+", who)) if k is not None)
+    for i, b in enumerate(behaviors):
+        result.behaviors.append({"line": b.line, "uids": b.uids, "candidates": [h.attack_id for h in b.candidates], "chosen": chosen.get(i, [])})
+        if not chosen.get(i):
+            reason = "aucune candidate retenue parmi " + ", ".join(h.attack_id for h in b.candidates)
+            draft.log.append(f"reject « {b.line} » : {reason}")
+            result.refused_techniques.append((b.line, reason))
+            result.refused += 1
+        for aid in chosen.get(i, []):
+            sid, err = draft.technique(aid)
+            if err:
+                draft.log.append(f"reject {aid} : {err}")
+                result.refused += 1
+                continue
+            known = techniques.setdefault(sid, [])
+            known += [n for n in b.uids if n not in known]
+            draft.procedures.setdefault(sid, [])
+            if b.query not in draft.procedures[sid]:
+                draft.procedures[sid].append(b.query)
+            result.accepted += 1
+            for who in dict.fromkeys(authors.get(i, [])):
+                err = draft.relate(f"{_ref(draft, who)}|uses|{aid}|{','.join(map(str, b.uids))}")
+                if err:
+                    draft.log.append(f"reject {err}")
+                    result.refused_relations.append((who, "uses", sid, err.split(" : ", 1)[-1]))
+                    result.refused += 1
+                elif carried is not None and who not in carried.setdefault(sid, []):
+                    carried[sid].append(who)
+                    result.accepted += 1
 
 
 # --- Étape 3 : relations --------------------------------------------------------------------------------------------------
+def _ref(draft: DraftGraph, sid: str) -> str:
+    """Extrémité d'une ligne de relation : une technique ou un objet ATT&CK est désigné par son identifiant, pas par son nom
+    (« PowerShell » est aussi un outil)."""
+    return attack_id(draft.objects[sid]) or draft.name_of(sid).replace("|", "/").strip()
+
+
 def apply_relations(draft: DraftGraph, answer: dict, sids: list[str], result: ExtractionResult) -> list[tuple[str, str]]:
-    """Ajoute les relations valides ; une technique ou un objet ATT&CK est désigné par son identifiant, pas par son nom (« PowerShell »
-    est aussi un outil)."""
-
-    def ref(sid: str) -> str:
-        return attack_id(draft.objects[sid]) or draft.name_of(sid).replace("|", "/").strip()
-
+    """Ajoute les relations valides."""
     refused: list[tuple[str, str]] = []
     for row in rows(answer.get("relations")):
         parts = [p.strip() for p in row.split("|")]
@@ -315,9 +556,10 @@ def apply_relations(draft: DraftGraph, answer: dict, sids: list[str], result: Ex
         if src is None or dst is None:
             refused.append((row, "format attendu numéro source|relation|numéro cible|numéros de phrases"))
             continue
-        err = draft.relate(f"{ref(sids[src])}|{parts[1]}|{ref(sids[dst])}|{parts[3]}")
+        err = draft.relate(f"{_ref(draft, sids[src])}|{parts[1]}|{_ref(draft, sids[dst])}|{parts[3]}")
         if err:
             refused.append((row, err.split(" : ", 1)[-1]))
+            result.refused_relations.append((sids[src], relationship_type_of(parts[1]), sids[dst], refused[-1][1]))
         else:
             result.accepted += 1
     draft.log += [f"reject « {row} » : {reason}" for row, reason in refused]
@@ -336,31 +578,50 @@ def extract_article(art: dict) -> ExtractionResult:
     try:
         inv = _call(result, "entities", system, entity_prompt(text), ENTITY_SCHEMA, ENTITY_TOKENS)
         sids = declare_entities(draft, inv, result)  # avant les techniques : un nom d'entité (« PowerShell ») prime sur celui d'une technique
+        if OPERATIONS:
+            sids = decide_operations(draft, text, system, sids, result)
         techniques: dict[str, list[int]] = {}
-        refused = accept_techniques(draft, rows(inv.get("techniques")), techniques, result)
-        if refused:
+        lines = rows(inv.get("behaviors"))
+        if SECTION_PASS:
+            lines += section_behaviors(units, text, system, lines, result)
+        behaviors = find_candidates(draft, lines, result)
+        carriers = [s for s in sids if draft.type_of(s) in _CARRIER_TYPES] if CARRIER else []
+        carried: dict[str, list[str]] = {}
+        for k in range(0, len(behaviors), CHOICE_BATCH):  # chaque lot commence par l'article : relu depuis le cache du serveur
+            batch = behaviors[k : k + CHOICE_BATCH]
             try:
-                fix_techniques(draft, refused, techniques, result)
-            except (TimeoutError, llm.requests.RequestException) as exc:  # sans correction, les techniques valides restent
-                result.failures.append(f"correction des techniques : {type(exc).__name__}: {exc}")
+                prompt = choice_prompt(text, batch, [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in carriers] if carriers else None)
+                tokens = CHOICE_TOKENS + (CARRIER_TOKENS * len(batch) if carriers else 0)
+                accept_choices(draft, _call(result, "techniques", system, prompt, CHOICE_SCHEMA, tokens), batch, techniques, result, carriers, carried)
+            except (TimeoutError, llm.requests.RequestException) as exc:  # un lot perdu n'empêche pas les autres
+                result.failures.append(f"choix des techniques : {type(exc).__name__}: {exc}")
 
         table = [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in sids]
         for sid, uids in techniques.items():
-            table.append(f"attack-pattern|{attack_id(draft.objects[sid])} {draft.name_of(sid)} (phrases {','.join(map(str, uids)) or '?'})")
+            by = f" ; déjà employée par {', '.join(draft.name_of(w) for w in carried[sid])}" if carried.get(sid) else ""
+            table.append(f"attack-pattern|{attack_id(draft.objects[sid])} {draft.name_of(sid)} (phrases {','.join(map(str, uids)) or '?'}{by})")
         sids += list(techniques)
         if len(sids) > 1:
-            prompt = relation_prompt(text, table)
+            prompt = relation_prompt(text, table, carried=bool(carried))
             rel = _call(result, "relations", system, prompt, RELATION_SCHEMA, RELATION_TOKENS)
             refused_rel = apply_relations(draft, rel, sids, result)
             if refused_rel:  # le prompt commence par le précédent : relu depuis le cache du serveur
                 fix = _call(result, "corrections", system, correction_prompt(prompt, rel, refused_rel), RELATION_SCHEMA, CORRECTION_TOKENS)
                 apply_relations(draft, fix, sids, result)
+            groups = islands(draft, sids)
+            if len(groups) > 1:  # le modèle relie, le code ne fait que repérer les îlots
+                link = _call(result, "îlots", system, island_prompt(prompt, rel, groups), RELATION_SCHEMA, CORRECTION_TOKENS)
+                apply_relations(draft, link, sids, result)
+            try:
+                verify_relations(draft, text, system, result)
+            except (TimeoutError, llm.requests.RequestException) as exc:  # sans vérification, les relations acceptées restent
+                result.failures.append(f"vérification des relations : {type(exc).__name__}: {exc}")
     except (TimeoutError, llm.requests.RequestException) as exc:
         result.failures.append(f"article : {type(exc).__name__}: {exc}")
     entity_rows = draft.entity_rows()
     with ThreadPoolExecutor(max_workers=2) as pool:  # indépendants : tous deux ne lisent que les entités
-        iocs = pool.submit(extract_iocs, title, units, entity_rows, url=art.get("url"), published=parse_date(art.get("publication_date")))
-        rules = pool.submit(extract_rules, title, art["clean_markdown"], entity_rows)
+        iocs = pool.submit(llm.in_context(extract_iocs), title, units, entity_rows, url=art.get("url"), published=parse_date(art.get("publication_date")))
+        rules = pool.submit(llm.in_context(extract_rules), title, art["clean_markdown"], entity_rows)
         result.iocs, result.rules = iocs.result(), rules.result()
     result.seconds = time.perf_counter() - t0
     return result

@@ -18,7 +18,7 @@ export interface GraphNode {
   ioc_count?: number;
 }
 
-export interface Evidence { article: number | null; quote: string }
+export interface Evidence { article: number | null; quote: string; procedure?: string }
 
 export interface GraphEdge {
   id: string;

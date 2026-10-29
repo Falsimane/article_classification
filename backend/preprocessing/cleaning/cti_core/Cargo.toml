@@ -13,5 +13,7 @@ default = []
 extension-module = ["pyo3/extension-module"]
 
 [dependencies]
+ego-tree = "0.10"
 pyo3 = { version = "0.22" }
 regex = "1.10"
+scraper = "0.24"

@@ -20,10 +20,11 @@ from stix2.exceptions import STIXError
 from stix2.v21.vocab import INDUSTRY_SECTOR
 
 from backend.extracting.stix.attack import AttackKB, attack_id, get_attack_kb
-from backend.extracting.stix.objects import ENTITY_CLASSES, ArticleContext, entity, relationship
+from backend.extracting.stix.objects import ALLOWED_RELATIONS, ENTITY_CLASSES, ArticleContext, entity, relationship
 
 from backend.preprocessing.cleaning.text.evidence import confidence_from_text, mentions, normalize_name
-from backend.extracting.graph.places import resolve_location
+from backend.extracting.graph.places import place_names, resolve_location
+from backend.extracting.observables.iocs import is_domain_name
 from backend.preprocessing.cleaning.text.segment import Unit
 
 # Extrémités qui peuvent rester implicites dans la phrase citée : l'acteur (« les opérateurs », « il ») et la technique
@@ -34,7 +35,7 @@ _TYPE_WORDS = frozenset(ENTITY_CLASSES) | {"attack-pattern", "technique"}
 _TECHNIQUE = re.compile(r"^T\d{4}(?:\.\d{3})?$", re.I)
 _CVE = re.compile(r"CVE-\d{4}-\d{4,}", re.I)
 # Une valeur technique (adresse, domaine, URL, hachage) est un IOC, extrait par règles, jamais une entité nommée
-_OBSERVABLE = re.compile(r"^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-f0-9]{32,64}|https?://\S+|[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|ru|cn|info|xyz|top|cc|biz))$", re.I)
+_OBSERVABLE = re.compile(r"^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-f0-9]{32,64}|https?://\S+)$", re.I)
 _ADVERSARY_SIDE = frozenset({"intrusion-set", "threat-actor", "campaign", "malware", "tool", "infrastructure"})
 CONTEXT_SENTENCES = 3  # phrases précédentes de la même section admises pour retrouver l'entité désignée par « il », « ce malware »
 MAX_HITS = 6
@@ -125,6 +126,7 @@ class DraftGraph:
     terms: dict[str, set[str]] = field(default_factory=dict)  # identifiant STIX -> noms qui la désignent dans le texte
     names: dict[str, str] = field(default_factory=dict)  # nom normalisé, alias ou identifiant ATT&CK -> identifiant STIX
     evidence: dict[tuple[str, str, str], list[str]] = field(default_factory=dict)  # (source, relation, cible) -> citations
+    procedures: dict[str, list[str]] = field(default_factory=dict)  # technique -> comportements décrits (en anglais) qui l'ont fait choisir
     log: list[str] = field(default_factory=list)  # corrections et refus, pour le rapport
     hallucinated: list[str] = field(default_factory=list)  # identifiants ATT&CK proposés absents de la v20.0
 
@@ -182,7 +184,7 @@ class DraftGraph:
             return self.technique(found.group(0))
         if stix_type not in ENTITY_CLASSES:
             return None, f"« {line} » : type {parts[0]!r} hors périmètre (types : {', '.join(ENTITY_CLASSES)}) ; les IOC ne sont pas extraits"
-        if _OBSERVABLE.match(name):
+        if _OBSERVABLE.match(name) or is_domain_name(name):
             return None, f"« {line} » : « {name} » est un IOC (adresse, domaine, URL, hachage), extrait par ailleurs"
         if stix_type in _ADVERSARY_SIDE and normalize_name(name) == self.publisher_key:
             return None, f"« {line} » : « {name} » est l'auteur du rapport, pas un composant de l'attaque"
@@ -223,7 +225,10 @@ class DraftGraph:
             self.objects[obj["id"]] = obj
             props = {**known[2], "aliases": merged}
         self.specs[obj["id"]] = (stix_type, name, props)
-        return self._register(obj, {name, *props.get("aliases", [])}), None
+        terms = {name, *props.get("aliases", [])}
+        if stix_type == "location":  # le lieu est reconnu sous toutes ses graphies, quelle que soit la langue du nom donné
+            terms |= place_names(props.get("country"), props.get("region"))
+        return self._register(obj, terms), None
 
     def resolve(self, ref: str) -> tuple[str | None, str | None]:
         """Une extrémité de relation : identifiant ATT&CK, nom déclaré (ou alias), ou nom connu d'ATT&CK."""
@@ -273,6 +278,12 @@ class DraftGraph:
             return f"« {line} » : {err}"
         if s_id == t_id:
             return f"« {line} » : une entité ne se relie pas à elle-même"
+        s_type, t_type, rel_type = self.type_of(s_id), self.type_of(t_id), relationship_type_of(rel)
+        if (s_type, rel_type, t_type) not in ALLOWED_RELATIONS:
+            admitted = sorted({f"{r} {t}" for s, r, t in ALLOWED_RELATIONS if s == s_type})
+            return f"« {line} » : {s_type} --{rel_type}--> {t_type} n'existe pas en STIX 2.1 ; " + (
+                f"depuis {s_type} : {', '.join(admitted)}" if admitted else f"un objet {s_type} n'est jamais la source d'une relation"
+            )
         context = self._context(uids)
         unnamed = [self.name_of(i) for i in (s_id, t_id) if self.type_of(i) not in _IMPLICIT and not mentions(context, self.terms[i])]
         if unnamed:
@@ -288,13 +299,24 @@ class DraftGraph:
 
     # --- Sortie ----------------------------------------------------------------------------------------------------------
     def relationships(self) -> list:
-        """`stix2.Relationship` de chaque relation acceptée, avec toutes ses citations ; confiance tirée de la plus affirmative."""
-        return [relationship(rel, s, t, self.ctx, quotes, max(confidence_from_text(q) for q in quotes)) for (s, rel, t), quotes in self.evidence.items()]
+        """`stix2.Relationship` de chaque relation acceptée, avec toutes ses citations ; confiance tirée de la plus affirmative.
+        Une relation « uses » vers une technique a pour description la procédure (comme dans ATT&CK) : le comportement tel que
+        l'article le décrit, plus discriminant pour l'attribution que l'identifiant de technique seul."""
+        return [
+            relationship(rel, s, t, self.ctx, quotes, max(confidence_from_text(q) for q in quotes),
+                         procedure=" ; ".join(self.procedures.get(t, [])) if rel == "uses" else None)
+            for (s, rel, t), quotes in self.evidence.items()
+        ]  # fmt: skip
 
     def linked(self) -> list:
         """Entités reliées (une entité sans relation étayée n'est pas gardée)."""
         ids = {i for s, _, t in self.evidence for i in (s, t)}
         return [o for sid, o in self.objects.items() if sid in ids]
+
+    def unlinked(self) -> list:
+        """Entités acceptées puis écartées faute de relation étayée (pour situer les pertes à l'évaluation)."""
+        ids = {i for s, _, t in self.evidence for i in (s, t)}
+        return [o for sid, o in self.objects.items() if sid not in ids]
 
     def entity_rows(self) -> list[dict]:
         """Entités reliées sous forme simple (identifiant, type, nom, alias) : pour rattacher IOC et règles."""
