@@ -128,13 +128,19 @@ uv run python -m backend.extracting.stix.attack
 # Articles annotés (Annotations/manifest.json : article_id -> gold) ; rapport dans <bundles>/report.md
 uv run cti-eval --run --workers 4 --bundles backend/evaluation/eval/<nom>
 uv run cti-eval --bundles backend/evaluation/eval/<nom>   # re-score sans appel au modèle
+uv run cti-eval --compare v5_base_1,v5_base_2 <a>,<b>     # écart et IC 95 % par bootstrap sur les articles, compteurs de mécanisme
 ```
 Le backend Python n'a pas de tests unitaires : toute modification de l'extraction se mesure avec `cti-eval` sur les 9 articles
-annotés et se compare au dernier rapport (référence : `backend/evaluation/eval/base_html_1` et `base_html_2`, texte nettoyé
-depuis le HTML, modèle Swift 1.5 INT4, couche sémantique seule : entités R 62,2 / 61,6 %, P 68,2 / 67,6 % ; relations
-R 29,3 / 30,7 %, P 40,9 / 39,8 %). Deux exécutions du même code diffèrent de plusieurs points (vLLM sous requêtes concurrentes) :
-mesurer chaque variante sur au moins deux exécutions. Passe par bloc expérimentale (`CTI_SECTION_PASS=on`) :
-`sect_html_1` et `sect_html_2`.
+annotés et se compare au dernier rapport avec `--compare` (référence : `backend/evaluation/eval/v5_base_1` et `v5_base_2`,
+texte nettoyé depuis le HTML, modèle Swift 1.5 INT4, procédures ATT&CK de l'article lui-même exclues de la recherche, couche
+sémantique seule : entités R 63,1 / 63,7 %, P 68,8 / 68,7 % ; relations R 30,7 / 30,3 %, P 38,7 / 35,5 %). Le rapport publie aussi
+un score strict (sans crédit partiel), un score relâché (source « uses » dans le groupe d'activité), les pertes par étape
+(techniques : aucun comportement / absente des candidates / non retenue) et les relations retirées par le vérificateur.
+Deux exécutions du même code diffèrent de plusieurs points (vLLM sous requêtes concurrentes) : mesurer chaque variante sur au
+moins deux exécutions. **Toute retouche du prompt système peut faire disparaître une campagne à la marge** (1697 : présente dans
+3 exécutions sur 3, absente dans 4 sur 4 après l'ajout d'une seule phrase sur les victimes) : la mesurer comme un changement de
+méthode. Variantes expérimentales : `CTI_SECTION_PASS=on` (comportements par bloc, `sect_html_1/2`), `CTI_CARRIER=on` (porteur
+choisi avec la technique, `v2_carrier_1`, 8 articles), `CTI_OPERATIONS=on` (campagnes décidées par un appel à part, non mesurée).
 
 ### D. Serveur Web & Dashboard CTI
 ```bash

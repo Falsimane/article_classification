@@ -123,7 +123,8 @@ def checks_report(summary: dict) -> list[str]:
     """Scores strict et relâché, vérificateur, rappel de la recherche, compteurs de mécanisme."""
     lines = ["", "## Variantes du score (total)", "", "| Score | Rappel | Précision |", "|---|---|---|"]
     for key, label in (("entities_strict", "Entités, sans crédit partiel"), ("relations_strict", "Relations, sans crédit partiel"),
-                       ("relations_relaxed", "Relations, source « uses » dans le groupe d'activité")):  # fmt: skip
+                       ("relations_relaxed", "Relations, source « uses » dans le groupe d'activité"),
+                       ("victims", "Victimes par le fait (secteurs et pays visés)")):  # fmt: skip
         if key in summary:
             lines.append(f"| {label} | {_pct(summary[key]['recall'])} | {_pct(summary[key]['precision'])} |")
     lines += ["", "## Compteurs de mécanisme", "", *[f"- {k} : {v}" for k, v in mechanism(summary).items()]]
@@ -187,7 +188,7 @@ def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs
 
 
 # --- Comparaison de configurations --------------------------------------------------------------------------------------
-_METRICS = (("entities", "Entités"), ("relations", "Relations"), ("relations_relaxed", "Relations relâchées"), ("relations_strict", "Relations strictes"))
+_METRICS = (("entities", "Entités"), ("relations", "Relations"), ("relations_relaxed", "Relations relâchées"), ("relations_strict", "Relations strictes"), ("victims", "Victimes (secteurs, pays)"))
 
 
 def _per_article(dirs: list[Path]) -> dict[int, dict[str, dict[str, float]]]:

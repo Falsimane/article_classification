@@ -15,6 +15,9 @@
 - Score relâché des relations « uses » : la source prédite peut être toute entité du même groupe d'activité que la source du
   gold (campagne, groupe auquel elle est attribuée, malwares et outils qu'ils emploient, reliés entre eux dans le gold). Il
   répond à la question de l'attribution (la technique a-t-elle été vue dans cette activité ?) sans la convention du porteur.
+- Victimes par le fait (`victims`) : les secteurs STIX et les pays ou régions qui reçoivent une relation « targets », comparés
+  comme ensembles. Le nom et le grain d'une victime (« les tribunaux de Kyiv » ou « institutions de l'État ukrainien ») relèvent
+  de la modélisation de l'analyste ; le secteur et le pays visés n'en dépendent pas.
 - Appariement un pour un (glouton, meilleur crédit d'abord) : un doublon prédit est un faux positif.
 - Campagnes : sans nom commun (le gold les nomme en français), elles sont appariées par le plus grand nombre de
   relations partagées.
@@ -245,6 +248,20 @@ def activity_groups(gold: dict[str, Entity], gold_rels: list[Relation]) -> dict[
     return {sid: groups[find(sid)] for sid in parent}
 
 
+def victim_facts(objects: list[dict]) -> set[tuple[str, str]]:
+    """(« sector », secteur) et (« place », code pays ou région) des identités et lieux visés par une relation « targets »."""
+    by_id = {o["id"]: o for o in objects}
+    targeted = {o["target_ref"] for o in objects if o.get("type") == "relationship" and o.get("relationship_type") == "targets"}
+    facts: set[tuple[str, str]] = set()
+    for sid in targeted:
+        o = by_id.get(sid, {})
+        if o.get("type") == "identity":
+            facts |= {("sector", x) for x in o.get("sectors") or []}
+        elif o.get("type") == "location":
+            facts |= {("place", (o.get("country") or o.get("region") or "").lower())} - {("place", "")}
+    return facts
+
+
 def _match_relations(gold_rels: list[Relation], pred_rels: list[Relation], cands: dict, sources=None) -> dict[str, tuple[str, float]]:
     """Appariement un pour un des relations : même type, extrémités compatibles. `sources(relation gold)` élargit les sources
     gold admises (score relâché)."""
@@ -302,6 +319,7 @@ class ArticleScore:
     entities_strict: Counts = field(default_factory=Counts)  # sans crédit partiel des techniques
     relations_strict: Counts = field(default_factory=Counts)
     relations_relaxed: Counts = field(default_factory=Counts)  # source « uses » dans le même groupe d'activité
+    victims: Counts = field(default_factory=Counts)  # secteurs et pays visés, comparés comme ensembles
 
     def as_dict(self) -> dict:
         return {
@@ -311,6 +329,7 @@ class ArticleScore:
             "entities_strict": self.entities_strict.as_dict(),
             "relations_strict": self.relations_strict.as_dict(),
             "relations_relaxed": self.relations_relaxed.as_dict(),
+            "victims": self.victims.as_dict(),
             "entities_by_type": {k: v.as_dict() for k, v in sorted(self.by_type.items())},
             "relations_by_pattern": {k: v.as_dict() for k, v in sorted(self.by_pattern.items())},
             "hallucinations": self.hallucinations,
@@ -455,13 +474,17 @@ def score_article(article_id: int, gold_bundle: dict, pred_bundle: dict, source_
         entities_strict=ents_strict,
         relations_strict=rels_strict,
         relations_relaxed=rels_relaxed,
+        victims=Counts(
+            gold_required=len(gv := victim_facts(gold_bundle.get("objects", []))), predicted=len(pv := victim_facts(pred_bundle.get("objects", []))),
+            found_required=float(len(gv & pv)),
+        ),
     )
 
 
 def total(scores: list[ArticleScore]) -> dict:
     """Micro-moyenne sur les articles (sommes des comptes, puis ratios)."""
     ents, rels, by_type, by_pattern = Counts(), Counts(), {}, {}
-    variants = {k: Counts() for k in ("entities_strict", "relations_strict", "relations_relaxed")}
+    variants = {k: Counts() for k in ("entities_strict", "relations_strict", "relations_relaxed", "victims")}
     for s in scores:
         ents.add(s.entities)
         rels.add(s.relations)

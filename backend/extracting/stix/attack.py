@@ -274,6 +274,27 @@ class AttackKB:
         hits = [h for h in hits if h and h["type"] in types]
         return sorted(hits, key=lambda h: (h["status"] != "active", h["attack_id"]))
 
+    def _labels(self) -> list[tuple[re.Pattern, str, str, str]]:
+        """(motif, libellé, identifiant, type) de chaque nom et alias de groupe, logiciel ou campagne actif, calculés une fois."""
+        if not hasattr(self, "_label_cache"):
+            rows = self._db().execute("SELECT attack_id, type, name, aliases FROM objects WHERE type IN ('intrusion-set', 'malware', 'tool', 'campaign') AND status = 'active'")
+            out = []
+            for aid, kind, name, aliases in rows:
+                for label in dict.fromkeys([name, *json.loads(aliases or "[]")]):
+                    if len(label) >= 3:  # un nom court (« cmd », « Net ») se compare à la casse près
+                        flags = 0 if len(label) <= 4 else re.I
+                        out.append((re.compile(rf"(?<![\w-]){re.escape(label)}(?![\w-])", flags), label, aid, kind))
+            self._label_cache = out
+        return self._label_cache
+
+    def mentioned(self, text: str) -> list[tuple[str, str, str]]:
+        """(libellé, identifiant, type) des groupes, logiciels et campagnes d'ATT&CK nommés dans `text`, un par identifiant."""
+        found: dict[str, tuple[str, str, str]] = {}
+        for pattern, label, aid, kind in self._labels():
+            if aid not in found and pattern.search(text):
+                found[aid] = (label, aid, kind)
+        return list(found.values())
+
     def search_techniques(self, query: str, tactic: str | None = None, limit: int = 8, exclude_source: str | None = None) -> list[TechniqueHit]:
         """Techniques actives qui correspondent le mieux à une description de comportement. `tactic` restreint aux
         techniques de cette tactique (nom court ATT&CK : « discovery », « command-and-control »…) ; `exclude_source` (clé

@@ -12,12 +12,13 @@ invalide) revient au modèle telle quelle. S'y ajoutent deux contrôles qui ne r
   par le code à partir des numéros de phrase : il est exact par construction.
 """
 
+import os
 import re
 from dataclasses import dataclass, field
 
 from stix2 import ExternalReference
 from stix2.exceptions import STIXError
-from stix2.v21.vocab import INDUSTRY_SECTOR
+from stix2.v21.vocab import IDENTITY_CLASS, INDUSTRY_SECTOR
 
 from backend.extracting.stix.attack import AttackKB, attack_id, get_attack_kb
 from backend.extracting.stix.objects import ALLOWED_RELATIONS, ENTITY_CLASSES, ArticleContext, entity, relationship
@@ -37,6 +38,12 @@ _CVE = re.compile(r"CVE-\d{4}-\d{4,}", re.I)
 # Une valeur technique (adresse, domaine, URL, hachage) est un IOC, extrait par règles, jamais une entité nommée
 _OBSERVABLE = re.compile(r"^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-f0-9]{32,64}|https?://\S+)$", re.I)
 _ADVERSARY_SIDE = frozenset({"intrusion-set", "threat-actor", "campaign", "malware", "tool", "infrastructure"})
+# Réparation des relations hors table (CTI_ORIENT=on, d'après TRACE) : flèche inversée, et trois retypages que la norme impose
+# (« uses » vers une victime, un lieu, une vulnérabilité ou un produit est « targets » ; un acteur ou une campagne qui « drops »,
+# « downloads » ou « delivers » un logiciel l'« uses » ; un acteur ou une campagne qui « exploits » une vulnérabilité la « targets »,
+# STIX réservant « exploits » aux malwares). Seulement si la forme réparée est dans la table ; sinon le refus revient au modèle.
+ORIENT = os.environ.get("CTI_ORIENT", "off").strip().lower() in ("on", "1", "yes", "true")
+_ACTORS = frozenset({"intrusion-set", "threat-actor", "campaign"})
 CONTEXT_SENTENCES = 3  # phrases précédentes de la même section admises pour retrouver l'entité désignée par « il », « ce malware »
 MAX_HITS = 6
 
@@ -95,6 +102,23 @@ def get_attack(kb: AttackKB, aid: str, max_chars: int = 700) -> str:
         if subs:
             lines.append("Sous-techniques : " + " ; ".join(f"{i} {n}" for i, n in subs))
     return "\n".join(lines)
+
+
+def orient(s_type: str, rel: str, t_type: str) -> tuple[bool, str] | None:
+    """(inverser, relation) qui rend « s_type --rel--> t_type » conforme à la table, ou None (voir ORIENT)."""
+    fixed = rel
+    if rel == "uses" and t_type in ("identity", "location", "vulnerability", "software"):
+        fixed = "targets"
+    elif rel in ("drops", "downloads", "delivers") and s_type in _ACTORS:
+        fixed = "uses"
+    elif rel == "exploits" and s_type in _ACTORS and t_type == "vulnerability":
+        fixed = "targets"
+    for candidate in dict.fromkeys((fixed, rel)):
+        if (s_type, candidate, t_type) in ALLOWED_RELATIONS:
+            return False, candidate
+        if (t_type, candidate, s_type) in ALLOWED_RELATIONS:
+            return True, candidate
+    return None
 
 
 def parse_relation(line: str) -> tuple[str, str, str, str] | None:
@@ -166,6 +190,11 @@ class DraftGraph:
             return None, f"{aid} est {status} dans ATT&CK v{self.attack.version} : choisir un objet actif"
         return self._register(self.attack.stix_object(aid), terms | {aid}), None
 
+    def add_terms(self, sid: str, terms: set[str]) -> None:
+        """Autres noms sous lesquels le texte désigne une entité déjà déclarée (victimes fusionnées) : la vérification d'une
+        relation les reconnaît dans la phrase citée."""
+        self._register(self.objects[sid], terms)
+
     def technique(self, aid: str) -> tuple[str | None, str | None]:
         return self._attack_object(aid, set())
 
@@ -209,9 +238,16 @@ class DraftGraph:
                 return None, f"« {line} » : ni pays (ISO 3166-1) ni région STIX reconnus pour « {name} »"
             props.update({"country": country} if country else {"region": region})
         elif stix_type == "identity":
-            sector = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
-            if sector in INDUSTRY_SECTOR:  # « government », « technology » : un secteur du vocabulaire STIX
-                props.update(identity_class="class", sectors=[sector])
+            # Secteur et classe des vocabulaires STIX : en troisième champ (« identity|<victime>|government;class »), ou le nom
+            # lui-même (« government ») ; sans classe, une victime nommée par son secteur est une classe, sinon une organisation
+            slug = lambda t: re.sub(r"[^a-z0-9]+", "-", t.casefold()).strip("-")  # noqa: E731
+            fields = [slug(f) for f in extra.split(";")]
+            sector = next((s for s in (*fields, slug(name)) if s in INDUSTRY_SECTOR), None)
+            klass = next((f for f in fields if f in IDENTITY_CLASS), None)
+            if sector:
+                props["sectors"] = [sector]
+            if klass or sector:
+                props["identity_class"] = klass or ("class" if slug(name) == sector else "organization")
         elif extra:
             props["aliases"] = [a.strip() for a in extra.split(";") if a.strip()]
         try:
@@ -279,6 +315,13 @@ class DraftGraph:
         if s_id == t_id:
             return f"« {line} » : une entité ne se relie pas à elle-même"
         s_type, t_type, rel_type = self.type_of(s_id), self.type_of(t_id), relationship_type_of(rel)
+        repaired = orient(s_type, rel_type, t_type) if ORIENT and (s_type, rel_type, t_type) not in ALLOWED_RELATIONS else None
+        if repaired:
+            swap, rel_type = repaired
+            if swap:
+                s_id, t_id, s_type, t_type = t_id, s_id, t_type, s_type
+            self.log.append(f"fix {line} -> {self.name_of(s_id)} --{rel_type}--> {self.name_of(t_id)}")
+            rel = rel_type
         if (s_type, rel_type, t_type) not in ALLOWED_RELATIONS:
             admitted = sorted({f"{r} {t}" for s, r, t in ALLOWED_RELATIONS if s == s_type})
             return f"« {line} » : {s_type} --{rel_type}--> {t_type} n'existe pas en STIX 2.1 ; " + (

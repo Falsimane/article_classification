@@ -44,30 +44,52 @@ ENTITY_TOKENS = 4000
 RELATION_TOKENS = 3000
 CORRECTION_TOKENS = 1200
 CHOICE_TOKENS = 600
-CANDIDATES = 6  # techniques proposées par la recherche pour un comportement, en plus de l'identifiant présumé par le modèle
-CHOICE_BATCH = 12  # comportements par appel de choix : la liste des candidates tient dans le contexte avec l'article
+# Techniques proposées par la recherche pour un comportement, en plus de l'identifiant présumé par le modèle et de sa parente.
+# Rappel de la recherche mesuré hors ligne (comportements de v2_base_1) : 72 % à 6, 83 % à 15, 87 % à 20 (CTI_CANDIDATES).
+CANDIDATES = max(1, int(os.environ.get("CTI_CANDIDATES") or 6))
+_LETTERS = "abcdefghijklmnopqrst"
+MAX_OPTIONS = min(len(_LETTERS), CANDIDATES + 4)  # lettres d'un comportement : recherche + identifiant présumé et parente
+# Comportements par appel de choix : au plus ~120 lignes de candidates, pour que la liste tienne dans le contexte avec l'article
+CHOICE_BATCH = max(4, 120 // MAX_OPTIONS)
+VERIFY_QUOTES = 10  # phrases citées montrées au vérificateur par relation
 VERIFY_BATCH = 40  # relations jugées par appel de vérification
 VERIFY_TOKENS_PER_ROW = 8  # « 12:o:b; »
 _TECHNIQUE = re.compile(r"T\d{4}(?:\.\d{3})?", re.I)
-_LETTERS = "abcdefghij"
-# Passe par bloc (expérimentale, CTI_SECTION_PASS=on) : après l'appel « entités », un appel par bloc d'environ 1 500 tokens relève
-# les comportements de ce bloc seul. L'article entier reste en tête du prompt (même préfixe, relu depuis le cache du serveur) ;
-# seule la consigne finale désigne le bloc. Mesure : les entités citées tard dans l'article sont moins souvent trouvées.
+
+
 def _flag(name: str) -> bool:
     return os.environ.get(name, "off").strip().lower() in ("on", "1", "yes", "true")
 
 
+# Passe par bloc (expérimentale, CTI_SECTION_PASS=on) : après l'appel « entités », un appel par bloc d'environ 1 500 tokens relève
+# les comportements de ce bloc seul. L'article entier reste en tête du prompt (même préfixe, relu depuis le cache du serveur) ;
+# seule la consigne finale désigne le bloc. Mesure : les entités citées tard dans l'article sont moins souvent trouvées.
 SECTION_PASS = _flag("CTI_SECTION_PASS")
 BLOCK_CHARS = 6000
 SECTION_TOKENS = 1500
 # Porteur de chaque technique choisi avec elle (CTI_CARRIER=on) : un choix fermé parmi les entités numérotées, au lieu d'une
 # décision implicite au milieu de l'appel « relations ». Mesure : 33 relations du gold ont la bonne technique et la mauvaise source.
-CARRIER = _flag("CTI_CARRIER")
+# CTI_CARRIER=separate : même choix, mais dans un appel à part après celui des techniques, dont le prompt reste inchangé (mesure :
+# demandé avec les lettres, le porteur coûte 2 à 3 techniques choisies).
+CARRIER_MODE = os.environ.get("CTI_CARRIER", "off").strip().lower()
+CARRIER = CARRIER_MODE in ("on", "1", "yes", "true")
+CARRIER_SEPARATE = CARRIER_MODE == "separate"
+CARRIER_BATCH = 30  # techniques retenues par appel « porteurs »
 CARRIER_TOKENS = 3  # « :12 » par comportement
 # Opérations décidées par un appel à part (CTI_OPERATIONS=on) : la campagne est l'extrémité de près de la moitié des relations,
 # et l'appel « entités » en crée trop peu (ou une de trop) quand elle est sans nom.
 OPERATIONS = _flag("CTI_OPERATIONS")
-OPERATION_TOKENS = 400
+OPERATION_TOKENS = 400  # une opération tient en ~40 tokens ; la consigne borne les phrases citées (mesure : une liste de 70 numéros
+# avait épuisé le budget avant la seconde opération)
+# Victimes décidées par un appel à part (CTI_VICTIMS=on) : nom copié du texte, secteur STIX, pays, attaquant. Mesure : les
+# victimes sont la catégorie la plus oubliée (jamais proposées, ou leur « targets » refusé faute d'être nommées dans la phrase).
+VICTIMS = _flag("CTI_VICTIMS")
+VICTIM_TOKENS = 600
+# Rattrapage des noms (CTI_MENTIONS=on) : CVE et noms ATT&CK écrits dans l'article mais absents de la liste ; le modèle dit pour
+# chacun s'il appartient à l'activité décrite. Le code repère, le modèle décide.
+MENTIONS = _flag("CTI_MENTIONS")
+MAX_MENTIONS = 25
+_CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
 _CARRIER_TYPES = ("campaign", "intrusion-set", "threat-actor", "malware", "tool")
 _GROUP_TYPES = ("intrusion-set", "threat-actor")
 
@@ -124,6 +146,8 @@ def _schema(*fields: str) -> dict:
 
 ENTITY_SCHEMA = _schema("entities", "behaviors")
 OPERATION_SCHEMA = _schema("operations")
+VICTIM_SCHEMA = _schema("victims")
+MENTION_SCHEMA = _schema("mentions")
 CHOICE_SCHEMA = _schema("choices")
 VERIFY_SCHEMA = _schema("verdicts")
 RELATION_SCHEMA = _schema("relations")
@@ -133,6 +157,14 @@ def rows(value) -> list[str]:
     """Éléments d'un champ texte, séparés par « ; » ou des retours à la ligne (une liste est aussi admise)."""
     items = value if isinstance(value, list) else re.split(r"[;\n]", str(value or ""))
     return [str(i).strip() for i in items if str(i).strip()]
+
+
+def _numbers(raw: str) -> list[int]:
+    """Numéros de phrases d'un champ : « 4,5,9 » ou plages « 14-20 »."""
+    out: list[int] = []
+    for a, b in re.findall(r"(\d+)(?:\s*-\s*(\d+))?", raw):
+        out += list(range(int(a), int(b) + 1)) if b and int(b) >= int(a) else [int(a)]
+    return list(dict.fromkeys(out))
 
 
 def _index(raw: str, size: int) -> int | None:
@@ -158,7 +190,7 @@ ENTITÉS (types : {', '.join(ENTITY_CLASSES)}) :
 - tool : logiciel légitime détourné par l'attaquant (binaire natif du système, outil d'administration, packer, obfuscateur). Jamais une fonction, un appel système ou une bibliothèque de programmation.
 - infrastructure : service ou infrastructure NOMMÉ utilisé par l'attaquant. Jamais une IP, un domaine ou une URL.
 - vulnerability : une CVE. software : produit légitime visé (« software|<produit>|<éditeur> »).
-- identity : victime (organisation, secteur) ou éditeur du produit visé, avec les mots du texte, sans les traduire (« financial institutions » reste « financial institutions ») : le code retrouve la victime dans la phrase citée. location : pays ou région ciblés (« location|<pays>|<code ISO 3166-1> »).
+- identity : victime (organisation, secteur) ou éditeur du produit visé. location : pays ou région ciblés (« location|<pays>|<code ISO 3166-1> »).
 JAMAIS : l'auteur du rapport, les chercheurs ou éditeurs de sécurité comme acteur ou victime ; un hachage, une IP, un domaine, une URL ou un nom de fichier ordinaire (ce sont des IOC, hors périmètre) ; ce que le rapport cite d'autres opérations passées comme activité de la campagne décrite.
 
 RELATIONS (STIX 2.1, source --relation--> cible ; aucune autre n'est admise) :
@@ -206,9 +238,51 @@ def operation_prompt(text: str, groups: list[str], known: list[str]) -> str:
         "racontée de bout en bout, même si le rapport ne lui donne pas de nom. N'en est PAS une : l'analyse d'un malware, d'un "
         "outil ou d'une vulnérabilité sans activité observée, le profil ou les habitudes d'un groupe, une tendance générale, une "
         "opération passée que le rapport ne fait que rappeler. « operations » : la liste définitive, éléments séparés par « ; », "
-        "chacun « numéros des phrases qui la décrivent|nom descriptif|numéro du groupe auquel le texte l'attribue ou - » "
+        "chacun « numéros des phrases qui la décrivent le mieux (5 au plus)|nom descriptif|numéro du groupe auquel le texte l'attribue ou - » "
         "(« 4,5,9|Campagne <acteur> contre <cible>, <période>|1 »). UNE opération par vague distincte (cibles ou périodes "
         "différentes) ; reprends le nom exact d'une campagne proposée si c'est la même. Chaîne vide si le rapport n'en décrit aucune."
+    )
+
+
+def victim_prompt(text: str, attackers: list[str]) -> str:
+    from stix2.v21.vocab import INDUSTRY_SECTOR
+
+    numbered = "\n".join(f"{i}. {a}" for i, a in enumerate(attackers, 1)) or "(aucun)"
+    return (
+        f"{text}\n\n---\nATTAQUANTS (numérotés) :\n{numbered}\n\n"
+        "TÂCHE : « victims » : les victimes que le rapport dit visées par l'activité décrite, au grain où il les décrit : un "
+        "groupe de victimes par type d'organisation et par pays (dix hôpitaux d'un même pays = UNE victime « hospitals ») ; "
+        "une organisation nommée seulement si le texte la nomme comme victime. Éléments séparés par « ; », chacun « numéros des "
+        "phrases qui l'affirment (5 au plus)|nom copié du texte, dans sa langue, sans le traduire|classe|secteur ou -|code pays "
+        "ISO 3166-1 de la victime ou -|numéro de l'attaquant ou - » (« 7,8|<victimes>|class|healthcare|<code>|1 »). Classe : "
+        "organization (organisation nommée), class (ensemble d'organisations, secteur), group (population, groupe de "
+        f"personnes), individual (personne). Secteurs : {', '.join(sorted(INDUSTRY_SECTOR))}. Une ville, une région ou un pays "
+        "n'est jamais une victime : c'est le code pays de la victime. JAMAIS : l'auteur du rapport, une agence ou un éditeur qui "
+        "publie une alerte, un chercheur ; une marque ou un service usurpé dans un leurre ; un fournisseur dont l'infrastructure "
+        "est détournée par l'attaquant (hébergeur, cloud, CDN, messagerie, dépôt de code) ; une cible seulement évoquée, supposée "
+        "ou menacée ; la victime d'une autre opération que celle décrite. Chaîne vide si le rapport n'en nomme aucune."
+    )
+
+
+def mention_prompt(text: str, items: list[str]) -> str:
+    numbered = "\n".join(f"{i}. {x}" for i, x in enumerate(items, 1))
+    return (
+        f"{text}\n\n---\nNOMS ÉCRITS DANS LE RAPPORT ET ABSENTS DE TA LISTE :\n{numbered}\n\n"
+        "TÂCHE : « mentions » : pour chacun, « numéro:o » si le rapport le décrit comme employé, déployé, exploité ou visé dans "
+        "l'activité décrite, « numéro:n » sinon (simple comparaison, contexte, autre opération, recommandation, homonyme). "
+        "Séparés par « ; » (« 1:o;2:n »)."
+    )
+
+
+def carrier_prompt(text: str, authors: list[str], items: list[str]) -> str:
+    numbered = "\n".join(f"{i}. {a}" for i, a in enumerate(authors, 1))
+    listed = "\n".join(f"{i}. {x}" for i, x in enumerate(items, 1))
+    return (
+        f"{text}\n\n---\nAUTEURS POSSIBLES (numérotés) :\n{numbered}\n\nTECHNIQUES RETENUES (comportement relevé et phrases) :\n{listed}\n\n"
+        "TÂCHE : « carriers » : pour chaque technique, le numéro de l'auteur qui l'exécute, « numéro:auteur » séparés par « ; » "
+        "(« 1:2;2:1;3:- »). L'auteur : le malware ou l'outil quand le texte décrit sa capacité propre ; sinon la campagne "
+        "décrite, ou sans campagne le groupe nommé à qui le texte attribue l'action (même s'il emploie un outil) ; « - » si aucun "
+        "auteur de la liste. Deux auteurs (« 1:2,4 ») seulement si le texte attribue le comportement à chacun."
     )
 
 
@@ -281,7 +355,7 @@ def verify_prompt(text: str, draft: DraftGraph, keys: list[tuple[str, str, str]]
 
     blocks = []
     for i, key in enumerate(keys, 1):
-        quotes = "\n".join(f"   {_LETTERS[j]}) « {q[:300]} »" for j, q in enumerate(draft.evidence[key][: len(_LETTERS)]))
+        quotes = "\n".join(f"   {_LETTERS[j]}) « {q[:300]} »" for j, q in enumerate(draft.evidence[key][:VERIFY_QUOTES]))
         blocks.append(f"{i}. {label(key[0])} --{key[1]}--> {label(key[2])}\n{quotes}")
     return (
         f"{text}\n\n---\nRELATIONS PROPOSÉES (avec les phrases citées) :\n" + "\n".join(blocks) + "\n\n"
@@ -354,6 +428,111 @@ def declare_entities(draft: DraftGraph, answer: dict, result: ExtractionResult) 
     return sids
 
 
+# --- Étape 1 quater : noms écrits dans le texte (CTI_MENTIONS) -----------------------------------------------------------
+def recover_mentions(draft: DraftGraph, units: list[Unit], text: str, system: str, sids: list[str], result: ExtractionResult) -> list[str]:
+    """CVE et noms ATT&CK (groupes, logiciels, campagnes) présents dans le texte mais pas parmi les entités : le modèle garde
+    ceux qui appartiennent à l'activité décrite. Les phrases masquées au modèle (dominées par des indicateurs) sont lues aussi :
+    une CVE peut n'y être écrite qu'une fois ; la phrase est alors montrée avec le nom."""
+    eligible = [u for u in units if u.kind in ("sentence", "item") and not u.is_reference]
+    body = "\n".join(u.text for u in eligible)
+    known = set(draft.names)
+    items: list[tuple[str, str, int]] = []  # (ligne à déclarer, libellé montré, première phrase)
+
+    def first_uid(pattern: re.Pattern) -> int | None:
+        return next((u.uid for u in eligible if pattern.search(u.text)), None)
+
+    for label, aid, kind in draft.attack.mentioned(body):
+        if aid in known or normalize_name(label) in known:
+            continue
+        uid = first_uid(re.compile(rf"(?<![\w-]){re.escape(label)}(?![\w-])", 0 if len(label) <= 4 else re.I))
+        if uid:
+            items.append((f"{'tool' if kind == 'tool' else kind}|{label}", f"{label} ({kind} d'ATT&CK) : « {draft.by_uid[uid].text[:200]} »", uid))
+    for cve in dict.fromkeys(m.upper() for m in _CVE.findall(body)):
+        if normalize_name(cve) not in known and cve not in known:
+            uid = first_uid(re.compile(re.escape(cve), re.I))
+            if uid:
+                items.append((f"vulnerability|{cve}", f"{cve} (vulnérabilité) : « {draft.by_uid[uid].text[:200]} »", uid))
+    items = items[:MAX_MENTIONS]
+    if not items:
+        return sids
+    try:
+        answer = _call(result, "mentions", system, mention_prompt(text, [x[1] for x in items]), MENTION_SCHEMA, 8 * len(items) + 50)
+    except (TimeoutError, llm.requests.RequestException) as exc:
+        result.failures.append(f"mentions : {type(exc).__name__}: {exc}")
+        return sids
+    for row in rows(answer.get("mentions")):
+        num, _, verdict = row.partition(":")
+        i = _index(num, len(items))
+        if i is None or not verdict.strip().lower().startswith("o"):
+            continue
+        sid, err = draft.declare(items[i][0])
+        if err:
+            result.refused_entities.append((items[i][0], err))
+            result.refused += 1
+        elif sid not in sids:
+            sids.append(sid)
+            result.accepted += 1
+    return sids
+
+
+# --- Étape 1 quinquies : victimes (CTI_VICTIMS) -------------------------------------------------------------------------
+def decide_victims(draft: DraftGraph, text: str, system: str, sids: list[str], result: ExtractionResult) -> list[str]:
+    """Victimes décidées à part : identité (classe et secteur STIX), pays, et « targets » depuis l'attaquant désigné ; sans
+    attaquant désigné, la campagne s'il n'y en a qu'une, sinon le groupe s'il n'y en a qu'un. Deux victimes non nommées de même
+    clé (classe, secteur, pays) sont une seule identité, reconnue sous chacun de ses noms (« <pays> citizens » et « <pays>
+    population ») ; une organisation nommée garde la sienne. Le modèle fixe la clé, le code ne fait que regrouper."""
+    attackers = [s for s in sids if draft.type_of(s) in _CARRIER_TYPES]
+    try:
+        answer = _call(result, "victimes", system, victim_prompt(text, [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in attackers]), VICTIM_SCHEMA, VICTIM_TOKENS)
+    except (TimeoutError, llm.requests.RequestException) as exc:
+        result.failures.append(f"victimes : {type(exc).__name__}: {exc}")
+        return sids
+    campaigns = [s for s in attackers if draft.type_of(s) == "campaign"]
+    groups = [s for s in attackers if draft.type_of(s) in _GROUP_TYPES]
+    default = campaigns[0] if len(campaigns) == 1 else groups[0] if not campaigns and len(groups) == 1 else None
+    merged: dict[tuple[str, str, str], str] = {}  # (classe, secteur, pays) d'une victime non nommée -> son identité
+    for line in rows(answer.get("victims")):
+        parts = [p.strip() for p in line.split("|")] + ["-"] * 5
+        uids = [n for n in _numbers(parts[0]) if n in draft.by_uid][:5]
+        if not parts[1] or not uids:
+            result.refused_entities.append((line, "format attendu phrases|victime|classe|secteur|pays|attaquant"))
+            result.refused += 1
+            continue
+        klass, sector, country = parts[2].lower(), parts[3].lower(), parts[4].upper()
+        i = _index(parts[5], len(attackers)) if parts[5] != "-" else None
+        who = attackers[i] if i is not None else default
+        targets = []
+        key = (klass, sector, country)
+        if klass not in ("organization", "individual") and key in merged:
+            sid, err = merged[key], None
+            draft.add_terms(sid, {parts[1]})
+            draft.log.append(f"fusion « {parts[1]} » -> « {draft.name_of(sid)} »")
+        else:
+            sid, err = draft.declare(f"identity|{parts[1]}|{'' if sector == '-' else sector};{klass}")
+        if err:
+            result.refused_entities.append((line, err))
+            result.refused += 1
+        else:
+            targets.append(sid)
+            if klass not in ("organization", "individual"):
+                merged.setdefault(key, sid)
+        if re.fullmatch(r"[A-Z]{2}", country):
+            lsid, err = draft.declare(f"location|{country}|{country}")
+            if not err:
+                targets.append(lsid)
+        for t in targets:
+            if t not in sids:
+                sids.append(t)
+                result.accepted += 1
+            if who:
+                err = draft.relate(f"{_ref(draft, who)}|targets|{_ref(draft, t)}|{','.join(map(str, uids))}")
+                if err:
+                    draft.log.append(f"reject {err}")
+                    result.refused_relations.append((who, "targets", t, err.split(" : ", 1)[-1]))
+                    result.refused += 1
+    return sids
+
+
 # --- Étape 1 ter : opérations (CTI_OPERATIONS) ----------------------------------------------------------------------------
 def decide_operations(draft: DraftGraph, text: str, system: str, sids: list[str], result: ExtractionResult) -> list[str]:
     """Le modèle décide des campagnes (phrases, nom, groupe) ; elles remplacent celles de l'appel « entités ». Le rattachement
@@ -368,7 +547,7 @@ def decide_operations(draft: DraftGraph, text: str, system: str, sids: list[str]
     campaigns: list[str] = []
     for line in rows(answer.get("operations")):
         parts = [p.strip() for p in line.split("|")]
-        uids = [n for n in map(int, re.findall(r"\d+", parts[0])) if n in draft.by_uid]
+        uids = [n for n in _numbers(parts[0]) if n in draft.by_uid]
         if len(parts) < 2 or not parts[1] or not uids:
             result.refused_entities.append((line, "format attendu numéros de phrases|nom|groupe"))
             result.refused += 1
@@ -482,7 +661,7 @@ def find_candidates(draft: DraftGraph, lines: list[str], result: ExtractionResul
             for a in (aid, aid.split(".")[0]) if aid else ():
                 hits += kb.search_techniques(a)  # un identifiant seul renvoie sa fiche
         hits += kb.search_techniques(parts[1], limit=CANDIDATES, exclude_source=own)
-        unique = list({h.attack_id: h for h in hits}.values())[: len(_LETTERS)]
+        unique = list({h.attack_id: h for h in hits}.values())[:MAX_OPTIONS]
         uids = [n for n in map(int, re.findall(r"\d+", parts[0])) if n in draft.by_uid]
         if unique:
             out.append(Behavior(line, uids, parts[1], unique))
@@ -507,7 +686,7 @@ def accept_choices(
         i = _index(num, len(behaviors))
         if i is not None:
             cands = behaviors[i].candidates
-            chosen.setdefault(i, []).extend(cands[_LETTERS.index(c)].attack_id for c in re.findall(r"[a-j]", letters.lower()) if _LETTERS.index(c) < len(cands))
+            chosen.setdefault(i, []).extend(cands[_LETTERS.index(c)].attack_id for c in re.findall(rf"[{_LETTERS}]", letters.lower()) if _LETTERS.index(c) < len(cands))
             if carriers:
                 authors.setdefault(i, []).extend(carriers[k] for k in (_index(n, len(carriers)) for n in re.findall(r"\d+", who)) if k is not None)
     for i, b in enumerate(behaviors):
@@ -537,6 +716,41 @@ def accept_choices(
                     result.refused += 1
                 elif carried is not None and who not in carried.setdefault(sid, []):
                     carried[sid].append(who)
+                    result.accepted += 1
+
+
+def assign_carriers(draft: DraftGraph, text: str, system: str, behaviors: list[dict], authors: list[str], carried: dict[str, list[str]], result: ExtractionResult) -> None:
+    """CTI_CARRIER=separate : l'auteur de chaque technique retenue, dans un appel à part ; « auteur uses technique » est créée
+    et vérifiée comme toute relation. `behaviors` : la trace des comportements (`result.behaviors`)."""
+    items = [(aid, b) for b in behaviors for aid in b["chosen"]]
+    if not items or not authors:
+        return
+    labels = [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in authors]
+    for k in range(0, len(items), CARRIER_BATCH):
+        batch = items[k : k + CARRIER_BATCH]
+        shown = [f"{aid} {draft.name_of(draft.names.get(aid, '')) if draft.names.get(aid) else ''} ← « {b['line'].split('|')[1] if '|' in b['line'] else b['line']} » (phrases {','.join(map(str, b['uids']))})" for aid, b in batch]
+        try:
+            answer = _call(result, "porteurs", system, carrier_prompt(text, labels, shown), _schema("carriers"), CARRIER_TOKENS * 2 * len(batch) + 50)
+        except (TimeoutError, llm.requests.RequestException) as exc:
+            result.failures.append(f"porteurs : {type(exc).__name__}: {exc}")
+            continue
+        for row in rows(answer.get("carriers")):
+            num, _, who = row.partition(":")
+            i = _index(num, len(batch))
+            if i is None:
+                continue
+            aid, b = batch[i]
+            sid = draft.names.get(aid)
+            for j in (_index(n, len(authors)) for n in re.findall(r"\d+", who)):
+                if j is None or sid is None:
+                    continue
+                err = draft.relate(f"{_ref(draft, authors[j])}|uses|{aid}|{','.join(map(str, b['uids']))}")
+                if err:
+                    draft.log.append(f"reject {err}")
+                    result.refused_relations.append((authors[j], "uses", sid, err.split(" : ", 1)[-1]))
+                    result.refused += 1
+                elif authors[j] not in carried.setdefault(sid, []):
+                    carried[sid].append(authors[j])
                     result.accepted += 1
 
 
@@ -580,6 +794,10 @@ def extract_article(art: dict) -> ExtractionResult:
         sids = declare_entities(draft, inv, result)  # avant les techniques : un nom d'entité (« PowerShell ») prime sur celui d'une technique
         if OPERATIONS:
             sids = decide_operations(draft, text, system, sids, result)
+        if MENTIONS:
+            sids = recover_mentions(draft, units, text, system, sids, result)
+        if VICTIMS:
+            sids = decide_victims(draft, text, system, sids, result)
         techniques: dict[str, list[int]] = {}
         lines = rows(inv.get("behaviors"))
         if SECTION_PASS:
@@ -595,6 +813,8 @@ def extract_article(art: dict) -> ExtractionResult:
                 accept_choices(draft, _call(result, "techniques", system, prompt, CHOICE_SCHEMA, tokens), batch, techniques, result, carriers, carried)
             except (TimeoutError, llm.requests.RequestException) as exc:  # un lot perdu n'empêche pas les autres
                 result.failures.append(f"choix des techniques : {type(exc).__name__}: {exc}")
+        if CARRIER_SEPARATE:
+            assign_carriers(draft, text, system, result.behaviors, [s for s in sids if draft.type_of(s) in _CARRIER_TYPES], carried, result)
 
         table = [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in sids]
         for sid, uids in techniques.items():
