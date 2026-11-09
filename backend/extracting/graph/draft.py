@@ -30,7 +30,9 @@ from backend.preprocessing.cleaning.text.segment import Unit
 
 # Extrémités qui peuvent rester implicites dans la phrase citée : l'acteur (« les opérateurs », « il ») et la technique
 # (la phrase décrit le comportement, elle ne nomme pas la technique ATT&CK)
-_IMPLICIT = frozenset({"intrusion-set", "threat-actor", "campaign", "attack-pattern"})
+# Une mesure de défense et une analyse portent un nom résumé par le modèle, que la phrase ne contient pas mot pour mot
+_IMPLICIT = frozenset({"intrusion-set", "threat-actor", "campaign", "attack-pattern", "course-of-action", "malware-analysis"})
+_ANALYSIS_RESULTS = ("malicious", "suspicious", "benign", "unknown")
 _ATTACK_TYPES = {"intrusion-set": ("intrusion-set", "threat-actor"), "threat-actor": ("intrusion-set", "threat-actor"), "malware": ("malware", "tool"), "tool": ("malware", "tool"), "campaign": ("campaign",)}
 _TYPE_WORDS = frozenset(ENTITY_CLASSES) | {"attack-pattern", "technique"}
 _TECHNIQUE = re.compile(r"^T\d{4}(?:\.\d{3})?$", re.I)
@@ -173,14 +175,15 @@ class DraftGraph:
         return self.objects[sid]["type"]
 
     def name_of(self, sid: str) -> str:
-        return self.objects[sid].get("name", sid)
+        obj = self.objects[sid]
+        return obj.get("name") or obj.get("product") or sid
 
     # --- Entités ----------------------------------------------------------------------------------------------------------
     def _register(self, obj, terms: set[str]) -> str:
         sid = obj["id"]
         self.objects.setdefault(sid, obj)
         self.terms.setdefault(sid, set()).update(t for t in terms if t)
-        for t in self.terms[sid] | {obj.get("name", ""), *(obj.get("aliases") or [])}:
+        for t in self.terms[sid] | {obj.get("name") or obj.get("product", ""), *(obj.get("aliases") or [])}:
             if normalize_name(t):
                 self.names.setdefault(normalize_name(t), sid)
         if attack_id(obj):
@@ -269,6 +272,16 @@ class DraftGraph:
                 props["sectors"] = [sector]
             if klass or sector:
                 props["identity_class"] = klass or ("class" if slug(name) == sector else "organization")
+            # Même nom déjà déclaré comme identité (avec ou sans classe) : la même entité, pas un doublon
+            known_sid = self.names.get(normalize_name(name))
+            if known_sid and self.type_of(known_sid) == "identity":
+                return known_sid, None
+        elif stix_type == "course-of-action":  # pas d'alias en STIX : le troisième champ est la description de la mesure
+            if extra:
+                props["description"] = extra
+        elif stix_type == "malware-analysis":  # verdict du vocabulaire malware-result-ov ; sans lui, « unknown »
+            verdict = extra.strip().lower()
+            props["result"] = verdict if verdict in _ANALYSIS_RESULTS else "unknown"
         elif extra:
             props["aliases"] = [a.strip() for a in extra.split(";") if a.strip()]
         try:

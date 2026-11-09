@@ -32,14 +32,22 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from backend.extracting import llm
-from backend.extracting.agents import CarrierDisambiguationAgent, RelationWeaverAgent, TargetSpecialistAgent, ThreatModelerAgent, TTPHunterAgent
-from backend.extracting.graph.draft import DraftGraph, relationship_type_of
+from backend.extracting.agents import (
+    CarrierDisambiguationAgent,
+    ContextObjectsAgent,
+    RelationWeaverAgent,
+    TargetSpecialistAgent,
+    ThreatModelerAgent,
+    TTPHunterAgent,
+)
+from backend.extracting.graph.draft import DraftGraph, relationship_type_of, stix_type_of
 from backend.preprocessing.cleaning.text.evidence import mentions, normalize_name, parse_date
 from backend.extracting.observables.iocs import IocResult, extract_iocs
 from backend.extracting.observables.rules import RuleResult, extract_rules
 from backend.preprocessing.cleaning.text.segment import Unit, render, segment
 from backend.extracting.stix.attack import TechniqueHit, attack_id, report_key
 from backend.extracting.stix.objects import ENTITY_CLASSES, ArticleContext, relation_table
+from backend.extracting.stix.specs import relation_definitions, type_definitions
 
 ENTITY_TOKENS = 4000
 RELATION_TOKENS = 3000
@@ -203,18 +211,15 @@ def _call(
 def system_prompt() -> str:
     return f"""Tu es analyste CTI. Tu construis la couche sémantique STIX 2.1 d'un rapport de menace : qui (acteurs, campagnes), avec quoi (malwares, outils, infrastructures nommées), comment (techniques MITRE ATT&CK v20.0), contre quoi (vulnérabilités, produit visé, victimes). Le rapport est découpé en phrases numérotées [n].
 
-ENTITÉS (types : {', '.join(ENTITY_CLASSES)}) :
-- intrusion-set : groupe d'attaquants nommé (nom ou code de suivi donné par le rapport ou un éditeur). threat-actor : personne ou organisation réelle identifiée.
-- campaign : seulement une opération que le rapport décrit (une vague ou un ensemble d'intrusions contre des cibles, sur une période ; une intrusion racontée de bout en bout en est une). UNE campagne par vague distincte (cibles ou périodes différentes), nom descriptif (« Campagne <acteur> contre <cible>, <période> »). Ne crée jamais de campagne ni d'intrusion-set pour relier les éléments : un rapport qui analyse un malware, un outil, une vulnérabilité ou une capacité d'un acteur sans décrire d'opération n'a pas de campagne, et un intrusion-set n'existe que si le texte nomme le groupe.
-- malware : code malveillant nommé, ou composant que l'article désigne par un libellé descriptif (reprendre ce libellé).
-- tool : logiciel légitime détourné par l'attaquant (binaire natif du système, outil d'administration, packer, obfuscateur). Jamais une fonction, un appel système ou une bibliothèque de programmation.
-- infrastructure : service ou infrastructure NOMMÉ utilisé par l'attaquant. Jamais une IP, un domaine ou une URL.
-- vulnerability : une CVE. software : produit légitime visé (« software|<produit>|<éditeur> »).
-- identity : victime (organisation, secteur) ou éditeur du produit visé. location : pays ou région ciblés (« location|<pays>|<code ISO 3166-1> »).
+ENTITÉS (types STIX 2.1 : {', '.join(ENTITY_CLASSES)} ; les techniques sont des objets ATT&CK choisis à part) :
+{type_definitions()}
+UNE campagne par vague distincte (cibles ou périodes différentes). Un rapport qui analyse un malware, un outil, une vulnérabilité ou une capacité d'un acteur sans décrire d'opération n'a pas de campagne, et un intrusion-set n'existe que si le texte nomme le groupe.
 JAMAIS : l'auteur du rapport, les chercheurs ou éditeurs de sécurité comme acteur ou victime ; un hachage, une IP, un domaine, une URL ou un nom de fichier ordinaire (ce sont des IOC, hors périmètre) ; ce que le rapport cite d'autres opérations passées comme activité de la campagne décrite.
 
 RELATIONS (STIX 2.1, source --relation--> cible ; aucune autre n'est admise) :
 {relation_table()}
+SENS DES RELATIONS :
+{relation_definitions()}
 « targets » mène à une victime, un lieu visé, la vulnérabilité ou le produit attaqués : jamais à l'auteur du rapport, à une agence ou un éditeur qui publie une alerte, à un chercheur. Une technique d'exploitation --targets--> la vulnérabilité et le produit qu'elle exploite. software --related-to--> identity : l'éditeur du produit.
 Qui emploie une technique : le malware quand le texte décrit sa capacité propre ; sinon celui à qui le texte attribue l'action : la campagne décrite ou, sans campagne, l'acteur nommé (y compris avec un outil, qui est alors relié à lui par « uses »). Sans campagne ni acteur, la technique reste reliée à ce qui la porte (malware, vulnérabilité et produit visés).
 N'invente rien que le texte ne dise."""
@@ -368,7 +373,9 @@ def relation_prompt(text: str, table: list[str], carried: bool = False) -> str:
     return (
         f"{text}\n\n---\nENTITÉS ET TECHNIQUES DU RAPPORT (numérotées) :\n{numbered}\n\n"
         "TÂCHE : « relations » : tous les liens que le texte affirme entre ces éléments, séparés par « ; », chacun « numéro "
-        "source|relation|numéro cible|numéros de phrases » (« 3|uses|2|12,13;3|attributed-to|1|5 »). Chaque technique est reliée à "
+        "source|relation|numéro cible|numéros de phrases » (« 3|uses|2|12,13;3|attributed-to|1|5 »), avec les seules relations de "
+        "la table STIX 2.1 (dont mitigates / remediates pour une mesure de défense, analysis-of pour une analyse, beacons-to, "
+        "hosts, controls, originates-from, located-at, authored-by, delivers, compromises). Chaque technique est reliée à "
         "l'entité qui l'exécute (« numéro de l'entité|uses|numéro de la technique|phrases ») : le malware quand le texte décrit sa "
         "capacité propre, sinon la campagne décrite ou, sans campagne, l'acteur nommé à qui le texte attribue l'action (y compris "
         "avec un outil) ; chaque malware, outil et victime est relié à la campagne, à l'acteur ou à l'entité qui le déploie ou le subit. "
@@ -407,9 +414,12 @@ def verify_prompt(text: str, draft: DraftGraph, keys: list[tuple[str, str, str]]
     for i, key in enumerate(keys, 1):
         quotes = "\n".join(f"   {_LETTERS[j]}) « {q[:300]} »" for j, q in enumerate(draft.evidence[key][:VERIFY_QUOTES]))
         blocks.append(f"{i}. {label(key[0])} --{key[1]}--> {label(key[2])}\n{quotes}")
+    meanings = relation_definitions({relationship_type_of(k[1]) for k in keys})
     return (
         f"{text}\n\n---\nRELATIONS PROPOSÉES (avec les phrases citées) :\n" + "\n".join(blocks) + "\n\n"
-        "TÂCHE : « verdicts » : pour chaque relation, « numéro:o:lettre » si le texte l'affirme (explicitement ou par implication "
+        f"SENS DES RELATIONS EMPLOYÉES :\n{meanings}\n\n"
+        "TÂCHE : « verdicts » : pour chaque relation, « numéro:o:lettre » si le texte l'affirme AU SENS INDIQUÉ CI-DESSUS "
+        "(explicitement ou par implication "
         "directe du récit), la lettre désignant LA phrase citée qui l'établit le mieux ; « numéro:n » sinon. Séparés par « ; » "
         "(« 1:o:b;2:n;3:o:a »). Seul le texte compte : une relation plausible que le texte ne dit pas est « n ». « n » aussi quand "
         "la cible de « targets » n'est pas visée par l'attaque (auteur du rapport, agence ou éditeur qui publie une alerte, "
@@ -895,15 +905,34 @@ def extract_article(art: dict) -> ExtractionResult:
             def run_ttps():
                 return TTPHunterAgent.extract(text, system, lambda s, sys, p, sch, tok, **kw: _call(result, s, sys, p, sch, tok, **kw), multi_temp=MULTI_TEMP)
 
-            with ThreadPoolExecutor(max_workers=3) as pool:
+            def run_context():
+                return _call(result, "context_objects", system, ContextObjectsAgent.prompt(text), ContextObjectsAgent.SCHEMA, 1500)
+
+            with ThreadPoolExecutor(max_workers=4) as pool:
                 f_threat = pool.submit(llm.in_context(run_threat))
                 f_targets = pool.submit(llm.in_context(run_targets))
+                f_context = pool.submit(llm.in_context(run_context))
                 f_ttps = pool.submit(llm.in_context(run_ttps))
                 res_threat = f_threat.result()
                 res_targets = f_targets.result()
+                res_context = f_context.result()
                 lines = f_ttps.result()
 
             sids: list[str] = []
+            # Infrastructure, mesures de défense, analyses d'échantillons (types du registre qu'aucun autre prompt ne demande)
+            for line in rows(res_context.get("objects")):
+                fields = [f.strip() for f in line.split("|")]
+                if len(fields) < 2 or stix_type_of(fields[0]) not in ContextObjectsAgent.TYPES:
+                    result.refused_entities.append((line, "type hors de ce prompt"))
+                    continue
+                sid, err = draft.declare("|".join(fields[:3]))
+                if err:
+                    draft.log.append(f"reject {err}")
+                    result.refused_entities.append((line, err))
+                    result.refused += 1
+                elif sid not in sids:
+                    sids.append(sid)
+                    result.accepted += 1
             # Déclaration des entités offensives avec registre canonique
             for line in rows(res_threat.get("threat_entities")):
                 fields = [f.strip() for f in line.split("|")]
