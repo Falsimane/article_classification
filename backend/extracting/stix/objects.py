@@ -89,6 +89,7 @@ class ArticleContext:
 
     def __init__(self, source_id: int, site_name: str | None, url: str | None, title: str | None, now: datetime | None = None):
         self.source_id = source_id
+        self.title = title or ""
         self.now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
         name = site_name or "unknown-source"
         self.publisher = Identity(

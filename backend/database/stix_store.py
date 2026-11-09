@@ -19,7 +19,7 @@ import json
 import re
 from typing import Any
 
-from neo4j import unit_of_work
+from neo4j import READ_ACCESS, unit_of_work
 
 from backend.extracting.stix.iocs import HASH_PRIORITY, IOC_OBJECT_TYPES
 from backend.extracting.stix.rules import RULE_KINDS
@@ -304,15 +304,41 @@ class StixStore:
         with self.driver.session() as session:
             return [{**dict(r["p"]), "relations": r["relations"], "reports": r["reports"]} for r in session.run(query)]
 
-    def actor_subgraph(self, actor_id: str) -> dict[str, Any] | None:
-        """L'acteur, ses voisins directs, les arêtes qui les relient à lui (tous articles confondus) et ses rapports."""
+    def graph_revision(self) -> str:
+        """Empreinte du graphe d'entités : change à chaque extraction, ré-extraction ou suppression d'article."""
+        query = "MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL RETURN count(r) AS n, max(r.extracted_at) AS last, sum(r.source_id) AS ids"
+        with self.driver.session() as session:
+            r = session.run(query).single()
+        return f"{r['n']}-{r['ids']}-{r['last']}"
+
+    def global_graph(self) -> dict[str, list[dict]]:
+        """Toutes les entités citées par au moins un rapport et les relations entre elles (IOC et règles exclus)."""
+        node_query = f"""
+            MATCH (:Stix:Report)-[:OBJECT_REF]->(n:Stix) WHERE NOT {_is_ioc("n")}
+            RETURN DISTINCT properties(n) AS p
+        """
+        edge_query = f"""
+            MATCH (a:Stix)-[x]->(b:Stix) WHERE x.id IS NOT NULL AND a <> b AND NOT {_is_ioc("a")} AND NOT {_is_ioc("b")}
+            RETURN a.id AS source, b.id AS target, type(x) AS type, x.id AS id, x.confidence AS confidence, x.article_ids AS article_ids
+        """
+        report_query = "MATCH (r:Stix:Report) WHERE r.source_id IS NOT NULL RETURN r.source_id AS id, r.title AS title, r.published AS published"
+        with self.driver.session() as session:
+            nodes = [dict(r["p"]) for r in session.run(node_query)]
+            edges = [dict(r) for r in session.run(edge_query)]
+            reports = [dict(r) for r in session.run(report_query)]
+        return {"nodes": nodes, "edges": edges, "reports": reports}
+
+    def actor_subgraph(self, actor_id: str, entities_only: bool = False) -> dict[str, Any] | None:
+        """Le nœud, ses voisins directs, les arêtes qui les relient à lui (tous articles confondus) et ses rapports.
+        `entities_only` : sans les IOC ni les règles (graphe global)."""
         with self.driver.session() as session:
             head = session.run("MATCH (a:Stix {id: $id}) RETURN properties(a) AS p", id=actor_id).single()
             if head is None:
                 return None
             rels = session.run(
                 "MATCH (a:Stix {id: $id})-[x]-(n:Stix) WHERE x.id IS NOT NULL "
-                "RETURN startNode(x).id AS source, endNode(x).id AS target, type(x) AS type, properties(x) AS p, properties(n) AS n",
+                + (f"AND NOT {_is_ioc('n')} " if entities_only else "")
+                + "RETURN startNode(x).id AS source, endNode(x).id AS target, type(x) AS type, properties(x) AS p, properties(n) AS n",
                 id=actor_id,
             )
             edges, nodes = [], {}
@@ -329,6 +355,81 @@ class StixStore:
                 )
             ]
         return {"actor": dict(head["p"]), "nodes": list(nodes.values()), "edges": edges, "reports": reports}
+
+    # --- interrogation du graphe global (outils du panneau LLM, backend/dashboard/ask.py) : lecture seule, bornée -------
+    def _read(self, query: str, **params) -> list[dict]:
+        with self.driver.session(default_access_mode=READ_ACCESS) as session:
+            return [dict(r) for r in session.run(query, **params)]
+
+    def search_entities(self, text: str, stix_type: str | None, limit: int) -> list[dict]:
+        """Entités citées par un rapport dont le nom, un alias ou un identifiant externe (T####, CVE, G####) contient `text`."""
+        return self._read(
+            f"""
+            MATCH (:Stix:Report)-[:OBJECT_REF]->(n:Stix) WHERE NOT {_is_ioc("n")} AND ($type IS NULL OR n.type = $type)
+              AND (toLower(n.name) CONTAINS $q OR any(a IN coalesce(n.aliases, []) WHERE toLower(a) CONTAINS $q)
+                   OR coalesce(n.external_references_json, '') CONTAINS $raw)
+            WITH DISTINCT n
+            RETURN n.id AS id, n.name AS name, n.type AS type, size(coalesce(n.article_ids, [])) AS sources,
+                   size([(n)-[x]-(:Stix) WHERE x.id IS NOT NULL | x]) AS degree
+            ORDER BY toLower(n.name) = $q DESC, degree DESC LIMIT $limit
+            """,
+            q=text.lower(), raw=f'"{text.upper()}"', type=stix_type, limit=limit,
+        )  # fmt: skip
+
+    def entity_summary(self, node_id: str) -> dict | None:
+        rows = self._read(
+            """
+            MATCH (n:Stix {id: $id})
+            OPTIONAL MATCH (r:Stix:Report)-[:OBJECT_REF]->(n)
+            WITH n, collect(r {.source_id, .title, .published})[..8] AS reports
+            OPTIONAL MATCH (n)-[x]-(:Stix) WHERE x.id IS NOT NULL
+            RETURN properties(n) AS p, reports, collect(type(x)) AS relations
+            """,
+            id=node_id,
+        )
+        return rows[0] if rows else None
+
+    def neighbors(self, node_id: str, relation: str | None, stix_type: str | None, limit: int) -> tuple[list[dict], int]:
+        """Voisins directs (hors IOC et règles), les plus étayés d'abord, et leur nombre total."""
+        rows = self._read(
+            f"""
+            MATCH (a:Stix {{id: $id}})-[x]-(n:Stix) WHERE x.id IS NOT NULL AND NOT {_is_ioc("n")}
+              AND ($rel IS NULL OR type(x) = $rel) AND ($type IS NULL OR n.type = $type)
+            RETURN startNode(x) = a AS outgoing, type(x) AS relation, size(coalesce(x.article_ids, [])) AS sources,
+                   x.confidence AS confidence, n.id AS id, n.name AS name, n.type AS type
+            ORDER BY sources DESC, name
+            """,
+            id=node_id, rel=relation, type=stix_type,
+        )  # fmt: skip
+        return rows[:limit], len(rows)
+
+    def paths(self, source_id: str, target_id: str, max_hops: int, limit: int) -> list[dict]:
+        """Plus courts chemins entre deux entités, par des relations STIX seulement (jamais par un rapport ni un IOC)."""
+        return self._read(
+            f"""
+            MATCH (a:Stix {{id: $a}}), (b:Stix {{id: $b}})
+            MATCH p = allShortestPaths((a)-[*..{int(max_hops)}]-(b))
+            WHERE all(x IN relationships(p) WHERE x.id IS NOT NULL) AND none(n IN nodes(p) WHERE {_is_ioc("n")})
+            RETURN [n IN nodes(p) | n {{.id, .name, .type}}] AS nodes,
+                   [x IN relationships(p) | {{type: type(x), source: startNode(x).id}}] AS relations
+            LIMIT $limit
+            """,
+            a=source_id, b=target_id, limit=limit,
+        )  # fmt: skip
+
+    def top_entities(self, stix_type: str | None, relation: str | None, by_sources: bool, limit: int) -> list[dict]:
+        """Entités les plus reliées (ou les plus citées), éventuellement d'un type et par une relation donnés."""
+        order = "sources DESC, degree DESC" if by_sources else "degree DESC, sources DESC"
+        return self._read(
+            f"""
+            MATCH (:Stix:Report)-[:OBJECT_REF]->(n:Stix) WHERE NOT {_is_ioc("n")} AND ($type IS NULL OR n.type = $type)
+            WITH DISTINCT n
+            RETURN n.id AS id, n.name AS name, n.type AS type, size(coalesce(n.article_ids, [])) AS sources,
+                   size([(n)-[x]-(:Stix) WHERE x.id IS NOT NULL AND ($rel IS NULL OR type(x) = $rel) | x]) AS degree
+            ORDER BY {order} LIMIT $limit
+            """,
+            type=stix_type, rel=relation, limit=limit,
+        )  # fmt: skip
 
     # --- IOC ------------------------------------------------------------------------------------------------------
     _IOC_QUERY = """
@@ -373,6 +474,20 @@ class StixStore:
         """
         with self.driver.session() as session:
             return [dict(r) for r in session.run(query, a=article_id)]
+
+    def entity_ioc_counts(self) -> dict[str, int]:
+        """Nombre d'IOC (tous articles) que désigne chaque entité : pastille « IOC » du graphe global."""
+        with self.driver.session() as session:
+            return {
+                r["id"]: r["n"]
+                for r in session.run(
+                    "MATCH (i:Stix:Indicator {pattern_type: 'stix'})-[:INDICATES]->(t:Stix) RETURN t.id AS id, count(DISTINCT i) AS n"
+                )
+            }
+
+    def entity_iocs(self, entity_id: str) -> list[dict]:
+        """IOC que désigne directement l'entité (indicateur -indicates-> entité), tous articles confondus."""
+        return self._ioc_rows("EXISTS { MATCH (i)-[:INDICATES]->(c:Stix {id: $eid}) }", eid=entity_id)
 
     def actor_iocs(self, actor_id: str) -> list[dict]:
         """IOC de l'acteur : ceux dont l'indicateur désigne une infrastructure, un malware ou un outil qu'il utilise, directement,

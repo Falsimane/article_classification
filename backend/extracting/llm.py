@@ -259,25 +259,55 @@ def _post(payload: dict, stage: str = "") -> dict:
             _record(journal, call, stage, payload, data, time.perf_counter() - t0, error)
 
 
-def _payload(messages: list[dict], max_output_tokens: int, model: str) -> dict:
-    """Décodage déterministe (température 0, top_k 1, graine fixe) et réflexion coupée : le serveur applique sinon les paramètres par
-    défaut du modèle. Avec CTI_THINKING, l'échantillonnage recommandé par la fiche Qwen3.8 pour la réflexion (un décodage glouton y
-    boucle), graine fixe, profondeur CTI_REASONING_EFFORT."""
-    if THINKING:
+def _payload(
+    messages: list[dict],
+    max_output_tokens: int,
+    model: str,
+    temperature: float | None = None,
+    enable_thinking: bool | None = None,
+) -> dict:
+    """Décodage déterministe (température 0, top_k 1, graine fixe) et réflexion coupée par défaut.
+    Avec CTI_THINKING ou enable_thinking=True, l'échantillonnage recommandé pour la réflexion.
+    Avec temperature > 0, échantillonnage exploratoire contrôlé (top_p 0.95, seed 0)."""
+    thinking = THINKING if enable_thinking is None else enable_thinking
+    if thinking:
         return {
-            "model": model, "messages": messages, "max_tokens": min(max_output_tokens + THINKING_TOKENS, CONTEXT_TOKENS), "temperature": 1.0, "top_p": 0.95,
-            "top_k": 20, "min_p": 0.0, "presence_penalty": 0.0, "repetition_penalty": 1.0, "seed": 0, "chat_template_kwargs": {"enable_thinking": True, "reasoning_effort": REASONING_EFFORT},
+            "model": model, "messages": messages, "max_tokens": min(max_output_tokens + THINKING_TOKENS, CONTEXT_TOKENS),
+            "temperature": 1.0 if temperature is None else temperature, "top_p": 0.95,
+            "top_k": 20, "min_p": 0.0, "presence_penalty": 0.0, "repetition_penalty": 1.0, "seed": 0,
+            "chat_template_kwargs": {"enable_thinking": True, "reasoning_effort": REASONING_EFFORT},
         }  # fmt: skip
+    if temperature is not None and temperature > 0:
+        return {
+            "model": model, "messages": messages, "max_tokens": max_output_tokens, "temperature": temperature,
+            "top_p": 0.95, "seed": 0, "chat_template_kwargs": {"enable_thinking": False},
+        }
     return {
         "model": model, "messages": messages, "max_tokens": max_output_tokens, "temperature": 0, "top_k": 1, "seed": 0,
         "chat_template_kwargs": {"enable_thinking": False},
     }  # fmt: skip
 
 
-def generate(system: str, prompt: str, schema: dict, *, max_output_tokens: int = 700, model: str = LLM_MODEL, stage: str = "") -> LLMResult:
-    """Un appel contraint par `schema`. Décodage fixe : deux exécutions donnent la même extraction. `stage` nomme l'appel dans
-    le journal."""
-    payload = _payload([{"role": "system", "content": system + COMPACT}, {"role": "user", "content": prompt}], max_output_tokens, model)
+def generate(
+    system: str,
+    prompt: str,
+    schema: dict,
+    *,
+    max_output_tokens: int = 700,
+    model: str = LLM_MODEL,
+    stage: str = "",
+    temperature: float | None = None,
+    enable_thinking: bool | None = None,
+) -> LLMResult:
+    """Un appel contraint par `schema`. Décodage fixe par défaut : deux exécutions donnent la même extraction.
+    `stage` nomme l'appel dans le journal."""
+    payload = _payload(
+        [{"role": "system", "content": system + COMPACT}, {"role": "user", "content": prompt}],
+        max_output_tokens,
+        model,
+        temperature=temperature,
+        enable_thinking=enable_thinking,
+    )
     payload["response_format"] = {"type": "json_schema", "json_schema": {"name": "answer", "strict": True, "schema": schema}}
     t0 = time.perf_counter()
     data = _post(payload, stage)

@@ -13,6 +13,8 @@ export interface GraphNode {
   is_family: boolean | null;
   labels: string[];
   is_dual_use: boolean;
+  kinds: string[]; // sous-types STIX (malware_types, infrastructure_types…) : choisissent le glyphe
+  country: string | null;
   article_ids: number[];
   degree: number;
   ioc_count?: number;
@@ -130,3 +132,34 @@ export interface ActorProfile {
   edges: GraphEdge[];
   reports: { id: number; title: string; url: string; site_name: string | null; category: string | null; published: string | null }[];
 }
+
+/** Graphe global (backend/dashboard/stix_dashboard.py `global_graph`) : sans preuves, chargées par `/api/kg/node`. */
+export interface KgNode {
+  id: string;
+  label: string;
+  type: string;
+  family: Family;
+  article_ids: number[];
+  kinds?: string[];
+  country?: string;
+  tactics?: string[];
+  aliases?: string[];
+  is_dual_use?: boolean;
+  ioc_count?: number; // indicateurs que désigne l'entité, tous articles confondus
+}
+
+export interface KgEdge { id: string; source: string; target: string; type: string; confidence: number | null; article_ids: number[] }
+
+export interface KgArticle { id: number; title: string; published: string | null }
+
+export interface KnowledgeGraph { nodes: KgNode[]; edges: KgEdge[]; articles: KgArticle[] }
+
+export interface NodeDetail { node: GraphNode; nodes: GraphNode[]; edges: GraphEdge[]; iocs: IocRow[]; reports: ActorProfile["reports"] }
+
+/** Entité citée par l'assistant : `handle` est le repère (E3) écrit `[[E3]]` dans le texte de la réponse. */
+export interface CitedEntity { handle: string; id: string; label: string; type: string; family: Family }
+
+export type AskEvent =
+  | { type: "step"; tool: string; args: Record<string, unknown>; count: number }
+  | { type: "answer"; text: string; entities: CitedEntity[]; consulted: number }
+  | { type: "error"; message: string };

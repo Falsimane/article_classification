@@ -32,6 +32,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 from backend.extracting import llm
+from backend.extracting.agents import CarrierDisambiguationAgent, RelationWeaverAgent, TargetSpecialistAgent, ThreatModelerAgent, TTPHunterAgent
 from backend.extracting.graph.draft import DraftGraph, relationship_type_of
 from backend.preprocessing.cleaning.text.evidence import mentions, normalize_name, parse_date
 from backend.extracting.observables.iocs import IocResult, extract_iocs
@@ -89,6 +90,16 @@ VICTIM_TOKENS = 600
 # chacun s'il appartient à l'activité décrite. Le code repère, le modèle décide.
 MENTIONS = _flag("CTI_MENTIONS")
 MAX_MENTIONS = 25
+# Seconde lecture des comportements (CTI_SECOND_LOOK=on) : après le choix, le modèle relit les phrases de chaque comportement face
+# aux techniques retenues et relève les mécanismes qu'elles décrivent sans qu'aucune ne les couvre ; chacun devient un comportement
+# cherché et choisi comme les autres. Mesure (v5_base_1/2) : les 16 techniques du gold « absentes des candidates » sont toutes
+# dans un comportement composite (plusieurs mécanismes sur une ligne) dont la recherche n'a suivi que le mécanisme principal.
+SECOND_LOOK = _flag("CTI_SECOND_LOOK")
+SECOND_LOOK_TOKENS = 1500
+# Décomposition multi-agents (CTI_MULTI_AGENT=on par défaut)
+MULTI_AGENT = os.environ.get("CTI_MULTI_AGENT", "on").strip().lower() in ("on", "1", "yes", "true")
+# Échantillonnage multi-températures pour l'agent TTP (CTI_MULTI_TEMP=on)
+MULTI_TEMP = _flag("CTI_MULTI_TEMP")
 _CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
 _CARRIER_TYPES = ("campaign", "intrusion-set", "threat-actor", "malware", "tool")
 _GROUP_TYPES = ("intrusion-set", "threat-actor")
@@ -173,8 +184,17 @@ def _index(raw: str, size: int) -> int | None:
     return i - 1 if 1 <= i <= size else None
 
 
-def _call(result: ExtractionResult, stage: str, system: str, prompt: str, schema: dict, max_tokens: int) -> dict:
-    r = llm.generate(system, prompt, schema, max_output_tokens=max_tokens, stage=stage)
+def _call(
+    result: ExtractionResult,
+    stage: str,
+    system: str,
+    prompt: str,
+    schema: dict,
+    max_tokens: int,
+    temperature: float | None = None,
+    enable_thinking: bool | None = None,
+) -> dict:
+    r = llm.generate(system, prompt, schema, max_output_tokens=max_tokens, stage=stage, temperature=temperature, enable_thinking=enable_thinking)
     result.calls.append(CallStat(stage, r.prompt_tokens, r.output_tokens, r.seconds, r.output_tokens >= max_tokens))
     return r.parsed if isinstance(r.parsed, dict) else {}
 
@@ -218,13 +238,14 @@ def section_prompt(text: str, block: list[Unit]) -> str:
     titles = " ; ".join(dict.fromkeys(u.heading_path for u in block if u.heading_path)) or "début du rapport"
     return (
         f"{text}\n\n---\nTÂCHE : relis les phrases [{first}] à [{last}] SEULEMENT (sections : {titles}) et relève chaque "
-        "comportement de l'attaquant ou d'un logiciel malveillant qu'elles décrivent, détails techniques compris (accès initial, "
-        "exécution, persistance, élévation, évasion, accès aux identifiants, découverte, mouvement latéral, collecte, "
-        "communication, exfiltration, impact…). Ce qui a été observé ou attribué à l'attaquant, jamais ce que le défenseur devrait "
-        "faire. « behaviors » : éléments séparés par « ; », chacun « numéros des phrases qui le décrivent|le comportement en "
-        "anglais, avec les mots du mécanisme (action, moyen, but), sans nom d'acteur ni IOC|identifiant ATT&CK v20.0 présumé ou "
-        "rien » (« 12,13|<action> <mechanism> to <goal>|T####.### »). UN comportement par ligne ; rien si ces phrases n'en "
-        "décrivent aucun."
+        "comportement de l'attaquant ou d'un logiciel malveillant qu'elles décrivent (accès initial, exécution, persistance, "
+        "dissimulation/évasion, découverte, C2, exfiltration, impact...). "
+        "Ce qui a été observé ou attribué à l'attaquant, jamais ce que le défenseur devrait faire.\n"
+        "« behaviors » : éléments séparés par « ; », chacun sous la forme d'un tuple comportemental atomique :\n"
+        "« numéros_phrases | outil_ou_vecteur_ou_- | action_et_but_en_anglais | tactique_mitre | T####.###_présumé_ou_- »\n"
+        "Tactiques admises : initial-access, execution, persistence, privilege-escalation, stealth, defense-impairment, "
+        "credential-access, discovery, lateral-movement, collection, command-and-control, exfiltration, impact.\n"
+        "UN comportement par ligne ; rien si ces phrases n'en décrivent aucun."
     )
 
 
@@ -280,9 +301,12 @@ def carrier_prompt(text: str, authors: list[str], items: list[str]) -> str:
     return (
         f"{text}\n\n---\nAUTEURS POSSIBLES (numérotés) :\n{numbered}\n\nTECHNIQUES RETENUES (comportement relevé et phrases) :\n{listed}\n\n"
         "TÂCHE : « carriers » : pour chaque technique, le numéro de l'auteur qui l'exécute, « numéro:auteur » séparés par « ; » "
-        "(« 1:2;2:1;3:- »). L'auteur : le malware ou l'outil quand le texte décrit sa capacité propre ; sinon la campagne "
-        "décrite, ou sans campagne le groupe nommé à qui le texte attribue l'action (même s'il emploie un outil) ; « - » si aucun "
-        "auteur de la liste. Deux auteurs (« 1:2,4 ») seulement si le texte attribue le comportement à chacun."
+        "(« 1:2;2:1;3:- »).\n\n"
+        "RÈGLES D'ATTRIBUTION STIX NON NÉGOCIABLES :\n"
+        "- Si la technique est exécutée par un malware ou un outil : attribue-la au MALWARE ou à l'OUTIL (jamais au groupe ni à la campagne).\n"
+        "- Si la technique est une action opératoire générale ou la phase initiale d'une opération : attribue-la à la CAMPAGNE.\n"
+        "- N'attribue au GROUPE (intrusion-set) que si le texte ne nomme ni malware, ni outil, ni campagne pour cette action.\n"
+        "- « - » si aucun auteur de la liste ne porte cette technique. Deux auteurs (« 1:2,4 ») seulement si le texte attribue explicitement le geste à chacun."
     )
 
 
@@ -293,20 +317,43 @@ def choice_prompt(text: str, behaviors: list["Behavior"], carriers: list[str] | 
         blocks.append(f"{i}. [phrases {','.join(map(str, b.uids)) or '?'}] {b.query}\n{options}")
     task = (
         "TÂCHE : « choices » : pour chaque comportement, les lettres des techniques dont la définition décrit ce que les phrases "
-        "citées disent, « numéro:lettres » séparés par « ; » (« 1:b;2:a,c;3:- »). La sous-technique quand le texte nomme le "
-        "mécanisme, sinon la technique parente ; plusieurs lettres seulement si le texte décrit plusieurs comportements ; « - » "
-        "si aucune candidate ne décrit ce que dit le texte (une candidate seulement voisine ne suffit pas)."
+        "citées disent, « numéro:lettres » séparés par « ; » (« 1:b;2:a,c;3:- »).\n\n"
+        "RÈGLES D'ARBITRAGE ET ÉLIMINATION NÉGATIVE (CRUCIALES) :\n"
+        "1. Priorité à l'action et à l'effet final sur l'outil/interpréteur : si une candidate décrit le conteneur d'exécution "
+        "(un interpréteur de commandes ou de scripts) et qu'une autre candidate décrit l'action sous-jacente ou l'effet technique "
+        "(un transfert de fichier, un décodage, une découverte…), ÉLIMINE le conteneur d'exécution et retiens la technique d'action spécifique !\n"
+        "2. Spécificité : choisis la sous-technique lorsque le texte décrit son mécanisme précis, sinon la technique parente.\n"
+        "3. Plusieurs lettres uniquement si les phrases citées décrivent distinctement plusieurs actions autonomes.\n"
+        "4. Réponds « - » si aucune candidate ne décrit fidèlement l'action affirmée par le texte."
     )
     if carriers is None:
         return f"{text}\n\n---\nCOMPORTEMENTS RELEVÉS ET TECHNIQUES ATT&CK v20.0 CANDIDATES :\n" + "\n".join(blocks) + "\n\n" + task
     numbered = "\n".join(f"{i}. {c}" for i, c in enumerate(carriers, 1))
     return (
         f"{text}\n\n---\nAUTEURS POSSIBLES (numérotés) :\n{numbered}\n\nCOMPORTEMENTS RELEVÉS ET TECHNIQUES ATT&CK v20.0 "
-        "CANDIDATES :\n" + "\n".join(blocks) + "\n\n" + task + " Ajoute à chaque comportement retenu le numéro de l'auteur qui "
+        "CANDIDATES :\n" + "\n".join(blocks) + "\n\n" + task + "\n\nAjoute à chaque comportement retenu le numéro de l'auteur qui "
         "l'exécute : « numéro:lettres:auteur » (« 1:b:2;2:a,c:1;3:- »). L'auteur : le malware ou l'outil quand le texte décrit "
-        "sa capacité propre ; sinon la campagne décrite, ou sans campagne le groupe nommé à qui le texte attribue l'action "
-        "(même s'il emploie un outil) ; « - » si aucun auteur de la liste. Deux auteurs (« 1:b:2,4 ») seulement si le texte "
-        "attribue le comportement à chacun."
+        "sa capacité propre ; sinon la campagne décrite, ou sans campagne le groupe nommé à qui le texte attribue l'action ; "
+        "« - » si aucun auteur de la liste. Deux auteurs (« 1:b:2,4 ») seulement si le texte attribue le comportement à chacun."
+    )
+
+
+def second_look_prompt(text: str, behaviors: list[dict], names: dict[str, str]) -> str:
+    listed = []
+    for i, b in enumerate(behaviors, 1):
+        query = (b["line"].split("|") + [""])[1].strip() or b["line"]
+        chosen = ", ".join(f"{aid} {names.get(aid, '')}".strip() for aid in b["chosen"]) or "aucune"
+        listed.append(f"{i}. [phrases {','.join(map(str, b['uids'])) or '?'}] {query} -> {chosen}")
+    return (
+        f"{text}\n\n---\nCOMPORTEMENTS RELEVÉS ET TECHNIQUES ATT&CK v20.0 RETENUES :\n" + "\n".join(listed) + "\n\n"
+        "TÂCHE : relis les phrases citées par chaque comportement. Une ligne en regroupe souvent plusieurs : outre le mécanisme "
+        "retenu, ses phrases décrivent parfois d'autres actions de l'attaquant ou du logiciel malveillant (accès initial, "
+        "exécution, persistance, élévation, évasion, accès aux identifiants, découverte, mouvement latéral, collecte, "
+        "communication, exfiltration, impact…) qu'aucune technique retenue ne couvre. « behaviors » : chacun de ces mécanismes "
+        "laissés de côté, éléments séparés par « ; », chacun « numéros des phrases qui le décrivent|le comportement en anglais, "
+        "avec les mots du mécanisme (action, moyen, but), sans nom d'acteur ni IOC|identifiant ATT&CK v20.0 présumé ou rien » "
+        "(« 12|<action> <mechanism> to <goal>|T####.### »). UN mécanisme par ligne, seulement ce que les phrases disent ; jamais "
+        "un mécanisme qu'une technique retenue couvre déjà ; rien si tout est couvert."
     )
 
 
@@ -324,8 +371,11 @@ def relation_prompt(text: str, table: list[str], carried: bool = False) -> str:
         "source|relation|numéro cible|numéros de phrases » (« 3|uses|2|12,13;3|attributed-to|1|5 »). Chaque technique est reliée à "
         "l'entité qui l'exécute (« numéro de l'entité|uses|numéro de la technique|phrases ») : le malware quand le texte décrit sa "
         "capacité propre, sinon la campagne décrite ou, sans campagne, l'acteur nommé à qui le texte attribue l'action (y compris "
-        "avec un outil) ; chaque malware, outil et victime est relié à la campagne, à l'acteur ou à l'entité qui le déploie ou le subit. La phrase citée (ou les 3 précédentes de sa section, "
-        "ou son titre) nomme le malware, l'outil, la CVE ou la victime reliés." + already
+        "avec un outil) ; chaque malware, outil et victime est relié à la campagne, à l'acteur ou à l'entité qui le déploie ou le subit. "
+        "Sans malware, outil, campagne ni acteur (ex: analyse d'une vulnérabilité) : la technique d'exploitation cible directement "
+        "la vulnérabilité et le produit attaqué (« numéro technique|targets|numéro vulnérabilité ou produit|phrases »). "
+        "software --related-to--> identity relie un produit logiciel à son éditeur. "
+        "La phrase citée (ou les 3 précédentes de sa section, ou son titre) nomme le malware, l'outil, la CVE ou la victime reliés." + already
     )
 
 
@@ -632,6 +682,25 @@ def section_behaviors(units: list[Unit], text: str, system: str, known: list[str
     return out
 
 
+def second_look(text: str, system: str, known: list[str], names: dict[str, str], result: ExtractionResult) -> list[str]:
+    """Mécanismes laissés de côté par les comportements déjà choisis (voir SECOND_LOOK), sans ceux qui reprennent sur des phrases
+    communes une technique présumée ou retenue."""
+    try:
+        answer = _call(result, "seconde lecture", system, second_look_prompt(text, result.behaviors, names), _schema("behaviors"), SECOND_LOOK_TOKENS)
+    except (TimeoutError, llm.requests.RequestException) as exc:  # sans seconde lecture, les techniques choisies restent
+        result.failures.append(f"seconde lecture des comportements : {type(exc).__name__}: {exc}")
+        return []
+    seen = [_behavior_key(line) for line in known] + [(frozenset(b["uids"]), aid) for b in result.behaviors for aid in b["chosen"]]
+    out: list[str] = []
+    for line in rows(answer.get("behaviors")):
+        uids, guess = _behavior_key(line)
+        if len(line.split("|")) < 2 or (uids, guess) in seen or any(guess and guess == g and uids & u for u, g in seen):
+            continue
+        seen.append((uids, guess))
+        out.append(line)
+    return out
+
+
 # --- Étape 2 : techniques choisies parmi des candidates -------------------------------------------------------------------
 @dataclass
 class Behavior:
@@ -642,9 +711,9 @@ class Behavior:
 
 
 def find_candidates(draft: DraftGraph, lines: list[str], result: ExtractionResult) -> list[Behavior]:
-    """« phrases|comportement|identifiant présumé » -> candidates : l'identifiant présumé (et sa technique parente) s'il est
-    actif dans ATT&CK v20.0, puis les meilleures techniques de la recherche sur le comportement. Le code propose, le modèle
-    choisira. Les procédures d'ATT&CK tirées de l'article lui-même ne servent pas à la recherche."""
+    """« phrases|outil|action_et_but|tactique|identifiant présumé » -> candidates : l'identifiant présumé (et sa technique parente)
+    s'il est actif dans ATT&CK v20.0, puis les meilleures techniques de la recherche sur l'action fondamentale filtrées par tactique.
+    Le code propose, le modèle choisira. Les procédures d'ATT&CK tirées de l'article lui-même ne servent pas à la recherche."""
     kb, out = draft.attack, []
     own = report_key(draft.ctx.article_ref.get("url"))
     for line in lines:
@@ -653,18 +722,37 @@ def find_candidates(draft: DraftGraph, lines: list[str], result: ExtractionResul
             result.refused_techniques.append((line, "format attendu numéros de phrases|comportement|identifiant présumé"))
             result.refused += 1
             continue
+
+        if len(parts) >= 4:
+            carrier_hint = parts[1] if parts[1] not in ("-", "") else ""
+            action_query = parts[2]
+            tactic = parts[3] if parts[3] not in ("-", "") else None
+            guess = _TECHNIQUE.search(" ".join(parts[4:])) if len(parts) >= 5 else None
+        elif len(parts) == 3:
+            carrier_hint = ""
+            action_query = parts[1]
+            tactic = None
+            guess = _TECHNIQUE.search(parts[2])
+        else:
+            carrier_hint = ""
+            action_query = parts[1]
+            tactic = None
+            guess = None
+
         hits: list[TechniqueHit] = []
-        guess = _TECHNIQUE.search(" ".join(parts[2:]))
         if guess:
             status, replaced = kb.status(guess.group(0).upper())
             aid = replaced if status == "revoked" and replaced else guess.group(0).upper() if status == "active" else None
             for a in (aid, aid.split(".")[0]) if aid else ():
                 hits += kb.search_techniques(a)  # un identifiant seul renvoie sa fiche
-        hits += kb.search_techniques(parts[1], limit=CANDIDATES, exclude_source=own)
+
+        # Recherche ciblée sur l'action fondamentale avec filtrage par tactique
+        hits += kb.search_techniques(action_query, tactic=tactic, limit=CANDIDATES, exclude_source=own)
         unique = list({h.attack_id: h for h in hits}.values())[:MAX_OPTIONS]
         uids = [n for n in map(int, re.findall(r"\d+", parts[0])) if n in draft.by_uid]
+        display_query = f"[{carrier_hint}] {action_query}" if carrier_hint else action_query
         if unique:
-            out.append(Behavior(line, uids, parts[1], unique))
+            out.append(Behavior(line, uids, display_query, unique))
         else:
             result.refused_techniques.append((line, "aucune technique ATT&CK candidate"))
             result.refused += 1
@@ -689,6 +777,12 @@ def accept_choices(
             chosen.setdefault(i, []).extend(cands[_LETTERS.index(c)].attack_id for c in re.findall(rf"[{_LETTERS}]", letters.lower()) if _LETTERS.index(c) < len(cands))
             if carriers:
                 authors.setdefault(i, []).extend(carriers[k] for k in (_index(n, len(carriers)) for n in re.findall(r"\d+", who)) if k is not None)
+    # Subsomption ontologique locale : si une sous-technique T####.### est retenue, on élague son parent T####
+    for i in list(chosen):
+        subs = {a for a in chosen[i] if "." in a}
+        sub_parents = {a.split(".")[0] for a in subs}
+        if sub_parents:
+            chosen[i] = [a for a in chosen[i] if a not in sub_parents]
     for i, b in enumerate(behaviors):
         result.behaviors.append({"line": b.line, "uids": b.uids, "candidates": [h.attack_id for h in b.candidates], "chosen": chosen.get(i, [])})
         if not chosen.get(i):
@@ -790,30 +884,181 @@ def extract_article(art: dict) -> ExtractionResult:
     result = ExtractionResult(art["id"], draft, len(units))
     system, text = system_prompt(), render(units)
     try:
-        inv = _call(result, "entities", system, entity_prompt(text), ENTITY_SCHEMA, ENTITY_TOKENS)
-        sids = declare_entities(draft, inv, result)  # avant les techniques : un nom d'entité (« PowerShell ») prime sur celui d'une technique
-        if OPERATIONS:
-            sids = decide_operations(draft, text, system, sids, result)
-        if MENTIONS:
-            sids = recover_mentions(draft, units, text, system, sids, result)
-        if VICTIMS:
-            sids = decide_victims(draft, text, system, sids, result)
+        if MULTI_AGENT:
+            # 1. Micro-Agents de perception exécutés en parallèle avec cache de préfixe vLLM
+            def run_threat():
+                return _call(result, "threat_modeler", system, ThreatModelerAgent.prompt(text), ThreatModelerAgent.SCHEMA, 2500)
+
+            def run_targets():
+                return _call(result, "target_specialist", system, TargetSpecialistAgent.prompt(text), TargetSpecialistAgent.SCHEMA, 2000)
+
+            def run_ttps():
+                return TTPHunterAgent.extract(text, system, lambda s, sys, p, sch, tok, **kw: _call(result, s, sys, p, sch, tok, **kw), multi_temp=MULTI_TEMP)
+
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                f_threat = pool.submit(llm.in_context(run_threat))
+                f_targets = pool.submit(llm.in_context(run_targets))
+                f_ttps = pool.submit(llm.in_context(run_ttps))
+                res_threat = f_threat.result()
+                res_targets = f_targets.result()
+                lines = f_ttps.result()
+
+            sids: list[str] = []
+            # Déclaration des entités offensives avec registre canonique
+            for line in rows(res_threat.get("threat_entities")):
+                fields = [f.strip() for f in line.split("|")]
+                if len(fields) < 2 or not fields[1]:
+                    continue
+                stype, name = fields[0].lower(), fields[1]
+                extra = fields[2] if len(fields) > 2 else ""
+
+                # Normalisation des parenthèses descriptives : « <malware> (<fichier>) »
+                # -> base_name = « <malware> », alias = « <fichier> », « <malware> (<fichier>) »
+                match = re.match(r"^([^(]+)\s*\(([^)]+)\)\s*$", name)
+                if match and stype in ("malware", "tool", "intrusion-set", "threat-actor"):
+                    base_name = match.group(1).strip()
+                    detail = match.group(2).strip()
+                    name = base_name
+                    aliases = [a.strip() for a in extra.replace(",", ";").split(";") if a.strip()]
+                    aliases.extend([detail, fields[1]])
+                    extra = ";".join(dict.fromkeys(aliases))
+                elif len(fields) > 2 and stype not in ("software", "location"):
+                    extra = extra.replace(",", ";")
+
+                decl = f"{stype}|{name}|{extra}" if extra else f"{stype}|{name}"
+                sid, err = draft.declare(decl)
+                if err:
+                    draft.log.append(f"reject {err}")
+                    result.refused_entities.append((line, err))
+                    result.refused += 1
+                elif sid not in sids and draft.type_of(sid) != "attack-pattern":
+                    sids.append(sid)
+                    result.accepted += 1
+
+            # Déclaration des cibles, vulnérabilités et victimes
+            for line in rows(res_targets.get("targets")):
+                fields = [f.strip() for f in line.split("|")]
+                if len(fields) < 2 or not fields[1]:
+                    continue
+                stype = fields[0].lower()
+                decl = None
+                target_uids = [n for n in _numbers(fields[0]) if n in draft.by_uid] or [1]
+                vendor, v_sid = None, None
+                if stype == "identity":
+                    name = fields[1]
+                    klass = fields[2] if len(fields) > 2 and fields[2] != "-" else "organization"
+                    sector = fields[3] if len(fields) > 3 and fields[3] != "-" else ""
+                    country = fields[4] if len(fields) > 4 and fields[4] != "-" else ""
+                    decl = f"identity|{name}|{sector};{klass}"
+                    if country and re.fullmatch(r"[A-Z]{2}", country.upper()):
+                        loc_sid, _ = draft.declare(f"location|{country.upper()}|{country.upper()}")
+                        if loc_sid and loc_sid not in sids:
+                            sids.append(loc_sid)
+                elif stype == "location":
+                    decl = f"location|{fields[1]}|{fields[2] if len(fields) > 2 else ''}"
+                elif stype == "software":
+                    decl = f"software|{fields[1]}|{fields[2] if len(fields) > 2 else ''}"
+                    vendor = fields[2].strip() if len(fields) > 2 and fields[2].strip() not in ("-", "") else None
+                    if vendor:
+                        v_sid, _ = draft.declare(f"identity|{vendor}|organization")
+                        if v_sid and v_sid not in sids:
+                            sids.append(v_sid)
+                elif stype == "vulnerability":
+                    decl = f"vulnerability|{fields[1]}"
+                else:
+                    decl = "|".join(fields[:3])
+
+                if decl:
+                    sid, err = draft.declare(decl)
+                    if err:
+                        draft.log.append(f"reject {err}")
+                        result.refused_entities.append((line, err))
+                        result.refused += 1
+                    elif sid not in sids and draft.type_of(sid) != "attack-pattern":
+                        sids.append(sid)
+                        result.accepted += 1
+                        if stype == "software" and vendor and v_sid:
+                            v_err = draft.relate(f"{_ref(draft, sid)}|related-to|{_ref(draft, v_sid)}|{','.join(map(str, target_uids[:3]))}")
+                            if not v_err:
+                                result.accepted += 1
+
+            # Extraction déterministe des vulnérabilités (CVE) citées dans le texte
+            known_names = set(draft.names)
+            src_corpus = f"{text}\n{art.get('clean_markdown', '')}\n{art.get('content', '')}"
+            for cve_match in dict.fromkeys(m.upper() for m in _CVE.findall(src_corpus)):
+                if normalize_name(cve_match) not in known_names and cve_match not in known_names:
+                    sid, err = draft.declare(f"vulnerability|{cve_match}")
+                    if not err and sid not in sids:
+                        sids.append(sid)
+                        result.accepted += 1
+
+            # Déclaration des opérations/campagnes et attribution
+            groups = [s for s in sids if draft.type_of(s) in _GROUP_TYPES]
+            for line in rows(res_threat.get("campaigns")):
+                parts = [p.strip() for p in line.split("|")]
+                if len(parts) >= 2 and parts[1]:
+                    uids = [n for n in _numbers(parts[0]) if n in draft.by_uid]
+                    sid, err = draft.declare(f"campaign|{parts[1]}")
+                    if err:
+                        draft.log.append(f"reject {err}")
+                        result.refused_entities.append((line, err))
+                        result.refused += 1
+                        continue
+                    if sid not in sids:
+                        sids.append(sid)
+                        result.accepted += 1
+                    g_ref = parts[2] if len(parts) > 2 else None
+                    if g_ref and g_ref != "-":
+                        matched_g = next((g for g in groups if normalize_name(draft.name_of(g)) == normalize_name(g_ref) or g_ref.lower() in draft.name_of(g).lower()), None)
+                        if not matched_g and groups and len(groups) == 1:
+                            matched_g = groups[0]
+                        if matched_g and uids:
+                            naming = [n for n in uids if mentions(draft.by_uid[n].text, draft.terms.get(matched_g, set()))] or uids[:3]
+                            err = draft.relate(f"{_ref(draft, sid)}|attributed-to|{_ref(draft, matched_g)}|{','.join(map(str, naming[:3]))}")
+                            if not err:
+                                result.accepted += 1
+
+            # Phase 2 bis : Tissage des relations structurelles conditionné sur le registre canonique d'entités (RelationWeaver)
+            canonical_sids = [s for s in sids if draft.type_of(s) != "attack-pattern"]
+            if len(canonical_sids) > 1:
+                labels = [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in canonical_sids]
+                ans_weave = _call(result, "relation_weaver", system, RelationWeaverAgent.prompt(text, labels), RelationWeaverAgent.SCHEMA, 2500)
+                apply_relations(draft, ans_weave, canonical_sids, result)
+        else:
+            inv = _call(result, "entities", system, entity_prompt(text), ENTITY_SCHEMA, ENTITY_TOKENS)
+            sids = declare_entities(draft, inv, result)  # avant les techniques : un nom d'entité (« PowerShell ») prime sur celui d'une technique
+            if OPERATIONS:
+                sids = decide_operations(draft, text, system, sids, result)
+            if MENTIONS:
+                sids = recover_mentions(draft, units, text, system, sids, result)
+            if VICTIMS:
+                sids = decide_victims(draft, text, system, sids, result)
+            lines = rows(inv.get("behaviors"))
         techniques: dict[str, list[int]] = {}
-        lines = rows(inv.get("behaviors"))
-        if SECTION_PASS:
+        if SECTION_PASS or len(units) > 60:
             lines += section_behaviors(units, text, system, lines, result)
         behaviors = find_candidates(draft, lines, result)
-        carriers = [s for s in sids if draft.type_of(s) in _CARRIER_TYPES] if CARRIER else []
+        carriers = [s for s in sids if draft.type_of(s) in _CARRIER_TYPES] if (CARRIER or MULTI_AGENT) else []
         carried: dict[str, list[str]] = {}
-        for k in range(0, len(behaviors), CHOICE_BATCH):  # chaque lot commence par l'article : relu depuis le cache du serveur
-            batch = behaviors[k : k + CHOICE_BATCH]
-            try:
-                prompt = choice_prompt(text, batch, [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in carriers] if carriers else None)
-                tokens = CHOICE_TOKENS + (CARRIER_TOKENS * len(batch) if carriers else 0)
-                accept_choices(draft, _call(result, "techniques", system, prompt, CHOICE_SCHEMA, tokens), batch, techniques, result, carriers, carried)
-            except (TimeoutError, llm.requests.RequestException) as exc:  # un lot perdu n'empêche pas les autres
-                result.failures.append(f"choix des techniques : {type(exc).__name__}: {exc}")
-        if CARRIER_SEPARATE:
+
+        def choose(behaviors: list[Behavior]) -> None:
+            for k in range(0, len(behaviors), CHOICE_BATCH):  # chaque lot commence par l'article : relu depuis le cache du serveur
+                batch = behaviors[k : k + CHOICE_BATCH]
+                try:
+                    prompt = choice_prompt(text, batch, [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in carriers] if (carriers and CARRIER) else None)
+                    tokens = CHOICE_TOKENS + (CARRIER_TOKENS * len(batch) if (carriers and CARRIER) else 0)
+                    accept_choices(draft, _call(result, "techniques", system, prompt, CHOICE_SCHEMA, tokens), batch, techniques, result, carriers if CARRIER else None, carried)
+                except (TimeoutError, llm.requests.RequestException) as exc:  # un lot perdu n'empêche pas les autres
+                    result.failures.append(f"choix des techniques : {type(exc).__name__}: {exc}")
+
+        choose(behaviors)
+        if SECOND_LOOK and result.behaviors:
+            names = {h.attack_id: h.name for b in behaviors for h in b.candidates}
+            start = len(result.behaviors)
+            choose(find_candidates(draft, second_look(text, system, lines, names, result), result))
+            for b in result.behaviors[start:]:  # trace : comportements nés de la seconde lecture
+                b["second_look"] = True
+        if CARRIER_SEPARATE or MULTI_AGENT:
             assign_carriers(draft, text, system, result.behaviors, [s for s in sids if draft.type_of(s) in _CARRIER_TYPES], carried, result)
 
         table = [f"{draft.type_of(s)}|{draft.name_of(s)}" for s in sids]
@@ -836,6 +1081,7 @@ def extract_article(art: dict) -> ExtractionResult:
                 verify_relations(draft, text, system, result)
             except (TimeoutError, llm.requests.RequestException) as exc:  # sans vérification, les relations acceptées restent
                 result.failures.append(f"vérification des relations : {type(exc).__name__}: {exc}")
+            draft.prune_subsumed_techniques()
     except (TimeoutError, llm.requests.RequestException) as exc:
         result.failures.append(f"article : {type(exc).__name__}: {exc}")
     entity_rows = draft.entity_rows()

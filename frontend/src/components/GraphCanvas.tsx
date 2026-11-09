@@ -1,63 +1,32 @@
-import { Background, BackgroundVariant, BaseEdge, Controls, Handle, MarkerType, MiniMap, Position, ReactFlow, ReactFlowProvider, useInternalNode, type Edge, type EdgeProps, type InternalNode, type Node, type NodeProps } from "@xyflow/react";
-import clsx from "clsx";
+import { Background, BackgroundVariant, BaseEdge, Controls, EdgeLabelRenderer, Handle, MarkerType, MiniMap, Position, ReactFlow, ReactFlowProvider, useInternalNode, useStore, type Edge, type EdgeProps, type InternalNode, type Node, type NodeProps } from "@xyflow/react";
 import { useMemo } from "react";
-import { iconOf, isRectangular } from "../lib/icons";
+import { isRectangular } from "../lib/icons";
 import { forceLayout } from "../lib/layout";
-import { FAMILY, relationLabel, typeLabel } from "../lib/theme";
+import { DASH, FAMILY, STATE, edgeStyleOf, relationLabel } from "../lib/theme";
+import { NodeMark, tileWidth } from "./NodeMark";
 import type { GraphEdge, GraphNode } from "../types";
 
-const DISC = 56; // diamètre d'un nœud rond
-const RECT_W = 176;
+const DISC = 52; // diamètre d'un nœud rond
+const RECT_W = tileWidth(DISC / 2);
 const RECT_H = 48;
+const LABEL_ZOOM = 1.1; // sans sélection, les étiquettes d'arêtes n'apparaissent qu'à partir de ce zoom
 const size = (type: string) => (isRectangular(type) ? { w: RECT_W, h: RECT_H } : { w: DISC, h: DISC });
 
 type CtiNode = Node<{ node: GraphNode; dim: boolean; selected: boolean }, "cti">;
+type CtiEdge = Edge<{ relation: string; active: boolean; focused: boolean }, "floating">;
 
 const hidden = "!left-1/2 !top-1/2 !h-0 !w-0 !border-0 !opacity-0";
 
 function CtiNodeView({ data }: NodeProps<CtiNode>) {
   const { node, dim, selected } = data;
-  const color = FAMILY[node.family].color;
-  const Icon = iconOf(node.type);
-  const handles = (
-    <>
+  const { w, h } = size(node.type);
+  return (
+    <div className="relative" style={{ width: w, height: h }} title={node.label}>
+      <div className="absolute" style={{ left: w / 2, top: h / 2 }}>
+        <NodeMark node={node} radius={DISC / 2} state={selected ? "select" : dim ? "dim" : "none"} />
+      </div>
       <Handle type="target" position={Position.Top} className={hidden} />
       <Handle type="source" position={Position.Top} className={hidden} />
-    </>
-  );
-  if (isRectangular(node.type)) {
-    return (
-      <div
-        className={clsx("flex items-center gap-2 border-2 bg-panel px-2 transition-opacity", selected ? "border-accent" : "border-line-strong", dim && "opacity-25")}
-        style={{ width: RECT_W, height: RECT_H, borderLeftColor: color, borderLeftWidth: 5 }} title={node.label}
-      >
-        <Icon size={20} color={color} strokeWidth={1.75} className="shrink-0" />
-        <div className="min-w-0">
-          <div className="truncate text-sm font-semibold leading-4">{node.label}</div>
-          <div className="truncate font-mono text-[10px] uppercase leading-4 tracking-wide text-faint">{typeLabel(node.type)}</div>
-        </div>
-        {handles}
-      </div>
-    );
-  }
-  return (
-    <div className={clsx("relative transition-opacity", dim && "opacity-25")} style={{ width: DISC, height: DISC }} title={node.label}>
-      <div
-        className={clsx("flex h-full w-full items-center justify-center rounded-full border-2 bg-panel", selected ? "border-accent" : "")}
-        style={selected ? undefined : { borderColor: color }}
-      >
-        <Icon size={24} color={color} strokeWidth={1.75} />
-      </div>
-      {!!node.ioc_count && (
-        <span className="absolute -right-3 -top-2 border border-line-strong bg-raised px-1 font-mono text-[10px] text-ink" title={`${node.ioc_count} indicateurs rattachés à cette infrastructure`}>
-          {node.ioc_count} IOC
-        </span>
-      )}
-      <div className="pointer-events-none absolute left-1/2 top-full mt-1 w-max max-w-[8rem] -translate-x-1/2 bg-bg px-1 text-center">
-        <div className="truncate text-xs font-medium leading-4">{node.label}{node.is_dual_use && " ·"}</div>
-        <div className="truncate font-mono text-[9px] uppercase leading-3 tracking-wide text-faint">{typeLabel(node.type)}</div>
-      </div>
-      {handles}
     </div>
   );
 }
@@ -75,19 +44,34 @@ function border(n: InternalNode, toward: { x: number; y: number }, gap = 3) {
   return { x: c.x + (dx / len) * (reach + gap), y: c.y + (dy / len) * (reach + gap), c };
 }
 
-export function FloatingEdge({ id, source, target, markerEnd, style, label, labelStyle }: EdgeProps) {
+export function FloatingEdge({ id, source, target, markerEnd, style, data }: EdgeProps<CtiEdge>) {
   const s = useInternalNode(source);
   const t = useInternalNode(target);
+  const zoom = useStore((st) => st.transform[2]);
   if (!s || !t) return null;
   const tc = border(t, { x: s.internals.positionAbsolute.x + (s.measured.width ?? DISC) / 2, y: s.internals.positionAbsolute.y + (s.measured.height ?? DISC) / 2 }, 0).c;
   const a = border(s, tc);
   const b = border(t, a.c, 4);
-  const path = `M ${a.x},${a.y} L ${b.x},${b.y}`;
+  const kind = edgeStyleOf(data?.relation ?? "");
+  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const off = kind === "double" ? { x: (-(b.y - a.y) / len) * 2, y: ((b.x - a.x) / len) * 2 } : { x: 0, y: 0 };
+  const line = (k: number) => `M ${a.x + off.x * k},${a.y + off.y * k} L ${b.x + off.x * k},${b.y + off.y * k}`;
+  const showLabel = data?.focused || (data?.active && zoom >= LABEL_ZOOM);
   return (
-    <BaseEdge
-      id={id} path={path} markerEnd={markerEnd} style={style} label={label} labelX={(a.x + b.x) / 2} labelY={(a.y + b.y) / 2}
-      labelStyle={labelStyle} labelBgStyle={{ fill: "#111418", fillOpacity: 0.95 }} labelBgPadding={[4, 2]} labelShowBg
-    />
+    <>
+      {kind === "double" && <BaseEdge id={`${id}-2`} path={line(-1)} style={style} />}
+      <BaseEdge id={id} path={line(1)} markerEnd={markerEnd} style={{ ...style, strokeDasharray: DASH[kind] }} />
+      {showLabel && (
+        <EdgeLabelRenderer>
+          <div
+            className="pointer-events-none absolute bg-bg px-1 text-[11px] leading-4 text-[#c9d3de]"
+            style={{ transform: `translate(-50%, -50%) translate(${(a.x + b.x) / 2}px, ${(a.y + b.y) / 2}px)` }}
+          >
+            {relationLabel(data?.relation ?? "")}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
   );
 }
 
@@ -121,14 +105,14 @@ function Canvas({ nodes, edges, selectedId, onSelect }: Props) {
       data: { node: n, dim: !!neighbours && !neighbours.has(n.id), selected: n.id === selectedId },
     };
   });
-  const flowEdges: Edge[] = edges.map((e) => {
-    const active = !selectedId || e.source === selectedId || e.target === selectedId;
-    const color = active ? "#c5cbd3" : "#3a414b";
+  const flowEdges: CtiEdge[] = edges.map((e) => {
+    const focused = !!selectedId && (e.source === selectedId || e.target === selectedId);
+    const active = !selectedId || focused;
+    const color = focused ? STATE.edgeActive : active ? "#6b7c91" : "#2f3b4a";
     return {
-      id: e.id, source: e.source, target: e.target, label: relationLabel(e.type), type: "floating", selectable: false,
-      markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color },
-      style: { stroke: color, strokeWidth: 1.75 },
-      labelStyle: { opacity: active ? 1 : 0.3, fill: "#c5cbd3" },
+      id: e.id, source: e.source, target: e.target, type: "floating", selectable: false, data: { relation: e.type, active, focused },
+      markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color },
+      style: { stroke: color, strokeWidth: focused ? 1.75 : 1.5 },
     };
   });
 
@@ -137,9 +121,9 @@ function Canvas({ nodes, edges, selectedId, onSelect }: Props) {
       nodes={flowNodes} edges={flowEdges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView fitViewOptions={{ padding: 0.2, maxZoom: 1 }} minZoom={0.15} maxZoom={2}
       nodesConnectable={false} elementsSelectable onNodeClick={(_, n) => onSelect(n.id)} onPaneClick={() => onSelect(null)} proOptions={{ hideAttribution: true }}
     >
-      <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#2f343c" />
+      <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="#22303f" />
       <Controls showInteractive={false} />
-      <MiniMap pannable zoomable maskColor="rgba(17,20,24,0.7)" nodeColor={(n) => FAMILY[(n.data as CtiNode["data"]).node.family].color} />
+      <MiniMap pannable zoomable maskColor="rgba(18,26,36,0.7)" nodeColor={(n) => FAMILY[(n.data as CtiNode["data"]).node.family].color} />
     </ReactFlow>
   );
 }

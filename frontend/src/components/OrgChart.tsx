@@ -23,7 +23,7 @@ function BoxView({ data }: NodeProps<BoxNode>) {
         <Icon size={16} color={accent === "#8f99a8" ? FAMILY.target.color : accent} strokeWidth={1.75} className="shrink-0" />
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold leading-5">{box.title}</div>
-          {box.caption && <div className="truncate font-mono text-[10px] uppercase leading-3 tracking-wide text-faint">{box.caption}</div>}
+          {box.caption && <div className="truncate text-[11px] leading-3 text-faint">{box.caption}</div>}
         </div>
       </div>
       {box.lines.length > 0 && (

@@ -4,8 +4,8 @@ L'API renvoie des DONNÉES structurées, jamais de présentation : couleurs, for
 frontend. Tout texte venu des articles (noms, preuves, titres) est renvoyé tel quel : React l'échappe à l'affichage et
 le frontend n'utilise jamais `dangerouslySetInnerHTML` (un test le garantit).
 
-Chaque graphe est celui d'UN article (invariant du projet : aucun graphe global agrégé), sauf la vue Acteurs, qui agrège
-volontairement tout ce que les articles disent d'un même acteur.
+Le graphe d'un rapport est celui d'UN article et de lui seul. Deux vues agrègent volontairement les articles : les profils
+d'acteurs et le graphe global (`global_graph`), où chaque nœud et chaque arête porte la liste des articles qui l'étayent.
 """
 
 import json
@@ -57,11 +57,9 @@ def _references(node: dict) -> list[dict]:
 
 
 def has_profile(node: dict) -> bool:
-    """Onglet Acteurs : un acteur de la menace (threat-actor) ou un groupe connu d'ATT&CK (intrusion-set rattaché à un G####).
-    Une campagne est une opération, pas un acteur ; un intrusion-set absent d'ATT&CK n'est qu'un nom de suivi cité par un article."""
-    if node["type"] == "threat-actor":
-        return True
-    return node["type"] == "intrusion-set" and any(r["source"] == "mitre-attack" and r["id"].startswith("G") for r in _references(node))
+    """Onglet Acteurs : tout threat-actor et tout intrusion-set, qu'il soit ou non rattaché à un groupe ATT&CK (G####).
+    Une campagne est une opération, pas un acteur."""
+    return node["type"] in ("threat-actor", "intrusion-set")
 
 
 def _tactics(node: dict | None) -> list[str]:
@@ -84,10 +82,22 @@ def _node(n: dict, degree: int) -> dict[str, Any]:
         "identity_class": n.get("identity_class"),
         "is_family": bool(n.get("is_family")) if stix_type == "malware" else None,
         "labels": n.get("labels", []),
-        "is_dual_use": stix_type == "tool" and "living-off-the-land" in (n.get("labels") or []),
+        "is_dual_use": _dual_use(n),
+        "kinds": _kinds(n),
+        "country": n.get("country"),
         "article_ids": n.get("article_ids", []),
         "degree": degree,
     }
+
+
+def _dual_use(n: dict) -> bool:
+    return n.get("type") == "tool" and "living-off-the-land" in (n.get("labels") or [])
+
+
+def _kinds(n: dict) -> list[str]:
+    """Sous-types STIX (vocabulaires ouverts `malware_types`, `infrastructure_types`…) : choisissent le glyphe du nœud."""
+    value = n.get(f"{n.get('type', '').replace('-', '_')}_types") or []
+    return value if isinstance(value, list) else []
 
 
 def _evidence(edge: dict, article_id: int | None) -> list[dict]:
@@ -373,3 +383,63 @@ def actor_graph(actor_id: str, store: StixStore | None = None, now: datetime | N
         "iocs": [_ioc_row(r, now or datetime.now(timezone.utc)) for r in store.actor_iocs(actor_id)],
         "reports": [{**r, "published": (r["published"] or "")[:10] or None} for r in sub["reports"]],
     }
+
+
+def _kg_node(n: dict) -> dict[str, Any]:
+    """Nœud du graphe global, sans ce qui ne sert qu'à l'inspecteur (chargé à la demande par `node_detail`)."""
+    stix_type = n.get("type", "")
+    node = {"id": n["id"], "label": n.get("name", n["id"]), "type": stix_type, "family": family_of(stix_type), "article_ids": n.get("article_ids", [])}
+    for key, value in (("kinds", _kinds(n)), ("country", n.get("country")), ("tactics", _tactics(n)), ("aliases", n.get("aliases"))):
+        if value:
+            node[key] = value
+    if _dual_use(n):
+        node["is_dual_use"] = True
+    return node
+
+
+def _entity_ioc_rows(entity_id: str, stix_type: str, store: StixStore) -> list[dict]:
+    """IOC d'une entité : ceux qui la désignent ; pour un acteur, aussi ceux de son infrastructure et de son arsenal."""
+    rows = store.entity_iocs(entity_id)
+    if stix_type in ("intrusion-set", "threat-actor"):
+        seen = {r["indicator"]["id"] for r in rows}
+        rows += [r for r in store.actor_iocs(entity_id) if r["indicator"]["id"] not in seen]
+    return rows
+
+
+def global_graph(store: StixStore | None = None) -> dict[str, Any]:
+    """Graphe global : toutes les entités et relations de tous les articles (IOC et règles exclus des nœuds : `ioc_count` les compte sur l'entité qu'ils désignent, `node_detail` les liste), avec leur provenance.
+    Les preuves ne sont pas incluses (le volume) : `node_detail` les donne pour un nœud."""
+    store = store or StixStore()
+    raw = store.global_graph()
+    counts = store.entity_ioc_counts()
+    for n in raw["nodes"]:  # un acteur désigne rarement ses IOC lui-même : on compte aussi ceux de son infrastructure
+        if n.get("type") in ("intrusion-set", "threat-actor"):
+            counts[n["id"]] = len(_entity_ioc_rows(n["id"], n["type"], store))
+    nodes = [{**_kg_node(n), **({"ioc_count": counts[n["id"]]} if counts.get(n["id"]) else {})} for n in raw["nodes"]]
+    known = {n["id"] for n in nodes}
+    edges = [
+        {"id": e["id"], "source": e["source"], "target": e["target"], "type": e["type"].lower().replace("_", "-"),
+         "confidence": e["confidence"], "article_ids": e["article_ids"] or []}
+        for e in raw["edges"]
+        if e["source"] in known and e["target"] in known
+    ]  # fmt: skip
+    reports = [{"id": r["id"], "title": r["title"] or f"Article {r['id']}", "published": (r["published"] or "")[:10] or None} for r in raw["reports"]]
+    return {"nodes": nodes, "edges": edges, "articles": reports}
+
+
+def node_detail(node_id: str, store: StixStore | None = None) -> dict[str, Any] | None:
+    """Un nœud du graphe global, ses voisins et les relations qui les relient à lui, preuves de tous les articles comprises."""
+    store = store or StixStore()
+    sub = store.actor_subgraph(node_id, entities_only=True)
+    if sub is None:
+        return None
+    by_id = {n["id"]: n for n in sub["nodes"]}
+    by_id[sub["actor"]["id"]] = sub["actor"]
+    edges = [_edge(e, by_id, None) for e in sub["edges"] if e["source"] in by_id and e["target"] in by_id]
+    nodes = [_node(n, sum(1 for e in edges if nid in (e["source"], e["target"]))) for nid, n in by_id.items()]
+    head = sub["actor"]
+    rows = _entity_ioc_rows(node_id, head.get("type", ""), store)
+    now = datetime.now(timezone.utc)
+    iocs = [_ioc_row(r, now) for r in rows]
+    return {"node": next(n for n in nodes if n["id"] == node_id), "nodes": nodes, "edges": edges, "iocs": iocs,
+            "reports": [{**r, "published": (r["published"] or "")[:10] or None} for r in sub["reports"]]}  # fmt: skip

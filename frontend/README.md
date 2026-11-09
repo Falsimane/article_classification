@@ -3,7 +3,7 @@
 Interface Web du CTI Knowledge Graph : exploration des rapports extraits (graphe, indicateurs, règles de détection,
 texte de l'article) et profils des acteurs de la menace.
 
-**Pile** : React 18, TypeScript 5, Tailwind CSS 3, React Flow 12 (`@xyflow/react`), d3-force, react-markdown, Vite 5,
+**Pile** : React 18, TypeScript 5, Tailwind CSS 3, React Flow 12 (`@xyflow/react`), d3-force, sigma.js 3 + graphology (arêtes du graphe global, WebGL), react-markdown, Vite 5,
 Vitest. L'application est construite dans `dist/` et servie par le backend (`backend/dashboard/server.py`) ; elle ne lit que
 l'API REST `/api/*`.
 
@@ -46,7 +46,13 @@ frontend/
 │   │   ├── ArticleView.tsx   # markdown nettoyé de l'article
 │   │   ├── ActorsView.tsx    # vue Acteurs : liste et onglets du profil
 │   │   ├── OrgChart.tsx      # organigramme d'un acteur (React Flow)
-│   │   └── EntryTable.tsx    # tableau générique d'entrées de profil (nom, relation, preuves)
+│   │   ├── EntryTable.tsx    # tableau générique d'entrées de profil (nom, relation, preuves)
+│   │   ├── GlobalView.tsx    # vue Graphe global : calques, recherche (Ctrl K), fiche de sélection, détails, histogramme
+│   │   ├── KgCanvas.tsx      # sigma (WebGL) : arêtes, caméra, clics ; nœuds en HTML par-dessus selon le niveau de détail (points,
+│   │   │                     #   glyphes, glyphes et noms) ; disposition d3-force par tranches, mise en cache par révision du graphe
+│   │   ├── NodeMark.tsx      # nœud HTML (disque à glyphe ou tuile d'acteur, états), partagé par le graphe de rapport et le global
+│   │   ├── Timeline.tsx      # histogramme des publications ; glisser retient une période
+│   │   └── AskPanel.tsx      # assistant : étapes (outils), réponse avec entités citées, questions suggérées
 │   └── lib/
 │       ├── api.ts            # client REST typé
 │       ├── useAsync.ts       # chargement asynchrone, réponses périmées ignorées
@@ -54,8 +60,9 @@ frontend/
 │       ├── org.ts            # boîtes et positions de l'organigramme
 │       ├── ioc.ts            # libellés de rôles et de statuts, filtres des IOC
 │       ├── rules.ts          # filtre et concaténation des règles
-│       ├── icons.ts          # icône (lucide-react) par type STIX, forme ronde ou rectangulaire
-│       ├── theme.ts          # couleur par famille, libellés français des types
+│       ├── icons.ts          # glyphe (lucide-react) par type et sous-type STIX / tactique ATT&CK, forme ronde ou rectangulaire
+│       ├── kg.ts             # graphe global : filtres, voisins par relation, histogramme, citations [[E3]]
+│       ├── theme.ts          # couleurs par famille et d'état, libellés français des types et sous-types, style d'arête par relation
 │       └── *.test.ts         # tests Vitest
 ├── tailwind.config.js        # palette et typographie
 ├── vite.config.ts            # proxy /api, configuration Vitest

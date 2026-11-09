@@ -14,7 +14,7 @@ export function EntryTable({ entries, empty }: { entries: ProfileEntry[]; empty:
               <Icon size={16} color={FAMILY[e.node.family].color} strokeWidth={1.75} className="shrink-0" />
               <span className="text-sm font-medium">{e.node.label}</span>
               {e.node.references.length > 0 && <span className="font-mono text-xs text-faint">{e.node.references.map((r) => r.id).join(" ")}</span>}
-              {e.node.is_dual_use && <span className="border border-warn px-1 font-mono text-[10px] uppercase text-warn">double usage</span>}
+              {e.node.is_dual_use && <span className="border border-warn px-1 text-xs text-warn">double usage</span>}
               <span className="ml-auto font-mono text-xs text-faint">{relationLabel(e.relation)}{e.confidence != null && ` · ${e.confidence}`}</span>
             </div>
             {[...new Set(e.evidence.map((ev) => ev.procedure).filter(Boolean))].map((p) => (

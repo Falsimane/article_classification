@@ -28,6 +28,7 @@ _LIST_ITEM = re.compile(r"^\s*(?:[*+\-•]|\d{1,3}[.)])\s+")
 _HASH = re.compile(r"\b[a-fA-F0-9]{32,64}\b")
 _IPV4 = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
 _DOMAIN = re.compile(r"^[a-z0-9][a-z0-9\-]*(?:\.[a-z0-9\-]+)+(?:[:/].*)?$", re.I)
+_CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
 # Extensions de fichier courantes : un « nom.exe » n'est pas un nom de domaine
 FILE_EXT = frozenset("exe dll sys bat cmd ps1 vbs js jar msi scr lnk so dat tmp bin log txt cfg ini conf json xml hta zip rar 7z iso doc docx xls xlsx pdf py sh".split())
 
@@ -44,9 +45,11 @@ def is_indicator_text(text: str) -> bool:
         return False
     if _RULE_LISTING.match(text):
         return True
+    if _CVE.search(text):  # une phrase qui mentionne une CVE décrit une vulnérabilité ou son exploitation, pas un simple listing
+        return False
     hashes, ips = len(_HASH.findall(text)), len(_IPV4.findall(text))
     domains = sum(1 for t in tokens if _DOMAIN.match(t.strip("|,;()[]")) and t.rsplit(".", 1)[-1].lower().strip("|,;()[]") not in FILE_EXT)
-    return hashes >= 2 or (hashes + ips + domains) / len(tokens) >= 0.4
+    return (hashes >= 2 and len(tokens) <= 8) or (hashes + ips + domains) / len(tokens) >= 0.4
 
 
 _CODE_KEYWORDS = re.compile(r"\b(condition|strings|meta)\s*:|\brule\s+\w+\s*\{|\bselection\s*:|\bdetection\s*:", re.I)

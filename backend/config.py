@@ -26,3 +26,6 @@ OLLAMA_NUM_CTX = int(os.environ.get("OLLAMA_NUM_CTX") or "12288")
 OPENAI_BASE_URL = os.environ.get("CTI_OPENAI_URL", "http://127.0.0.1:8010/v1").rstrip("/")
 LLM_MODEL = os.environ.get("CTI_OPENAI_MODEL", "cti-qwen")
 LLM_SLOTS = max(1, int(os.environ.get("CTI_LLM_SLOTS") or 10))
+# Questions du dashboard (graphe global) traitées à la fois : le dashboard a son propre compteur de slots, qui s'ajoute à
+# celui d'un cti-extract en cours ; 1 par défaut pour ne pas dépasser le --max-running-requests du serveur.
+ASK_SLOTS = max(1, int(os.environ.get("CTI_ASK_SLOTS") or 1))

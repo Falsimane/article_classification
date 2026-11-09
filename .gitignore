@@ -26,3 +26,15 @@ backend/extracting/stix/reference/enterprise-attack-*.json
 Annotations/enterprise-attack-*.json
 POUR_ANALYSE.md 
 papiers_recherche/
+# Divers locaux
+database.sqlite
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+*.tsbuildinfo
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.claude/settings.local.json

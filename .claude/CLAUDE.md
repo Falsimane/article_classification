@@ -12,6 +12,7 @@ Le pipeline permet de :
 3. **Explorer visuellement** les renseignements via un tableau de bord Web (OpenCTI-like) :
    - **Rapports CTI** : graphe unitaire par incident.
    - **Threat Actors** : profil hiérarchique (organigramme React Flow) reliant le sponsor étatique, l'acteur, ses infrastructures C2, ses TTPs et son arsenal.
+   - **Graphe global** : toutes les entités de tous les articles (sigma.js, WebGL), filtrables, avec un panneau qui interroge le graphe par LLM.
 
 ---
 
@@ -69,8 +70,11 @@ Le pipeline permet de :
 │   │   └── stix_store.py         # Graphe STIX : nœuds (:Stix:<Type>), arêtes typées, provenance par article
 │   │
 │   ├── dashboard/
-│   │   ├── server.py             # Serveur Web HTTP & API REST STIX (sert frontend/dist) : /api/stats|articles|graph|iocs|rules|article|bundle|actors ; DELETE /api/articles/<id>
-│   │   └── stix_dashboard.py     # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML)
+│   │   ├── server.py             # Serveur Web HTTP & API REST STIX (sert frontend/dist) : /api/stats|articles|graph|iocs|rules|article|bundle|actors|kg|kg/node ;
+│   │   │                         #   POST /api/ask (flux SSE) ; DELETE /api/articles/<id>
+│   │   ├── stix_dashboard.py     # Graphe STIX (Neo4j) -> JSON de données pures (pas de couleurs ni de HTML)
+│   │   └── ask.py                # Questions sur le graphe global : outils en lecture seule et bornés (pas de Cypher écrit par le modèle),
+│   │                             #   repères courts E1, E2… cités [[E3]], citations inconnues retirées ; CTI_ASK_SLOTS (1) questions à la fois
 │   ├── config.py                 # Seul endroit qui définit les chemins de données (DATA_DIR, surchargé par CTI_DATA_DIR) et les serveurs LLM
 │   └── data/                     # Hors git : sources/ (cti_knowledge.db, urls_collection.db), bundles/, raw/html_pages/ (page HTML de chaque article, seule entrée du nettoyage), cleaned/ (copie lisible du texte nettoyé ; la source est SQLite)
 │
@@ -176,8 +180,8 @@ uv run python backend/preprocessing/classifying/evaluate_cleaning.py [--site <so
 
 ## 6. Règles Métier & Invariants CTI
 
-1. **Isolation par Article :** Le dashboard ne présente aucun graphe global agrégé. Chaque rapport CTI affiche exclusivement son propre sous-graphe d'incident.
-2. **Profil d'acteur (onglet Acteurs) :** seuls les `threat-actor` et les `intrusion-set` rattachés à un groupe ATT&CK (G####) y figurent (`stix_dashboard.has_profile`) ; une campagne ou un intrusion-set inconnu d'ATT&CK n'est jamais un acteur. Ce n'est PAS un graphe de connaissances mais un organigramme en rectangles (identité/pays en haut, acteur, divisions, puis Arsenal / Techniques / Infrastructure / Cibles) avec des onglets Organigramme, Arsenal, Techniques (par tactique ATT&CK), Infrastructure, Cibles, Références. Calculé côté serveur (`stix_dashboard._profile`) à partir des arêtes directes ; une rubrique sans donnée reste vide (« origine non établie »), jamais déduite. Seule vue qui agrège plusieurs articles. Dans un graphe de rapport : nœuds ronds avec icône par type, rectangles réservés aux acteurs de la menace.
+1. **Isolation par Article :** chaque rapport CTI affiche exclusivement son propre sous-graphe d'incident. Le graphe global (onglet « Graphe global », `/api/kg`) est une vue explicite et séparée : chaque nœud et chaque arête y porte la liste des articles qui l'étayent (filtre « articles sources, au moins »).
+2. **Profil d'acteur (onglet Acteurs) :** tous les `threat-actor` et tous les `intrusion-set` y figurent, rattachés ou non à un groupe ATT&CK (G####) (`stix_dashboard.has_profile`) ; une campagne n'est jamais un acteur. Ce n'est PAS un graphe de connaissances mais un organigramme en rectangles (identité/pays en haut, acteur, divisions, puis Arsenal / Techniques / Infrastructure / Cibles) avec des onglets Organigramme, Arsenal, Techniques (par tactique ATT&CK), Infrastructure, Cibles, Références. Calculé côté serveur (`stix_dashboard._profile`) à partir des arêtes directes ; une rubrique sans donnée reste vide (« origine non établie »), jamais déduite. Agrège plusieurs articles, comme le graphe global. Dans un graphe : nœuds ronds avec un glyphe par sous-type STIX (`malware_types`, `infrastructure_types`, tactique ATT&CK, code ISO d'un pays ; `frontend/src/lib/icons.ts`), rectangles (tuiles dans le graphe global) réservés aux acteurs de la menace. Couleurs d'état : ambre = sélection de l'utilisateur, cyan = cité par l'assistant.
 3. **Coût du modèle :** il est dominé par les tokens GÉNÉRÉS ; la lecture du prompt est rapide et presque gratuite quand il commence comme le précédent (cache de préfixe). Les appels « entités » et « relations » commencent donc par le même texte d'article, et le modèle n'écrit que des lignes courtes. `llm.generate` impose un JSON sur une ligne.
 4. **Preprocessing universel :** l'entrée est la page HTML (`backend/data/raw/html_pages/<site>/<sha1(url)[:16]>.html`), jamais le Markdown d'un export. Aucune liste d'éditeurs, d'acteurs ou d'outils dans Rust. Le bruit est détecté par structure dans le DOM (éléments cachés, densité de liens internes, racine du contenu) puis par apprentissage du gabarit de chaque source sur le corpus (`site_boilerplate`, relu à chaque lancement de `cti-classifier`). Les IOC restent à leur place dans le récit.
 5. **Anti-Bruit :** Les chercheurs en sécurité, éditeurs CTI et entreprises victimes ne doivent jamais être labellisés en acteur de la menace. Les utilitaires natifs (`powershell.exe`, `certutil.exe`) sont catégorisés en outils à double usage, jamais en infrastructure C2.

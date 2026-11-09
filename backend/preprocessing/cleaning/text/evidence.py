@@ -40,7 +40,7 @@ _LIST_MARKER = re.compile(r"(?m)^[ \t]*(?:[-*+•]|\d{1,3}[.)])[ \t]+")
 def normalize_quote(text: str) -> str:
     """Forme de comparaison d'une citation : insensible à la casse, aux guillemets typographiques, aux balises
     de mise en forme Markdown, aux puces de liste (une citation peut enjamber une phrase et la liste qu'elle annonce)
-    et aux espaces, y compris devant une ponctuation (« UNC1151 , » d'un ancien export)."""
+    et aux espaces, y compris devant une ponctuation (« <groupe> , » d'un ancien export)."""
     text = unicodedata.normalize("NFKC", text or "")
     text = text.translate(_QUOTE_MARKS)
     text = _LIST_MARKER.sub("", text)

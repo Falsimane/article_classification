@@ -60,13 +60,13 @@ export function ReportsView({ articles, onDeleted }: { articles: ArticleSummary[
   return (
     <div className="grid h-full grid-cols-[300px_1fr_360px]">
       <aside className="overflow-y-auto border-r border-line bg-panel">
-        <h2 className="border-b border-line px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-faint">Rapports ({articles.length})</h2>
+        <h2 className="border-b border-line px-4 py-2 text-xs font-semibold text-muted">Rapports ({articles.length})</h2>
         <ul>
           {articles.map((a) => (
             <li key={a.id}>
               <button onClick={() => setArticleId(a.id)} className={clsx("block w-full border-b border-line px-4 py-2.5 text-left", a.id === articleId ? "bg-raised" : "hover:bg-raised/50")}>
                 <div className="line-clamp-2 text-sm leading-5">{a.title}</div>
-                <div className="mt-1 flex gap-3 font-mono text-[10px] uppercase tracking-wide text-faint">
+                <div className="mt-1 flex gap-3 text-xs text-faint">
                   <span>{a.site_name ?? "—"}</span><span>{a.publication_date ?? ""}</span>
                   <span className="ml-auto">{a.entities_count} ent · {a.relations_count} rel</span>
                 </div>

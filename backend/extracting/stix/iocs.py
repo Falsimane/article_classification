@@ -152,6 +152,25 @@ def build_ioc_objects(findings: list[IocFinding], ctx: ArticleContext, published
         add(relationship("consists-of", infra, sco.id, ctx, [f.quote], f.confidence))
     return list(objects.values())
 
+# --- Vieillissement ----------------------------------------------------------------------------------------------------
+@dataclass(frozen=True)
+class Lifetime:
+    active_days: int  # jusqu'à cet âge, depuis la dernière observation : « actif probable »
+    stale_days: int  # au-delà : « périmé » ; entre les deux : « vieillissant »
+
+
+# ATTENTION : valeurs de départ HEURISTIQUES, non calibrées sur des données publiées (une adresse IP est réattribuée vite, un
+# domaine dure plus longtemps, un hachage reste vrai mais se change trivialement). À mesurer avant d'en tirer un blocage.
+LIFETIMES: dict[str, Lifetime] = {
+    "ipv4-addr": Lifetime(30, 180),
+    "ipv6-addr": Lifetime(30, 180),
+    "domain-name": Lifetime(90, 365),
+    "url": Lifetime(60, 270),
+    "email-addr": Lifetime(180, 730),
+    "file": Lifetime(365, 1825),
+}
+
+
 def ioc_status(kind: str, last_seen: datetime | None, now: datetime) -> str:
     """`active`, `aging`, `stale` ou `unknown` (aucune date d'observation). Calculé, jamais stocké."""
     if last_seen is None:
