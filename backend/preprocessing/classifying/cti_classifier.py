@@ -30,8 +30,8 @@ root_dir = Path(__file__).resolve().parents[3]
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-from backend.config import OLLAMA_API_URL, OLLAMA_MODEL, OLLAMA_NUM_CTX, SOURCE_ARTICLES_DB
-from backend.preprocessing.cleaning.cleaner import UniversalCTICleaner
+from backend.config import CLEANED_DIR, OLLAMA_API_URL, OLLAMA_MODEL, OLLAMA_NUM_CTX, SOURCE_ARTICLES_DB
+from backend.preprocessing.cleaning.cleaner import UniversalCTICleaner, load_html, save_cleaned
 
 DB_PATH = SOURCE_ARTICLES_DB
 
@@ -205,7 +205,7 @@ def fetch_unclassified_articles(limit: int = BATCH_SIZE, exclude_ids: set = froz
     with sqlite3.connect(DB_PATH, timeout=30.0) as conn:
         cursor = conn.cursor()
         cursor.execute(f"""
-            SELECT k.id, k.title, k.content, k.url, k.site_name
+            SELECT k.id, k.title, k.url, k.site_name
             FROM knowledge k
             LEFT JOIN article_classifications c ON k.id = c.knowledge_id
             WHERE {clause}
@@ -225,22 +225,22 @@ def count_pending_articles(exclude_ids: set = frozenset()) -> int:
         """, params)
         return cursor.fetchone()[0]
 
-def save_pipeline_results(knowledge_id: int, prep_result, llm_data: dict) -> None:
-    """Enregistre le document préparé et la classification en base de données sans extraction d'entités."""
+def save_pipeline_results(knowledge_id: int, site_name: str, url: str, prep_result, llm_data: dict) -> None:
+    """Enregistre le texte nettoyé et la classification en base (sans extraction d'entités), et une copie lisible du texte dans
+    data/cleaned/."""
+    is_proc = 1 if llm_data.get("is_processable", True) else 0
+    reject_reason = llm_data.get("reject_reason")
+
+    clean_md = ""
+    sections_meta = "[]"
+    if prep_result is not None and is_proc:
+        clean_md = prep_result.clean_markdown or ""
+        sections_meta = json.dumps(UniversalCTICleaner.get_sections_metadata(prep_result), ensure_ascii=False)
+    save_cleaned(site_name, url, clean_md)
+
     with sqlite3.connect(DB_PATH, timeout=30.0) as conn:
         cursor = conn.cursor()
-
-        is_proc = 1 if llm_data.get("is_processable", True) else 0
-        reject_reason = llm_data.get("reject_reason")
-
-        clean_md = ""
-        sections_meta = "[]"
-
-        if prep_result is not None and is_proc:
-            clean_md = prep_result.clean_markdown or ""
-            sections_meta = json.dumps(UniversalCTICleaner.get_sections_metadata(prep_result), ensure_ascii=False)
-
-        # Sauvegarde de la décision de classification et du markdown nettoyé intégral
+        # Classification, texte nettoyé intégral (lu par l'extraction) et plan des sections
         cursor.execute("""
             INSERT OR REPLACE INTO article_classifications 
             (knowledge_id, model_version, primary_category, score_tactical, score_operational, score_strategic, 
@@ -316,27 +316,27 @@ def query_qwen_classifier(prompt_payload: str, system_prompt: str = SYSTEM_PROMP
 def process_article_worker(article_row: tuple) -> tuple:
     """Retourne (id, prep_result, llm_data, durée, erreur). `prep_result` est conservé même si le LLM échoue :
     le nettoyage est déterministe et ne doit pas être perdu à cause d'une panne du serveur Ollama."""
-    article_id, title, raw_content, url, site_name = article_row
+    article_id, title, url, site_name = article_row
     t0 = time.perf_counter()
     prep_result = None
 
     try:
-        # Phase 0 : Fast-Reject déterministe amont (0 ms GPU)
-        is_viable, reject_reason = UniversalCTICleaner.check_viability(raw_content)
-        if not is_viable:
+        # Phase 0 : la page HTML brute de l'article (backend/data/raw/html_pages)
+        html = load_html(site_name, url)
+        if html is None:
             fast_data = {
                 "primary_category": "out_of_scope",
                 "score_operational": 0.0,
                 "score_tactical": 0.0,
                 "score_strategic": 0.0,
-                "rationale": f"Rejet amont déterministe : {reject_reason}",
+                "rationale": "Rejet amont déterministe : page HTML absente",
                 "is_processable": False,
-                "reject_reason": reject_reason,
+                "reject_reason": "Page HTML absente",
             }
             return article_id, None, fast_data, time.perf_counter() - t0, None
 
-        # Phase 1 : nettoyage Rust (millisecondes)
-        prep_result = UniversalCTICleaner.process(raw_content, site_name=site_name, source_url=url)
+        # Phase 1 : nettoyage Rust du DOM (millisecondes), pages vides et pages d'erreur rejetées
+        prep_result = UniversalCTICleaner.process(html, site_name=site_name, source_url=url)
         if not prep_result.is_processable:
             fast_data = {
                 "primary_category": "out_of_scope",
@@ -359,6 +359,43 @@ def process_article_worker(article_row: tuple) -> tuple:
 
     except Exception as e:
         return article_id, prep_result, None, time.perf_counter() - t0, str(e)
+
+def reclean_classified() -> tuple:
+    """Recalcule `clean_markdown` et `sections_meta` des articles déjà classés depuis leur page HTML (avec leur copie dans
+    data/cleaned/), sans appel au modèle : la catégorie et la validation humaine sont conservées. Retourne (nettoyés, rejetés)."""
+    with sqlite3.connect(DB_PATH, timeout=30.0) as conn:
+        rows = conn.execute(
+            "SELECT k.id, k.url, k.site_name FROM knowledge k JOIN article_classifications c ON c.knowledge_id = k.id"
+        ).fetchall()
+        cleaned = rejected = 0
+        for article_id, url, site_name in rows:
+            html = load_html(site_name, url)
+            prep = UniversalCTICleaner.process(html, site_name=site_name, source_url=url) if html is not None else None
+            if prep is not None and prep.is_processable:
+                save_cleaned(site_name, url, prep.clean_markdown)
+                # Un article rejeté jusqu'ici n'a jamais été classé par le modèle : `error` le fait reprendre au prochain lancement.
+                conn.execute(
+                    "UPDATE article_classifications SET clean_markdown = ?, sections_meta = ?, reject_reason = NULL, "
+                    "primary_category = CASE WHEN is_processable = 0 THEN 'error' ELSE primary_category END, "
+                    "is_processable = 1 WHERE knowledge_id = ?",
+                    (
+                        prep.clean_markdown,
+                        json.dumps(UniversalCTICleaner.get_sections_metadata(prep), ensure_ascii=False),
+                        article_id,
+                    ),
+                )
+                cleaned += 1
+            else:
+                save_cleaned(site_name, url, None)
+                reason = prep.reject_reason if prep is not None else "Page HTML absente"
+                conn.execute(
+                    "UPDATE article_classifications SET clean_markdown = '', sections_meta = '[]', is_processable = 0, reject_reason = ? "
+                    "WHERE knowledge_id = ?",
+                    (reason, article_id),
+                )
+                rejected += 1
+        conn.commit()
+    return cleaned, rejected
 
 def display_dashboard(batch_speed: float = 0.0, worker_count: int = MAX_WORKERS) -> None:
     with sqlite3.connect(DB_PATH, timeout=30.0) as conn:
@@ -422,11 +459,39 @@ def display_dashboard(batch_speed: float = 0.0, worker_count: int = MAX_WORKERS)
     ))
     console.print("\n")
 
-def main(workers: int | None = None) -> None:
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Nettoie les pages HTML des articles et les classifie avec Ollama.")
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help=f"Nombre de classifications en parallèle (défaut : {MAX_WORKERS}, ou CTI_CLASSIFIER_WORKERS).",
+    )
+    parser.add_argument(
+        "--reclean",
+        action="store_true",
+        help="Réapprend le gabarit et recalcule le texte nettoyé des articles déjà classés (base et data/cleaned/), sans appel au modèle, puis s'arrête.",
+    )
+    args = parser.parse_args()
+    try:
+        run(workers=args.workers, reclean=args.reclean)
+    except KeyboardInterrupt:
+        console.print("\n[bold yellow]Arrêt propre. Données préservées dans SQLite.[/]")
+
+
+def run(workers: int | None = None, reclean: bool = False) -> None:
     console.print("\n[bold cyan]=== Pipeline CTI : Module de Preprocessing & Annotation ===[/]")
     worker_count = MAX_WORKERS if workers is None else workers
     if worker_count < 1:
         raise ValueError("Le nombre de workers doit être supérieur ou égal à 1.")
+
+    if reclean:
+        setup_database(reset_requested=False)
+        learned = UniversalCTICleaner.learn_site_boilerplate(DB_PATH)
+        console.print(f"[dim]Gabarit appris pour {len(learned)} sites ({sum(n for _, n in learned.values())} clés).[/]")
+        cleaned, rejected = reclean_classified()
+        console.print(f"[green]Texte nettoyé recalculé (base, copie dans {CLEANED_DIR}) :[/] {cleaned} articles, {rejected} rejetés.")
+        return
 
     reset = Confirm.ask(
         "[bold yellow]Voulez-vous réinitialiser toutes les tables (supprime aussi les validations humaines) ?[/]",
@@ -434,11 +499,11 @@ def main(workers: int | None = None) -> None:
     )
     setup_database(reset_requested=reset)
 
-    # Apprentissage du gabarit de chaque éditeur (menus, bannières, pieds de page) sur le corpus
+    # Apprentissage du gabarit de chaque éditeur (menus, bannières, pieds de page) sur les pages HTML du corpus
     learned = UniversalCTICleaner.learn_site_boilerplate(DB_PATH)
     console.print(
         f"[dim]Gabarit appris pour {len(learned)} sites "
-        f"({sum(n for _, n in learned.values())} lignes de boilerplate).[/]"
+        f"({sum(n for _, n in learned.values())} clés de boilerplate).[/]"
     )
     display_dashboard(worker_count=worker_count)
 
@@ -477,12 +542,13 @@ def main(workers: int | None = None) -> None:
                 for future in as_completed(future_to_art):
                     art_id, prep_result, llm_data, elapsed, err = future.result()
                     art_row = [a for a in articles if a[0] == art_id][0]
+                    _, _, art_url, art_site = art_row
                     short_title = (art_row[1][:30] + "...") if art_row[1] else "Sans titre"
 
                     if err:
                         console.print(f"[bold red]✗ Art {art_id} ({elapsed:.1f}s) : {err}[/]")
                         # Le texte nettoyé est conservé même si la classification a échoué
-                        save_pipeline_results(art_id, prep_result, {
+                        save_pipeline_results(art_id, art_site, art_url, prep_result, {
                             "primary_category": "error",
                             "score_operational": 0.0,
                             "score_tactical": 0.0,
@@ -491,7 +557,7 @@ def main(workers: int | None = None) -> None:
                             "is_processable": prep_result is not None,
                         })
                     else:
-                        save_pipeline_results(art_id, prep_result, llm_data)
+                        save_pipeline_results(art_id, art_site, art_url, prep_result, llm_data)
                         cat = llm_data.get("primary_category", "N/A").upper()
                         progress.update(
                             task,
@@ -504,14 +570,4 @@ def main(workers: int | None = None) -> None:
         display_dashboard(batch_speed=batch_duration / len(articles), worker_count=worker_count)
 
 if __name__ == "__main__":
-    try:
-        parser = argparse.ArgumentParser(description="Classifie les articles CTI avec Ollama.")
-        parser.add_argument(
-            "--workers",
-            type=int,
-            default=None,
-            help=f"Nombre de classifications en parallèle (défaut : {MAX_WORKERS}, ou CTI_CLASSIFIER_WORKERS).",
-        )
-        main(workers=parser.parse_args().workers)
-    except KeyboardInterrupt:
-        console.print("\n[bold yellow]Arrêt propre. Données préservées dans SQLite.[/]")
+    main()

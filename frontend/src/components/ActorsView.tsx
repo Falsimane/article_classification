@@ -13,7 +13,7 @@ import { OrgChart } from "./OrgChart";
 const Empty = ({ children }: { children: string }) => <div className="flex h-full items-center justify-center p-8 text-sm text-faint">{children}</div>;
 const Group = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section>
-    <h3 className="border-b border-line bg-panel px-6 py-1.5 font-mono text-[10px] uppercase tracking-widest text-faint">{title}</h3>
+    <h3 className="border-b border-line bg-panel px-6 py-1.5 text-xs font-semibold text-muted">{title}</h3>
     {children}
   </section>
 );
@@ -64,7 +64,7 @@ function TabContent({ tab, data, onOpen }: { tab: Tab; data: ActorProfile; onOpe
               {data.reports.map((r) => (
                 <li key={r.id} className="border-b border-line px-6 py-3">
                   <a href={r.url} target="_blank" rel="noreferrer noopener" className="text-sm text-accent hover:underline">{r.title}</a>
-                  <div className="mt-0.5 font-mono text-[10px] uppercase tracking-wide text-faint">{r.site_name} · {r.published ?? "date inconnue"} · {r.category}</div>
+                  <div className="mt-0.5 text-xs text-faint">{r.site_name} · {r.published ?? "date inconnue"} · {r.category}</div>
                 </li>
               ))}
             </ul>
@@ -111,7 +111,7 @@ export function ActorsView() {
   return (
     <div className="grid h-full grid-cols-[300px_1fr]">
       <aside className="overflow-y-auto border-r border-line bg-panel">
-        <h2 className="border-b border-line px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-faint">Acteurs ({list.length})</h2>
+        <h2 className="border-b border-line px-4 py-2 text-xs font-semibold text-muted">Acteurs ({list.length})</h2>
         <ul>
           {list.map((a) => {
             const I = iconOf(a.type);
@@ -121,7 +121,7 @@ export function ActorsView() {
                   <I size={16} color={FAMILY.actor.color} strokeWidth={1.75} className="mt-0.5 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{a.label}</div>
-                    <div className="mt-0.5 flex gap-3 font-mono text-[10px] uppercase tracking-wide text-faint">
+                    <div className="mt-0.5 flex gap-3 text-xs text-faint">
                       <span>{typeLabel(a.type)}</span><span className="ml-auto">{a.relations} rel · {a.reports} art.</span>
                     </div>
                   </div>
@@ -140,7 +140,7 @@ export function ActorsView() {
               <Icon size={22} color={FAMILY.actor.color} strokeWidth={1.75} />
               <div>
                 <h2 className="text-lg font-semibold leading-6">{data.actor.label}</h2>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-faint">{typeLabel(data.actor.type)}{data.actor.aliases.length > 0 && ` · alias ${data.actor.aliases.join(", ")}`}</div>
+                <div className="text-xs font-semibold text-muted">{typeLabel(data.actor.type)}{data.actor.aliases.length > 0 && ` · alias ${data.actor.aliases.join(", ")}`}</div>
               </div>
             </header>
             <nav className="flex border-b border-line bg-panel px-3">

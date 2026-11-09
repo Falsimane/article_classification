@@ -3,6 +3,12 @@
 Les articles sont extraits `workers` à la fois (le sémaphore de `llm` borne toujours les requêtes en vol), mais un seul
 fil écrit dans Neo4j : `StixStore._write` relit les listes d'un nœud partagé avant de les réécrire, deux transactions
 simultanées sur le même nœud perdraient une mise à jour. Un article en échec est rapporté sans arrêter les autres.
+
+Deux bundles par article : `article_<id>.json`, la couche sémantique (rapport, entités, techniques, relations : ce que décrivent
+les gold et ce que `cti-eval` note) ; `article_<id>.iocs.json`, la couche observable (observables, indicateurs, observations,
+infrastructures dérivées des IOC, règles YARA / Sigma), avec les entités auxquelles elle se rattache. Neo4j reçoit les deux.
+Avec `llm_log`, `article_<id>.llm.jsonl` garde chaque échange avec le modèle (`llm.record_to`) et
+`article_<id>.llm.live.log` montre la génération en direct.
 """
 
 import os
@@ -13,9 +19,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
 
+from stix2 import TLP_WHITE
+
 from backend.config import LLM_MODEL
+from backend.extracting import llm
 from backend.extracting.pipeline import ExtractionResult, clean_title, extract_article
-from backend.extracting.stix.iocs import build_ioc_objects, without_benign
+from backend.extracting.stix.iocs import build_ioc_objects
 from backend.extracting.stix.objects import as_dict, bundle, report
 from backend.extracting.stix.rules import build_rule_objects
 from backend.preprocessing.cleaning.text.evidence import parse_date
@@ -27,7 +36,7 @@ class Outcome:
 
     art: dict
     result: ExtractionResult | None = None
-    nodes: list | None = None  # objets pour Neo4j, sans les IOC bénins (None sans écriture Neo4j)
+    nodes: list | None = None  # objets pour Neo4j : les deux couches (None sans écriture Neo4j)
     meta: dict | None = None
     error: str | None = None
     trace: str | None = None
@@ -52,18 +61,26 @@ def write_atomic(path: Path, text: str) -> None:
         tmp.unlink(missing_ok=True)
 
 
+def _unique(objects: list) -> list:
+    return list({o["id"]: o for o in objects}.values())
+
+
 def article_objects(result: ExtractionResult, art: dict) -> tuple[list, list]:
-    """Objets `stix2` de l'article (éditeur, entités, objets ATT&CK, relations, IOC, règles), puis les objets de support : l'auteur
-    et le marquage que référencent les objets ATT&CK, joints au bundle mais ni au rapport ni à Neo4j."""
+    """Objets `stix2` de l'article : la couche sémantique (éditeur, entités, objets ATT&CK, relations) et la couche observable
+    (IOC et règles)."""
     draft, ctx = result.draft, result.draft.ctx
     published = parse_date(art.get("publication_date"))
-    objects = [ctx.publisher, *draft.linked(), *draft.relationships()]
-    objects += build_ioc_objects(result.iocs.findings, ctx, published)
-    objects += build_rule_objects(result.rules.rules, ctx, published)
-    objects = list({o["id"]: o for o in objects}.values())
+    semantic = _unique([ctx.publisher, *draft.linked(), *draft.relationships()])
+    observable = _unique(build_ioc_objects(result.iocs.findings, ctx, published) + build_rule_objects(result.rules.rules, ctx, published))
+    return semantic, observable
+
+
+def support_of(result: ExtractionResult, objects: list) -> list:
+    """Objets que référencent `objects` sans les contenir (le marquage TLP, prédéfini par STIX mais défini dans le bundle pour les
+    outils qui vérifient chaque référence) : joints au bundle, mais ni au rapport ni à Neo4j."""
     known = {o["id"] for o in objects}
     refs = {r for o in objects for r in [o.get("created_by_ref"), *(o.get("object_marking_refs") or [])] if r and r not in known}
-    return objects, draft.attack.support_objects(refs)
+    return [*([TLP_WHITE] if TLP_WHITE.id in refs else []), *result.draft.attack.support_objects(refs - {TLP_WHITE.id})]
 
 
 def article_bundle(result: ExtractionResult, art: dict, objects: list, support: list = ()):
@@ -74,19 +91,29 @@ def article_bundle(result: ExtractionResult, art: dict, objects: list, support: 
     return bundle([rep, *objects, *support])
 
 
-def extract_one(art: dict, out_dir: Path, for_store: bool) -> Outcome:
+def observable_bundle(result: ExtractionResult, semantic: list, observable: list):
+    """`stix2.Bundle` de la couche observable, lisible seul : ses objets, l'éditeur et les entités sémantiques auxquelles ses
+    relations se rattachent (mêmes identifiants que dans le bundle sémantique)."""
+    by_id = {o["id"]: o for o in semantic}
+    refs = {o[k] for o in observable if o["type"] == "relationship" for k in ("source_ref", "target_ref")}
+    objects = _unique([result.draft.ctx.publisher, *(by_id[r] for r in sorted(refs) if r in by_id), *observable])
+    return bundle([*objects, *support_of(result, objects)])
+
+
+def extract_one(art: dict, out_dir: Path, for_store: bool, llm_log: bool = False) -> Outcome:
     """Extrait un article et écrit `out_dir/article_<id>.json` ; avec `for_store`, prépare aussi les nœuds pour Neo4j (sans
     les écrire). Ne lève pas : une exception devient `Outcome.error`."""
     t0 = time.perf_counter()
     try:
-        result = extract_article(art)
-        objects, support = article_objects(result, art)
+        with llm.record_to(out_dir / f"article_{art['id']}.llm.jsonl" if llm_log else None):
+            result = extract_article(art)
+        semantic, observable = article_objects(result, art)
         # indent et non pretty=True : le tri des clés dans l'ordre de la spécification prenait 150 s sur un bundle de 2 000 objets
-        write_atomic(out_dir / f"article_{art['id']}.json", article_bundle(result, art, objects, support).serialize(indent=1))
+        write_atomic(out_dir / f"article_{art['id']}.json", article_bundle(result, art, semantic, support_of(result, semantic)).serialize(indent=1))
+        write_atomic(out_dir / f"article_{art['id']}.iocs.json", observable_bundle(result, semantic, observable).serialize(indent=1))
         out = Outcome(art, result)
         if for_store:
-            # Neo4j : sans les IOC jugés bénins (l'indicateur d'une valeur est partagé entre articles, un verdict écraserait l'autre)
-            out.nodes = [as_dict(o) for o in article_bundle(result, art, without_benign(objects)).objects]
+            out.nodes = [as_dict(o) for o in article_bundle(result, art, _unique(semantic + observable)).objects]
             out.meta = {
                 "title": art["title"], "url": art["url"], "site_name": art["site_name"], "category": art["primary_category"],
                 "model": LLM_MODEL, "extraction_seconds": round(result.seconds, 1), "extracted_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -98,12 +125,12 @@ def extract_one(art: dict, out_dir: Path, for_store: bool) -> Outcome:
     return out
 
 
-def run_batch(arts: list[dict], out_dir: Path, workers: int, store=None) -> Iterator[Outcome]:
+def run_batch(arts: list[dict], out_dir: Path, workers: int, store=None, llm_log: bool = False) -> Iterator[Outcome]:
     """Rend chaque article dans l'ordre où il se termine, après son écriture dans Neo4j si `store` est donné (fil appelant,
     un article à la fois). Interrompu, n'en lance plus : ceux en cours finissent leur bundle, rien n'est écrit dans Neo4j."""
     pool = ThreadPoolExecutor(max_workers=max(1, workers))
     try:
-        futures = [pool.submit(extract_one, art, out_dir, store is not None) for art in arts]
+        futures = [pool.submit(extract_one, art, out_dir, store is not None, llm_log) for art in arts]
         for future in as_completed(futures):
             out = future.result()
             if store is not None and out.error is None:

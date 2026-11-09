@@ -117,10 +117,11 @@ def main() -> int:
     parser.add_argument("--article-id", type=int, action="append", help="Article à extraire (option répétable ; ré-extrait même s'il existe)")
     parser.add_argument("--limit", type=int, default=10, help="Nombre maximal d'articles")
     parser.add_argument("--workers", type=int, default=1, help="Articles extraits en même temps (Neo4j reste écrit par un seul fil)")
-    parser.add_argument("--force", action="store_true", help="Ré-extraire aussi les articles déjà dans Neo4j")
+    parser.add_argument("--force", action="store_true", help="Ré-extraire aussi les articles déjà dans Neo4j ou supprimés du tableau de bord")
     parser.add_argument("--dry-run", action="store_true", help="N'écrit rien dans Neo4j")
     parser.add_argument("--out", type=Path, default=BUNDLES_DIR, help=f"Dossier des bundles STIX 2.1 (défaut : {BUNDLES_DIR})")
     parser.add_argument("--show-log", action="store_true", help="Affiche les refus de la vérification et les appels d'outils")
+    parser.add_argument("--llm-log", action="store_true", help="Garde chaque échange avec le modèle dans <out>/article_<id>.llm.jsonl")
     parser.add_argument("--stats", action="store_true", help="Statistiques du graphe STIX dans Neo4j")
     args = parser.parse_args()
     if args.stats:
@@ -135,12 +136,13 @@ def main() -> int:
             console.print(f"[bold red]Neo4j non joignable ({err}) : relancer avec --dry-run pour n'écrire que les bundles[/]")
             return 2
         store.init_schema()
-        skip = set() if args.force or args.article_id else store.extracted_article_ids()
+        # Un article supprimé depuis le tableau de bord n'est repris que s'il est demandé (--article-id) ou avec --force
+        skip = set() if args.force or args.article_id else store.extracted_article_ids() | store.deleted_article_ids()
     articles = fetch_articles(len(args.article_id) if args.article_id else args.limit, args.article_id, skip)
     outcomes: list[Outcome] = []
     t0 = time.perf_counter()
     try:
-        for out in run_batch(articles, args.out, args.workers, store):
+        for out in run_batch(articles, args.out, args.workers, store, llm_log=args.llm_log):
             outcomes.append(out)
             console.print(summary_line(out))
             if out.error and out.result is not None:  # extrait, mais Neo4j a refusé l'écriture
@@ -153,7 +155,7 @@ def main() -> int:
                 for line in out.result.draft.log:
                     console.print(f"  [dim]{line}[/]")
             if out.result:
-                console.print(f"  bundle : {args.out / f'article_{out.art['id']}.json'}")
+                console.print(f"  bundles : {args.out / f'article_{out.art['id']}.json'} (+ .iocs.json)")
     except KeyboardInterrupt:
         console.print("[yellow]Interrompu : les articles en cours finissent leur bundle, rien de plus n'est écrit dans Neo4j[/]")
         console.print(run_summary(outcomes, time.perf_counter() - t0, len(articles)))

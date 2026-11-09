@@ -4,8 +4,8 @@ L'API renvoie des DONNÉES structurées, jamais de présentation : couleurs, for
 frontend. Tout texte venu des articles (noms, preuves, titres) est renvoyé tel quel : React l'échappe à l'affichage et
 le frontend n'utilise jamais `dangerouslySetInnerHTML` (un test le garantit).
 
-Chaque graphe est celui d'UN article (invariant du projet : aucun graphe global agrégé), sauf la vue Acteurs, qui agrège
-volontairement tout ce que les articles disent d'un même acteur.
+Le graphe d'un rapport est celui d'UN article et de lui seul. Deux vues agrègent volontairement les articles : les profils
+d'acteurs et le graphe global (`global_graph`), où chaque nœud et chaque arête porte la liste des articles qui l'étayent.
 """
 
 import json
@@ -56,6 +56,12 @@ def _references(node: dict) -> list[dict]:
     return out
 
 
+def has_profile(node: dict) -> bool:
+    """Onglet Acteurs : tout threat-actor et tout intrusion-set, qu'il soit ou non rattaché à un groupe ATT&CK (G####).
+    Une campagne est une opération, pas un acteur."""
+    return node["type"] in ("threat-actor", "intrusion-set")
+
+
 def _tactics(node: dict | None) -> list[str]:
     if not node:
         return []
@@ -76,14 +82,27 @@ def _node(n: dict, degree: int) -> dict[str, Any]:
         "identity_class": n.get("identity_class"),
         "is_family": bool(n.get("is_family")) if stix_type == "malware" else None,
         "labels": n.get("labels", []),
-        "is_dual_use": stix_type == "tool" and "living-off-the-land" in (n.get("labels") or []),
+        "is_dual_use": _dual_use(n),
+        "kinds": _kinds(n),
+        "country": n.get("country"),
         "article_ids": n.get("article_ids", []),
         "degree": degree,
     }
 
 
+def _dual_use(n: dict) -> bool:
+    return n.get("type") == "tool" and "living-off-the-land" in (n.get("labels") or [])
+
+
+def _kinds(n: dict) -> list[str]:
+    """Sous-types STIX (vocabulaires ouverts `malware_types`, `infrastructure_types`…) : choisissent le glyphe du nœud."""
+    value = n.get(f"{n.get('type', '').replace('-', '_')}_types") or []
+    return value if isinstance(value, list) else []
+
+
 def _evidence(edge: dict, article_id: int | None) -> list[dict]:
-    """Preuves d'une arête : `{article, quote}`. Pour un article donné, seulement les siennes."""
+    """Preuves d'une arête : `{article, quote, procedure?}` (procédure d'un « uses » vers une technique). Pour un article donné,
+    seulement les siennes."""
     items = []
     for raw in edge.get("evidence") or []:
         try:
@@ -91,7 +110,7 @@ def _evidence(edge: dict, article_id: int | None) -> list[dict]:
         except ValueError:
             continue
         if item.get("quote") and (article_id is None or item.get("article") == article_id):
-            items.append({"article": item.get("article"), "quote": item["quote"]})
+            items.append({"article": item.get("article"), "quote": item["quote"], **({"procedure": item["procedure"]} if item.get("procedure") else {})})
     return items
 
 
@@ -201,18 +220,42 @@ def article_text(article_id: int, db_path: Path = SOURCE_ARTICLES_DB) -> dict[st
 
 
 def article_bundle(article_id: int, store: StixStore | None = None, bundles_dir: Path = BUNDLES_DIR) -> tuple[bytes, bool] | None:
-    """Bundle STIX 2.1 de l'article, tel que l'extraction l'a écrit (`stix2.Bundle` validé, IOC bénins et objets ATT&CK de support
-    compris), et s'il couvre encore le graphe de Neo4j : une ré-extraction en --dry-run réécrit le fichier sans toucher au graphe."""
+    """Bundle STIX 2.1 de l'article tel que l'extraction l'a écrit : la couche sémantique et, à sa suite, la couche observable
+    (`article_<id>.iocs.json` : IOC et règles), objets ATT&CK de support compris ; et s'il couvre encore le graphe de Neo4j : une
+    ré-extraction en --dry-run réécrit les fichiers sans toucher au graphe."""
     path = bundles_dir / f"article_{article_id}.json"
     if not path.is_file():
         return None
     raw = path.read_bytes()
     try:
-        ids = {o.get("id") for o in json.loads(raw).get("objects", [])}
-    except (ValueError, AttributeError):
+        data = json.loads(raw)
+        extra = bundles_dir / f"article_{article_id}.iocs.json"
+        if extra.is_file():
+            seen = {o.get("id") for o in data["objects"]}
+            added = [o for o in json.loads(extra.read_bytes()).get("objects", []) if o.get("id") not in seen]
+            data["objects"] += added
+            for rep in (o for o in data["objects"] if o.get("type") == "report"):  # le rapport liste aussi les IOC et règles
+                rep["object_refs"] = [*rep["object_refs"], *(o["id"] for o in added if o.get("type") != "marking-definition")]
+            raw = json.dumps(data, ensure_ascii=False, indent=1).encode("utf-8")
+        ids = {o.get("id") for o in data.get("objects", [])}
+    except (ValueError, AttributeError, KeyError, TypeError):
         return raw, False
     graph = (store or StixStore()).dashboard_graph(article_id)
     return raw, all(x["id"] in ids for x in graph["nodes"] + graph["edges"])
+
+
+def delete_article(article_id: int, store: StixStore | None = None, bundles_dir: Path = BUNDLES_DIR) -> dict[str, Any] | None:
+    """Supprime un article : sa contribution au graphe (voir `StixStore.delete_article`), puis ses deux bundles et son journal
+    d'appels au modèle. None s'il n'est pas dans le graphe. La base SQLite des articles n'est pas touchée (lecture seule)."""
+    counts = (store or StixStore()).delete_article(article_id)
+    if counts is None:
+        return None
+    removed = []
+    for path in (bundles_dir / f"article_{article_id}.{suffix}" for suffix in ("json", "iocs.json", "llm.jsonl", "llm.live.log")):
+        if path.is_file():
+            path.unlink()
+            removed.append(path.name)
+    return {"article_id": article_id, **counts, "bundles_deleted": removed}
 
 
 def articles(store: StixStore | None = None) -> dict[str, Any]:
@@ -276,6 +319,7 @@ def actors(store: StixStore | None = None) -> dict[str, Any]:
     rows = [
         {**_node(a, a["relations"]), "relations": a["relations"], "reports": a["reports"]}
         for a in store.actors()
+        if has_profile(a)
     ]
     return {"actors": rows, "count": len(rows)}
 
@@ -320,7 +364,7 @@ def actor_graph(actor_id: str, store: StixStore | None = None, now: datetime | N
     """Profil d'un acteur : lui, ses voisins directs, et ce que TOUS les articles en disent (preuves comprises)."""
     store = store or StixStore()
     sub = store.actor_subgraph(actor_id)
-    if sub is None:
+    if sub is None or not has_profile(sub["actor"]):
         return None
     by_id = {n["id"]: n for n in sub["nodes"]}
     by_id[sub["actor"]["id"]] = sub["actor"]
@@ -339,3 +383,63 @@ def actor_graph(actor_id: str, store: StixStore | None = None, now: datetime | N
         "iocs": [_ioc_row(r, now or datetime.now(timezone.utc)) for r in store.actor_iocs(actor_id)],
         "reports": [{**r, "published": (r["published"] or "")[:10] or None} for r in sub["reports"]],
     }
+
+
+def _kg_node(n: dict) -> dict[str, Any]:
+    """Nœud du graphe global, sans ce qui ne sert qu'à l'inspecteur (chargé à la demande par `node_detail`)."""
+    stix_type = n.get("type", "")
+    node = {"id": n["id"], "label": n.get("name", n["id"]), "type": stix_type, "family": family_of(stix_type), "article_ids": n.get("article_ids", [])}
+    for key, value in (("kinds", _kinds(n)), ("country", n.get("country")), ("tactics", _tactics(n)), ("aliases", n.get("aliases"))):
+        if value:
+            node[key] = value
+    if _dual_use(n):
+        node["is_dual_use"] = True
+    return node
+
+
+def _entity_ioc_rows(entity_id: str, stix_type: str, store: StixStore) -> list[dict]:
+    """IOC d'une entité : ceux qui la désignent ; pour un acteur, aussi ceux de son infrastructure et de son arsenal."""
+    rows = store.entity_iocs(entity_id)
+    if stix_type in ("intrusion-set", "threat-actor"):
+        seen = {r["indicator"]["id"] for r in rows}
+        rows += [r for r in store.actor_iocs(entity_id) if r["indicator"]["id"] not in seen]
+    return rows
+
+
+def global_graph(store: StixStore | None = None) -> dict[str, Any]:
+    """Graphe global : toutes les entités et relations de tous les articles (IOC et règles exclus des nœuds : `ioc_count` les compte sur l'entité qu'ils désignent, `node_detail` les liste), avec leur provenance.
+    Les preuves ne sont pas incluses (le volume) : `node_detail` les donne pour un nœud."""
+    store = store or StixStore()
+    raw = store.global_graph()
+    counts = store.entity_ioc_counts()
+    for n in raw["nodes"]:  # un acteur désigne rarement ses IOC lui-même : on compte aussi ceux de son infrastructure
+        if n.get("type") in ("intrusion-set", "threat-actor"):
+            counts[n["id"]] = len(_entity_ioc_rows(n["id"], n["type"], store))
+    nodes = [{**_kg_node(n), **({"ioc_count": counts[n["id"]]} if counts.get(n["id"]) else {})} for n in raw["nodes"]]
+    known = {n["id"] for n in nodes}
+    edges = [
+        {"id": e["id"], "source": e["source"], "target": e["target"], "type": e["type"].lower().replace("_", "-"),
+         "confidence": e["confidence"], "article_ids": e["article_ids"] or []}
+        for e in raw["edges"]
+        if e["source"] in known and e["target"] in known
+    ]  # fmt: skip
+    reports = [{"id": r["id"], "title": r["title"] or f"Article {r['id']}", "published": (r["published"] or "")[:10] or None} for r in raw["reports"]]
+    return {"nodes": nodes, "edges": edges, "articles": reports}
+
+
+def node_detail(node_id: str, store: StixStore | None = None) -> dict[str, Any] | None:
+    """Un nœud du graphe global, ses voisins et les relations qui les relient à lui, preuves de tous les articles comprises."""
+    store = store or StixStore()
+    sub = store.actor_subgraph(node_id, entities_only=True)
+    if sub is None:
+        return None
+    by_id = {n["id"]: n for n in sub["nodes"]}
+    by_id[sub["actor"]["id"]] = sub["actor"]
+    edges = [_edge(e, by_id, None) for e in sub["edges"] if e["source"] in by_id and e["target"] in by_id]
+    nodes = [_node(n, sum(1 for e in edges if nid in (e["source"], e["target"]))) for nid, n in by_id.items()]
+    head = sub["actor"]
+    rows = _entity_ioc_rows(node_id, head.get("type", ""), store)
+    now = datetime.now(timezone.utc)
+    iocs = [_ioc_row(r, now) for r in rows]
+    return {"node": next(n for n in nodes if n["id"] == node_id), "nodes": nodes, "edges": edges, "iocs": iocs,
+            "reports": [{**r, "published": (r["published"] or "")[:10] or None} for r in sub["reports"]]}  # fmt: skip

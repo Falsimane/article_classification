@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildOrg, orgPositions } from "./org";
 import type { ActorProfile, GraphNode, OrgProfile, ProfileEntry } from "../types";
 
-const node = (id: string, type: string): GraphNode => ({ id, label: id, type, family: "target", aliases: [], references: [], tactics: [], sectors: [], identity_class: null, is_family: null, labels: [], is_dual_use: false, article_ids: [1], degree: 1 });
+const node = (id: string, type: string): GraphNode => ({ id, label: id, type, family: "target", aliases: [], references: [], tactics: [], sectors: [], identity_class: null, is_family: null, labels: [], is_dual_use: false, kinds: [], country: null, article_ids: [1], degree: 1 });
 const entry = (id: string, type: string): ProfileEntry => ({ node: node(id, type), relation: "uses", confidence: 80, evidence: [{ article: 1, quote: `preuve ${id}` }] });
 const empty: OrgProfile = { origin: [], sponsors: [], parents: [], divisions: [], malware: [], tools: [], infrastructure: [], targets: [], vulnerabilities: [], techniques: {} };
 const data = (p: Partial<OrgProfile>, iocs: ActorProfile["iocs"] = []): ActorProfile => ({ actor: node("APT29", "intrusion-set"), profile: { ...empty, ...p }, iocs, nodes: [], edges: [], reports: [] });

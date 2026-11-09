@@ -299,7 +299,7 @@ def extract_rules(title: str, clean_markdown: str, entities: list[dict]) -> Rule
     system = rule_system()
 
     def classify(batch):
-        res = llm.try_generate(system, rule_user(title, batch), rule_schema(batch), max_output_tokens=MAX_RULE_TOKENS)
+        res = llm.try_generate(system, rule_user(title, batch), rule_schema(batch), max_output_tokens=MAX_RULE_TOKENS, stage="règles")
         return res, parse_rule_answers(res.parsed, batch)
 
     answers: dict[int, str | None] = {}

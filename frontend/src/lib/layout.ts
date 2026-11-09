@@ -1,4 +1,4 @@
-import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation, type SimulationLinkDatum, type SimulationNodeDatum } from "d3-force";
+import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY, type SimulationLinkDatum, type SimulationNodeDatum } from "d3-force";
 import type { GraphEdge, GraphNode } from "../types";
 
 export type Positions = Record<string, { x: number; y: number }>;
@@ -18,7 +18,9 @@ export function forceLayout(nodes: GraphNode[], edges: GraphEdge[]): Positions {
     .force("link", forceLink<SimNode, SimulationLinkDatum<SimNode>>(links).id((d) => d.id).distance(190).strength(0.5))
     .force("charge", forceManyBody().strength(-1100))
     .force("collide", forceCollide(78))
-    .force("center", forceCenter(0, 0))
+    // gravité douce : les composantes déconnectées restent près du reste au lieu d'élargir le cadrage
+    .force("x", forceX(0).strength(0.09))
+    .force("y", forceY(0).strength(0.09))
     .stop();
   for (let i = 0; i < 320; i++) simulation.tick();
   return Object.fromEntries(sim.map((n) => [n.id, { x: n.x ?? 0, y: n.y ?? 0 }]));

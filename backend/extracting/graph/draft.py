@@ -12,18 +12,20 @@ invalide) revient au modèle telle quelle. S'y ajoutent deux contrôles qui ne r
   par le code à partir des numéros de phrase : il est exact par construction.
 """
 
+import os
 import re
 from dataclasses import dataclass, field
 
 from stix2 import ExternalReference
 from stix2.exceptions import STIXError
-from stix2.v21.vocab import INDUSTRY_SECTOR
+from stix2.v21.vocab import IDENTITY_CLASS, INDUSTRY_SECTOR
 
 from backend.extracting.stix.attack import AttackKB, attack_id, get_attack_kb
-from backend.extracting.stix.objects import ENTITY_CLASSES, ArticleContext, entity, relationship
+from backend.extracting.stix.objects import ALLOWED_RELATIONS, ENTITY_CLASSES, ArticleContext, entity, relationship
 
 from backend.preprocessing.cleaning.text.evidence import confidence_from_text, mentions, normalize_name
-from backend.extracting.graph.places import resolve_location
+from backend.extracting.graph.places import place_names, resolve_location
+from backend.extracting.observables.iocs import is_domain_name
 from backend.preprocessing.cleaning.text.segment import Unit
 
 # Extrémités qui peuvent rester implicites dans la phrase citée : l'acteur (« les opérateurs », « il ») et la technique
@@ -34,10 +36,25 @@ _TYPE_WORDS = frozenset(ENTITY_CLASSES) | {"attack-pattern", "technique"}
 _TECHNIQUE = re.compile(r"^T\d{4}(?:\.\d{3})?$", re.I)
 _CVE = re.compile(r"CVE-\d{4}-\d{4,}", re.I)
 # Une valeur technique (adresse, domaine, URL, hachage) est un IOC, extrait par règles, jamais une entité nommée
-_OBSERVABLE = re.compile(r"^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-f0-9]{32,64}|https?://\S+|[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|io|ru|cn|info|xyz|top|cc|biz))$", re.I)
+_OBSERVABLE = re.compile(r"^(?:\d{1,3}(?:\.\d{1,3}){3}|[a-f0-9]{32,64}|https?://\S+)$", re.I)
+_BUILTIN_SHELLS = frozenset({"powershell", "powershell.exe", "cmd", "cmd.exe", "bash", "sh", "wscript", "cscript", "cscript.exe", "wscript.exe"})
 _ADVERSARY_SIDE = frozenset({"intrusion-set", "threat-actor", "campaign", "malware", "tool", "infrastructure"})
+# Réparation des relations hors table (CTI_ORIENT=on, d'après TRACE) : flèche inversée, et trois retypages que la norme impose
+# (« uses » vers une victime, un lieu, une vulnérabilité ou un produit est « targets » ; un acteur ou une campagne qui « drops »,
+# « downloads » ou « delivers » un logiciel l'« uses » ; un acteur ou une campagne qui « exploits » une vulnérabilité la « targets »,
+# STIX réservant « exploits » aux malwares). Seulement si la forme réparée est dans la table ; sinon le refus revient au modèle.
+ORIENT = os.environ.get("CTI_ORIENT", "off").strip().lower() in ("on", "1", "yes", "true")
+_ACTORS = frozenset({"intrusion-set", "threat-actor", "campaign"})
 CONTEXT_SENTENCES = 3  # phrases précédentes de la même section admises pour retrouver l'entité désignée par « il », « ce malware »
 MAX_HITS = 6
+_GENERIC_SOFTWARE = frozenset({
+    "windows", "linux", "android", "macos", "ios", "unix", "ubuntu", "debian", "redhat", "centos"
+})
+_SECURITY_VENDORS = frozenset({
+    "clearsky", "crowdstrike", "rapid7", "harfanglab", "unit 42", "unit42", "mandiant",
+    "fireeye", "microsoft threat intelligence", "sentinelone", "kaspersky", "symantec",
+    "trend micro", "eset", "palo alto networks", "cisco talos", "talos", "cert", "cisa", "fbi"
+})
 
 
 def stix_type_of(raw: str) -> str:
@@ -96,9 +113,28 @@ def get_attack(kb: AttackKB, aid: str, max_chars: int = 700) -> str:
     return "\n".join(lines)
 
 
+def orient(s_type: str, rel: str, t_type: str) -> tuple[bool, str] | None:
+    """(inverser, relation) qui rend « s_type --rel--> t_type » conforme à la table, ou None (voir ORIENT)."""
+    fixed = rel
+    if rel == "uses" and t_type in ("identity", "location", "vulnerability", "software"):
+        fixed = "targets"
+    elif rel in ("drops", "downloads", "delivers") and s_type in _ACTORS:
+        fixed = "uses"
+    elif rel == "exploits" and s_type in _ACTORS and t_type == "vulnerability":
+        fixed = "targets"
+    elif s_type == "software" and t_type == "vulnerability" and rel in ("targets", "exploits"):
+        fixed = "has"
+    for candidate in dict.fromkeys((fixed, rel)):
+        if (s_type, candidate, t_type) in ALLOWED_RELATIONS:
+            return False, candidate
+        if (t_type, candidate, s_type) in ALLOWED_RELATIONS:
+            return True, candidate
+    return None
+
+
 def parse_relation(line: str) -> tuple[str, str, str, str] | None:
     """(source, relation, cible, numéros) d'une ligne « source|relation|cible|12,13 ». Les types que le modèle intercale
-    (« software|FortiOS|has|vulnerability|CVE-2018-13379|1,9 ») sont retirés."""
+    (« software|<product>|has|vulnerability|CVE-YYYY-NNNNN|1,9 ») sont retirés."""
     parts = [p.strip() for p in str(line).split("|") if p.strip()]
     if len(parts) < 4 or not re.fullmatch(r"[\d,;\s\-]+", parts[-1]):
         return None
@@ -125,6 +161,7 @@ class DraftGraph:
     terms: dict[str, set[str]] = field(default_factory=dict)  # identifiant STIX -> noms qui la désignent dans le texte
     names: dict[str, str] = field(default_factory=dict)  # nom normalisé, alias ou identifiant ATT&CK -> identifiant STIX
     evidence: dict[tuple[str, str, str], list[str]] = field(default_factory=dict)  # (source, relation, cible) -> citations
+    procedures: dict[str, list[str]] = field(default_factory=dict)  # technique -> comportements décrits (en anglais) qui l'ont fait choisir
     log: list[str] = field(default_factory=list)  # corrections et refus, pour le rapport
     hallucinated: list[str] = field(default_factory=list)  # identifiants ATT&CK proposés absents de la v20.0
 
@@ -164,6 +201,11 @@ class DraftGraph:
             return None, f"{aid} est {status} dans ATT&CK v{self.attack.version} : choisir un objet actif"
         return self._register(self.attack.stix_object(aid), terms | {aid}), None
 
+    def add_terms(self, sid: str, terms: set[str]) -> None:
+        """Autres noms sous lesquels le texte désigne une entité déjà déclarée (victimes fusionnées) : la vérification d'une
+        relation les reconnaît dans la phrase citée."""
+        self._register(self.objects[sid], terms)
+
     def technique(self, aid: str) -> tuple[str | None, str | None]:
         return self._attack_object(aid, set())
 
@@ -182,14 +224,24 @@ class DraftGraph:
             return self.technique(found.group(0))
         if stix_type not in ENTITY_CLASSES:
             return None, f"« {line} » : type {parts[0]!r} hors périmètre (types : {', '.join(ENTITY_CLASSES)}) ; les IOC ne sont pas extraits"
-        if _OBSERVABLE.match(name):
+        if _OBSERVABLE.match(name) or is_domain_name(name):
             return None, f"« {line} » : « {name} » est un IOC (adresse, domaine, URL, hachage), extrait par ailleurs"
         if stix_type in _ADVERSARY_SIDE and normalize_name(name) == self.publisher_key:
             return None, f"« {line} » : « {name} » est l'auteur du rapport, pas un composant de l'attaque"
 
         # Nom connu d'ATT&CK sous un type compatible : l'objet officiel de MITRE
+        if stix_type == "tool" and normalize_name(name) in {normalize_name(s) for s in _BUILTIN_SHELLS}:
+            return None, f"« {name} » est un interpréteur système natif (Living-off-the-Land), modélisé par les techniques ATT&CK T1059 et non comme un outil tiers"
         if stix_type in _ATTACK_TYPES:
             hits = [h for h in self.attack.lookup(name) if h["status"] == "active" and h["type"] in _ATTACK_TYPES[stix_type]]
+            if not hits:
+                for suf in (" Beacon", " Loader", " Downloader", " Trojan", " Malware", " Driver", " tool", " Tool"):
+                    if name.lower().endswith(suf.lower()):
+                        trimmed = name[:-len(suf)].strip()
+                        hits = [h for h in self.attack.lookup(trimmed) if h["status"] == "active" and h["type"] in _ATTACK_TYPES[stix_type]]
+                        if len(hits) == 1:
+                            name = trimmed
+                            break
             if len(hits) == 1:
                 return self._attack_object(hits[0]["attack_id"], {name, *[a.strip() for a in extra.split(";") if a.strip()]})
 
@@ -207,9 +259,16 @@ class DraftGraph:
                 return None, f"« {line} » : ni pays (ISO 3166-1) ni région STIX reconnus pour « {name} »"
             props.update({"country": country} if country else {"region": region})
         elif stix_type == "identity":
-            sector = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
-            if sector in INDUSTRY_SECTOR:  # « government », « technology » : un secteur du vocabulaire STIX
-                props.update(identity_class="class", sectors=[sector])
+            # Secteur et classe des vocabulaires STIX : en troisième champ (« identity|<victime>|government;class »), ou le nom
+            # lui-même (« government ») ; sans classe, une victime nommée par son secteur est une classe, sinon une organisation
+            slug = lambda t: re.sub(r"[^a-z0-9]+", "-", t.casefold()).strip("-")  # noqa: E731
+            fields = [slug(f) for f in extra.split(";")]
+            sector = next((s for s in (*fields, slug(name)) if s in INDUSTRY_SECTOR), None)
+            klass = next((f for f in fields if f in IDENTITY_CLASS), None)
+            if sector:
+                props["sectors"] = [sector]
+            if klass or sector:
+                props["identity_class"] = klass or ("class" if slug(name) == sector else "organization")
         elif extra:
             props["aliases"] = [a.strip() for a in extra.split(";") if a.strip()]
         try:
@@ -223,7 +282,10 @@ class DraftGraph:
             self.objects[obj["id"]] = obj
             props = {**known[2], "aliases": merged}
         self.specs[obj["id"]] = (stix_type, name, props)
-        return self._register(obj, {name, *props.get("aliases", [])}), None
+        terms = {name, *props.get("aliases", [])}
+        if stix_type == "location":  # le lieu est reconnu sous toutes ses graphies, quelle que soit la langue du nom donné
+            terms |= place_names(props.get("country"), props.get("region"))
+        return self._register(obj, terms), None
 
     def resolve(self, ref: str) -> tuple[str | None, str | None]:
         """Une extrémité de relation : identifiant ATT&CK, nom déclaré (ou alias), ou nom connu d'ATT&CK."""
@@ -273,6 +335,24 @@ class DraftGraph:
             return f"« {line} » : {err}"
         if s_id == t_id:
             return f"« {line} » : une entité ne se relie pas à elle-même"
+        s_type, t_type, rel_type = self.type_of(s_id), self.type_of(t_id), relationship_type_of(rel)
+        repaired = orient(s_type, rel_type, t_type) if ORIENT and (s_type, rel_type, t_type) not in ALLOWED_RELATIONS else None
+        if repaired:
+            swap, rel_type = repaired
+            if swap:
+                s_id, t_id, s_type, t_type = t_id, s_id, t_type, s_type
+            self.log.append(f"fix {line} -> {self.name_of(s_id)} --{rel_type}--> {self.name_of(t_id)}")
+            rel = rel_type
+        if (s_type, rel_type, t_type) not in ALLOWED_RELATIONS:
+            if rel_type == "has" and t_type == "vulnerability" and s_type in ("tool", "malware"):
+                sw_sid, _ = self.declare(f"software|{self.name_of(s_id)}")
+                if sw_sid:
+                    s_id, s_type = sw_sid, "software"
+        if (s_type, rel_type, t_type) not in ALLOWED_RELATIONS:
+            admitted = sorted({f"{r} {t}" for s, r, t in ALLOWED_RELATIONS if s == s_type})
+            return f"« {line} » : {s_type} --{rel_type}--> {t_type} n'existe pas en STIX 2.1 ; " + (
+                f"depuis {s_type} : {', '.join(admitted)}" if admitted else f"un objet {s_type} n'est jamais la source d'une relation"
+            )
         context = self._context(uids)
         unnamed = [self.name_of(i) for i in (s_id, t_id) if self.type_of(i) not in _IMPLICIT and not mentions(context, self.terms[i])]
         if unnamed:
@@ -287,14 +367,108 @@ class DraftGraph:
         return None
 
     # --- Sortie ----------------------------------------------------------------------------------------------------------
-    def relationships(self) -> list:
-        """`stix2.Relationship` de chaque relation acceptée, avec toutes ses citations ; confiance tirée de la plus affirmative."""
-        return [relationship(rel, s, t, self.ctx, quotes, max(confidence_from_text(q) for q in quotes)) for (s, rel, t), quotes in self.evidence.items()]
+    def prune_subsumed_techniques(self) -> None:
+        """Élagage ontologique de subsomption ATT&CK :
+        Si un porteur a une relation « uses » vers une sous-technique (T####.###),
+        toute relation « uses » vers sa technique parente (T####) sur les mêmes phrases citées
+        est élaguée pour éliminer les doublons artificiels."""
+        aid_by_sid = {sid: attack_id(obj) for sid, obj in self.objects.items() if obj.get("type") == "attack-pattern"}
+        aid_by_sid = {sid: aid for sid, aid in aid_by_sid.items() if aid}
 
-    def linked(self) -> list:
-        """Entités reliées (une entité sans relation étayée n'est pas gardée)."""
+        # Sub-techniques par porteur : carrier -> list of (sid, aid, quotes_set)
+        carrier_subs: dict[str, list[tuple[str, str, set[str]]]] = {}
+        for (s, rel, t), quotes in self.evidence.items():
+            if rel == "uses" and t in aid_by_sid and "." in aid_by_sid[t]:
+                carrier_subs.setdefault(s, []).append((t, aid_by_sid[t], set(quotes)))
+
+        to_prune = []
+        for (s, rel, t), quotes in self.evidence.items():
+            if rel == "uses" and t in aid_by_sid and "." not in aid_by_sid[t]:
+                p_aid = aid_by_sid[t]
+                p_quotes = set(quotes)
+                subs = carrier_subs.get(s, [])
+                for sub_sid, sub_aid, sub_quotes in subs:
+                    if sub_aid.startswith(f"{p_aid}."):
+                        # Subsomption si les phrases citées se recouvrent ou si la parente n'apporte pas d'autre citation
+                        if not p_quotes or not sub_quotes or (p_quotes & sub_quotes) or len(p_quotes - sub_quotes) == 0:
+                            to_prune.append((s, rel, t))
+                            break
+
+        for key in to_prune:
+            s, rel, t = key
+            self.evidence.pop(key, None)
+            self.log.append(f"subsomption ontologique : retrait {self.name_of(s)} --uses--> {aid_by_sid.get(t, t)} au profit de sa sous-technique")
+
+    def is_salient_orphan(self, sid: str) -> bool:
+        """Filtre de saillance contextuelle pour les entités orphelines (sans relation validée).
+        Élimine le bruit de fond (éditeurs de sécurité cités en source, OS génériques) tout en
+        préservant les entités centrales du rapport."""
+        obj = self.objects.get(sid)
+        if not obj:
+            return False
+        stype = obj.get("type", "")
+        # Les attack-patterns orphelins sont TOUJOURS élagués
+        if stype == "attack-pattern":
+            return False
+
+        name = obj.get("name", "").strip()
+        norm = normalize_name(name)
+
+        # 1. Élaguer les éditeurs de sécurité et auteurs de rapport
+        if norm == self.publisher_key or norm in _SECURITY_VENDORS:
+            return False
+
+        # 2. Élaguer les plateformes OS génériques non visées
+        if stype == "software" and norm in _GENERIC_SOFTWARE:
+            return False
+
+        # 3. Vulnérabilités (CVE) nommées dans le texte : toujours saillantes
+        if stype == "vulnerability":
+            return True
+
+        # 4. Campagnes nommées dans le texte : toujours saillantes
+        if stype == "campaign":
+            return True
+
+        # 5. Présence dans le titre de l'article (entité centrale du rapport)
+        title = (getattr(self.ctx, "title", None) or self.ctx.article_ref.get("description", "") or "").casefold()
+        terms = self.terms.get(sid, {name})
+        if any(len(t) >= 4 and t.casefold() in title for t in terms):
+            return True
+
+        # 6. Fréquence des mentions dans le corps du texte (au moins 2 unités)
+        count = 0
+        for u in self.by_uid.values():
+            if mentions(u.text, terms):
+                count += 1
+                if count >= 2:
+                    return True
+
+        return False
+
+    def relationships(self) -> list:
+        """`stix2.Relationship` de chaque relation acceptée, avec toutes ses citations ; confiance tirée de la plus affirmative.
+        Une relation « uses » vers une technique a pour description la procédure (comme dans ATT&CK) : le comportement tel que
+        l'article le décrit, plus discriminant pour l'attribution que l'identifiant de technique seul."""
+        return [
+            relationship(rel, s, t, self.ctx, quotes, max(confidence_from_text(q) for q in quotes),
+                         procedure=" ; ".join(self.procedures.get(t, [])) if rel == "uses" else None)
+            for (s, rel, t), quotes in self.evidence.items()
+        ]  # fmt: skip
+
+    def linked(self, keep_orphans: bool | None = None) -> list:
+        """Entités reliées (ou entités orphelines saillantes)."""
         ids = {i for s, _, t in self.evidence for i in (s, t)}
+        if keep_orphans is None:
+            keep_orphans = os.environ.get("CTI_KEEP_ORPHANS", "on").strip().lower() in ("on", "1", "yes", "true")
+        if keep_orphans:
+            ids |= {sid for sid in self.objects if self.is_salient_orphan(sid)}
         return [o for sid, o in self.objects.items() if sid in ids]
+
+    def unlinked(self) -> list:
+        """Entités acceptées puis écartées faute de relation étayée (pour situer les pertes à l'évaluation)."""
+        linked_ids = {o["id"] for o in self.linked()}
+        return [o for sid, o in self.objects.items() if sid not in linked_ids]
 
     def entity_rows(self) -> list[dict]:
         """Entités reliées sous forme simple (identifiant, type, nom, alias) : pour rattacher IOC et règles."""

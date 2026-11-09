@@ -41,7 +41,7 @@ export function IocTable({ rows, empty = "Aucun indicateur." }: { rows: IocRow[]
       </div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-line text-left font-mono text-[10px] uppercase tracking-widest text-faint">
+          <tr className="border-b border-line text-left text-xs font-semibold text-muted">
             {["Valeur", "Type", "Rôle", "Rattaché à", "Première obs.", "Dernière obs.", "Sources", "Statut"].map((h) => (<th key={h} className="px-3 py-2 font-normal first:pl-6">{h}</th>))}
           </tr>
         </thead>
@@ -60,7 +60,7 @@ export function IocTable({ rows, empty = "Aucun indicateur." }: { rows: IocRow[]
                 <td className="px-3 py-2 font-mono text-xs text-muted">{r.first_seen ?? "—"}</td>
                 <td className="px-3 py-2 font-mono text-xs text-muted">{r.last_seen ?? "—"}</td>
                 <td className="px-3 py-2 font-mono text-xs text-muted" title={`Articles : ${r.article_ids.join(", ")}`}>{r.sources}</td>
-                <td className="px-3 py-2"><span title={STATUS[r.status].hint} className={clsx("border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide", STATUS_STYLE[r.status])}>{STATUS[r.status].label}</span></td>
+                <td className="px-3 py-2"><span title={STATUS[r.status].hint} className={clsx("border px-1.5 py-0.5 text-xs", STATUS_STYLE[r.status])}>{STATUS[r.status].label}</span></td>
               </tr>
               {open === r.id && (
                 <tr className="border-b border-line bg-panel">
@@ -78,7 +78,7 @@ export function IocTable({ rows, empty = "Aucun indicateur." }: { rows: IocRow[]
                         {ev.quote}{ev.article != null && <span className="ml-2 not-italic text-faint">art. {ev.article}</span>}
                       </blockquote>
                     ))}
-                    {r.confidence != null && <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-faint">confiance {r.confidence}</p>}
+                    {r.confidence != null && <p className="mt-1 text-xs text-faint">confiance {r.confidence}</p>}
                   </td>
                 </tr>
               )}

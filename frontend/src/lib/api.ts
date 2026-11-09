@@ -1,4 +1,4 @@
-import type { ActorProfile, ActorRow, ArticleGraph, ArticleSummary, ArticleText, IocRow, RuleRow, Stats } from "../types";
+import type { ActorProfile, ActorRow, ArticleGraph, ArticleSummary, ArticleText, AskEvent, IocRow, KnowledgeGraph, NodeDetail, RuleRow, Stats } from "../types";
 
 async function get<T>(path: string, params: Record<string, string | undefined> = {}): Promise<T> {
   const query = new URLSearchParams(Object.entries(params).filter((e): e is [string, string] => !!e[1])).toString();
@@ -21,6 +21,34 @@ export const api = {
     if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `/api/bundle : HTTP ${res.status}`);
     return { blob: await res.blob(), matchesGraph: res.headers.get("X-Bundle-Matches-Graph") !== "0" };
   },
+  /** Supprime l'article du graphe (et ce qu'aucun autre article n'étaye) ; `cti-extract` ne le reprendra plus. */
+  deleteArticle: async (articleId: number) => {
+    const res = await fetch(`/api/articles/${articleId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error((await res.json().catch(() => null))?.error ?? `/api/articles : HTTP ${res.status}`);
+    return res.json() as Promise<{ nodes_deleted: number; edges_deleted: number }>;
+  },
   actors: () => get<{ actors: ActorRow[] }>("/api/actors").then((r) => r.actors),
   actor: (id: string) => get<ActorProfile>(`/api/actors/${encodeURIComponent(id)}`),
+  /** Graphe global ; `revision` (ETag) change à chaque extraction ou suppression et sert de clé au cache de disposition. */
+  kg: async () => {
+    const res = await fetch("/api/kg", { cache: "no-cache" });
+    if (!res.ok) throw new Error(`/api/kg : HTTP ${res.status}`);
+    return { graph: (await res.json()) as KnowledgeGraph, revision: res.headers.get("ETag") ?? "" };
+  },
+  kgNode: (id: string) => get<NodeDetail>("/api/kg/node", { id }),
+  /** Question sur le graphe global : chaque événement du flux SSE (étape, réponse ou erreur) est passé à `onEvent`. */
+  ask: async (body: { question: string; focus: string | null; history: { question: string; answer: string }[] }, onEvent: (e: AskEvent) => void, signal?: AbortSignal) => {
+    const res = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal });
+    if (!res.ok || !res.body) throw new Error((await res.json().catch(() => null))?.error ?? `/api/ask : HTTP ${res.status}`);
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += value;
+      const events = buffer.split("\n\n");
+      buffer = events.pop() ?? "";
+      for (const chunk of events) if (chunk.startsWith("data: ")) onEvent(JSON.parse(chunk.slice(6)) as AskEvent);
+    }
+  },
 };

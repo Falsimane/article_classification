@@ -25,6 +25,11 @@ L'annotation d'un rapport doit produire en bout de chaine :
 - Hors périmètre : les IOCs ne sont pas annotés : hashes et fichiers (`file`), adresses IP, domaines, URLs, adresses e-mail, certificats, mutex, etc. Ils relèvent de la couche détection et sont extraits de manière déterministe. Les objets `indicator` et les SCO de type IOC produits par l'agent sont ignorés au scoring : ils ne comptent ni comme vrais ni comme faux positifs.
 - Dans le périmètre : les SCO qui ne sont pas des IOCs, en particulier `software` pour le produit visé (éditeur, versions affectées). Ils sont annotés et scorés comme les autres entités.
 
+## Campagnes et acteurs
+- Une `campaign` n'est créée que si l'article décrit une opération : une vague ou un ensemble d'intrusions contre des cibles, sur une période (une intrusion racontée de bout en bout en est une). Elle n'est jamais créée pour servir de nœud central au graphe.
+- Un `intrusion-set` n'est créé que si le texte nomme un groupe (nom ou code de suivi). Pas d'objet anonyme pour « l'attaquant ».
+- Sans campagne décrite, les relations partent de l'entité à laquelle le texte attribue le comportement : l'acteur nommé, le malware ou l'outil. Sans acteur ni campagne (analyse d'un malware, d'une vulnérabilité), les techniques restent reliées à ce qui les porte : le malware, ou la vulnérabilité et le produit qu'elles visent.
+
 ## Labels d'annotation
 Chaque entité (dont les TTP) et chaque relation porte un label :
 - `gold:required` : explicite dans le texte (récit ou artefact clairement décrit).
@@ -51,7 +56,8 @@ Chaque relation porte une `x_gold_evidence_quote` : citation exacte ou artefact 
 - **Identifiants canoniques** : IDs MITRE (`G0007`, `S0154`, `T1059.001`) avec une table d'alias (ex. APT28 = Fancy Bear = Sofacy).
 - **Version figée** : ATT&CK v20.0, indiquée dans chaque fichier gold.
 - **Validation des IDs** : tout ID ATT&CK produit par l'agent doit exister dans le bundle v20.0 ; sinon, il est rejeté et compté comme hallucination.
-- **Crédit partiel** : sous-technique exacte = 1 ; technique parente correcte = 0,5 ; sinon 0.
+- **Crédit partiel** : sous-technique exacte = 1 ; technique parente correcte = 0,5 ; sinon 0. Le score strict (sans crédit partiel) est publié à côté.
+- **Score relâché** des relations `uses` : la source prédite peut être toute entité du groupe d'activité de la source gold (campagne, groupe auquel elle est attribuée, malwares et outils reliés entre eux) ; la convention du porteur ne compte que dans le score principal.
 
 ## Contrôle d'ancrage (sans gold)
 Chaque relation produite par l'agent doit porter une `evidence_quote`. On vérifie automatiquement qu'elle existe dans le texte source (correspondance approximative). Une citation introuvable signale une hallucination probable.

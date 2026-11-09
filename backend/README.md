@@ -1,6 +1,7 @@
 # Backend
 
-Le backend Python (avec un moteur Rust) prend un article scrappé dans SQLite et produit un graphe STIX 2.1 dans Neo4j.
+Le backend Python (avec un moteur Rust) prend la page HTML brute d'un article (référencé dans SQLite) et produit un graphe
+STIX 2.1 dans Neo4j.
 Il sert ensuite ce graphe au frontend par une API REST.
 
 Ce document décrit le flux de données, le rôle de chaque module et les choix d'architecture. Pour l'installation et les
@@ -26,11 +27,12 @@ commandes, voir le [README racine](../README.md).
 ## Flux de données
 
 ```text
-SQLite knowledge (article brut)
+SQLite knowledge (URL, titre, date) + backend/data/raw/html_pages/<site>/<sha1(url)[:16]>.html (page brute)
    │
    │  preprocessing/classifying/cti_classifier.py              ── uv run cti-classifier
-   │    0. rejet amont déterministe (check_viability : trop court, pas un article…)
-   │    1. cti_core : nettoyage, refang, sections                     (Rust, millisecondes)
+   │    0. page HTML absente : rejet
+   │    1. cti_core : DOM -> Markdown canonique, bruit retiré, refang, sections ; page vide ou d'erreur rejetée
+   │                                                                     (Rust, ~20 ms)
    │    2. contexte compact (titre, prose, marqueurs code/table) ──▶ LLM : catégorie + justification
    ▼
 SQLite article_classifications (primary_category, clean_markdown, is_processable…)
@@ -91,7 +93,11 @@ deux exécutions donnent la même extraction.
 Lit l'environnement une fois et expose les constantes utilisées par les clients LLM et les lecteurs d'articles. C'est le
 seul endroit qui définit les chemins de données : `DATA_DIR` (`backend/data`, ou `CTI_DATA_DIR`) et, dessous, la base SQLite
 (`SOURCE_ARTICLES_DB` = `sources/cti_knowledge.db`), les bundles (`BUNDLES_DIR`) ; les évaluations (`EVAL_DIR`) sont dans `backend/evaluation/eval/` ;
-`raw/` (pages scrapées) et `archive/` n'y sont pas lus. Pour l'extraction, URL et modèle du serveur vLLM/SGLang (`OPENAI_BASE_URL`,
+les pages HTML des articles (`HTML_PAGES_DIR` = `raw/html_pages/`, seule entrée du nettoyage) et la copie lisible du texte
+nettoyé (`CLEANED_DIR` = `cleaned/<site>/<sha1(url)[:16]>.md`). La source du texte nettoyé reste
+`article_classifications.clean_markdown` : l'antivirus du poste (Microsoft Defender) met en quarantaine les copies qui
+contiennent des charges d'exploit en clair (webshells, Follina, Log4j), alors qu'il ne touche pas la base. Le reste de
+`raw/` n'est pas lu. Pour l'extraction, URL et modèle du serveur vLLM/SGLang (`OPENAI_BASE_URL`,
 `LLM_MODEL`) et requêtes en vol (`LLM_SLOTS`) ; pour la classification, URL, modèle et contexte d'Ollama
 (`OLLAMA_NUM_CTX`). Il force aussi `NO_PROXY=localhost,127.0.0.1` pour que les tunnels ne passent jamais par un proxy.
 
@@ -103,20 +109,24 @@ modèle en attendant la fin des requêtes en cours.
 
 ## `preprocessing/cleaning/cti_core/` : moteur de nettoyage Rust
 
-Extension native (PyO3, construite par `maturin`) qui fait tout le travail déterministe sur le texte, en quelques
-millisecondes par article. Classe exposée : `CtiEngine`.
+Extension native (PyO3, construite par `maturin`) qui fait tout le travail déterministe, en une vingtaine de millisecondes
+par page. Classe exposée : `CtiEngine`. L'entrée est la page HTML (`html.rs`, analysée par `html5ever`) ; la sortie est un
+Markdown canonique (titres `#`, paragraphes, listes `- `, code clôturé, tables `|`), que l'aval découpe.
 
 | Méthode | Rôle |
 | :--- | :--- |
-| `process_article` | Nettoie un article : retire la navigation (densité de liens, tête et queue de document), les shortcodes, les lignes du gabarit appris pour la source ; découpe en sections ; produit `PreprocessingResult` (`clean_markdown`, sections, `is_processable`). |
-| `check_viability` | Rejet amont : le texte brut n'est pas un article exploitable. |
+| `process_html` | Nettoie une page : écarte scripts, formulaires, `<nav>`, médias et éléments cachés ; résout le streaming React (`<template id="B:n">` ← `<div hidden id="S:n">`) ; retire les blocs de navigation (texte fait de liens internes, titres-liens vers une autre page du site), les blocs du gabarit appris pour la source et les shortcodes ; descend vers la racine du contenu ; rend le code (sans numéros de ligne), les tables, les listes ; dé-neutralise ; découpe en sections. Produit `PreprocessingResult` (`clean_markdown`, sections, `is_processable`). |
+| `html_template_keys` | Texte normalisé de chaque bloc feuille d'une page (hors titres, code, tables, lignes de code, paragraphes tout en gras) : compté sur les pages d'une source, il désigne son gabarit. |
+| `html_text` | Texte visible de toute la page : la référence du rapport qualité. |
+| `check_viability` | Rejet amont sur le texte visible : page vide, trop courte ou page d'erreur de scraping. |
 | `refang` | `hxxp`, `[.]`, `(dot)`… redeviennent des IOC lisibles, dans le récit comme dans le code. |
-| `learn_boilerplate` | Lignes présentes dans une forte proportion des documents d'une même source : son gabarit (menus, bannières, pieds de page). |
-| `chunk_markdown`, `split_blocks` | Découpage en morceaux ou en blocs atomiques (un bloc de code ou une table ne sont jamais coupés). |
+| `chunk_markdown`, `split_blocks` | Découpage du Markdown canonique en morceaux ou en blocs atomiques (un bloc de code ou une table ne sont jamais coupés). |
 
-Il ne contient **aucune liste** d'éditeurs, d'acteurs ou d'outils : le bruit est reconnu par sa structure, puis par le
-gabarit appris sur le corpus de chaque source. Les tests Rust (`cargo test`) couvrent les cas difficiles (liens collés,
-IOC défangés, code indenté, listes de CVE avec liens internes).
+Il ne contient **aucune liste** d'éditeurs, d'acteurs ou d'outils : le bruit est reconnu par sa structure dans le DOM, puis
+par le gabarit appris sur le corpus de chaque source. La racine du contenu ne laisse de côté que ce qui n'est ni de la
+prose ni technique (un article peut être réparti entre plusieurs conteneurs frères). Les tests Rust (`cargo test`)
+couvrent les cas difficiles (streaming React, IOC dans l'URL d'un lien, listes de CVE avec liens internes, tables de mise
+en page, gabarits non échappés comme `<victim_id>`).
 
 ---
 
@@ -124,10 +134,10 @@ IOC défangés, code indenté, listes de CVE avec liens internes).
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `cleaning/cleaner.py` | `UniversalCTICleaner`, façade Python de `cti_core`. Clé de source (`site_key`), apprentissage et stockage des gabarits dans la table `site_boilerplate`, contexte compact pour le classifieur (`build_classifier_context` : titre, prose utile, marqueurs de blocs de code et de tables). |
-| `classifying/cti_classifier.py` | CLI `cti-classifier`. Demande au lancement s'il faut réinitialiser les tables, réapprend les gabarits, puis traite par lots les articles non classés (ou en erreur) avec `CTI_CLASSIFIER_WORKERS` threads. Le LLM répond `{evidence, category, confidence}` sous schéma JSON ; catégories : `tactical`, `operational`, `strategic`, `out_of_scope`. Résultat dans `article_classifications`, avec le `clean_markdown` que lira l'extraction. Un nettoyage réussi est conservé même si l'appel au LLM échoue. |
+| `cleaning/cleaner.py` | `UniversalCTICleaner`, façade Python de `cti_core`. Page HTML d'un article (`load_html`), clé de source (`site_key`), apprentissage et stockage des gabarits dans la table `site_boilerplate` (texte présent dans 40 % des pages d'une source, ou phrase d'au moins 6 mots dans 15 %), contexte compact pour le classifieur (`build_classifier_context` : titre, prose utile, marqueurs de blocs de code et de tables). |
+| `classifying/cti_classifier.py` | CLI `cti-classifier`. Demande au lancement s'il faut réinitialiser les tables, réapprend les gabarits, puis traite par lots les articles non classés (ou en erreur) avec `CTI_CLASSIFIER_WORKERS` threads. `--reclean` recalcule seulement le texte nettoyé des articles déjà classés (base et `data/cleaned/`), sans appel au LLM (catégories et validations humaines conservées). Le LLM répond `{evidence, category, confidence}` sous schéma JSON ; catégories : `tactical`, `operational`, `strategic`, `out_of_scope`. Résultat dans `article_classifications`, avec le `clean_markdown` que lira l'extraction. Un nettoyage réussi est conservé même si l'appel au LLM échoue. |
 | `classifying/audit_classifier.py` | CLI `cti-audit` : interface Textual pour relire les classifications douteuses et saisir une catégorie humaine (`human_category`). |
-| `classifying/evaluate_cleaning.py` | Rapport qualité du nettoyage, sans LLM ni écriture : taux de conservation, fidélité des IOC (hachages, IP, CVE du brut présents dans le nettoyé), résidus de bruit, propriétés du découpage, fuite de gabarit sur une source inconnue (*leave-one-source-out*). À lancer avant d'ingérer une nouvelle source. |
+| `classifying/evaluate_cleaning.py` | Rapport qualité du nettoyage, sans LLM ni écriture : part du texte visible conservée, fidélité des IOC (hachages, IP, CVE du texte visible de la page présents dans le nettoyé ; ceux des articles liés et des menus manquent à juste titre), résidus de bruit, propriétés du découpage, fuite de gabarit sur une source inconnue (*leave-one-source-out*). À lancer avant d'ingérer une nouvelle source. |
 
 L'extraction ne prend que les articles `is_processable = 1` dont la catégorie est `tactical`, `operational` ou
 `strategic`.
@@ -154,13 +164,14 @@ pas compté comme extrait : le lancement suivant le reprend.
 
 | Étape | Déroulé |
 | :--- | :--- |
-| **1. Entités** | Un appel contraint : toutes les entités (« type\|nom\|alias ») et les techniques ATT&CK écrites par le modèle (« identifiant\|nom ATT&CK\|numéros de phrases »). |
-| **2. Techniques** | Le code vérifie que chaque identifiant existe dans ATT&CK v20.0 et y porte le nom donné (un identifiant voisin écrit de mémoire est refusé). Les refusées, avec leur raison et leurs phrases, passent dans une courte conversation avec outils (`search_attack`, `get_attack`, `submit`, 6 tours au plus) ; une technique encore refusée est écartée. |
-| **3. Relations** | Un appel contraint sur le même texte (relu depuis le cache du serveur) suivi de la liste numérotée des entités et techniques retenues : « numéro source\|relation\|numéro cible\|numéros de phrases ». Une technique est désignée par son identifiant, jamais par son nom (« PowerShell » est aussi un outil). Les lignes refusées reviennent au modèle une fois. |
+| **1. Entités** | Un appel contraint : toutes les entités (« type\|nom\|alias ») et chaque comportement de l'attaquant en anglais (« numéros de phrases\|comportement\|identifiant ATT&CK présumé »). `CTI_SECTION_PASS=on` : les comportements sont aussi relevés bloc par bloc (~1 500 tokens), l'article entier restant en tête du prompt. |
+| **1 ter. Opérations** (`CTI_OPERATIONS=on`) | Un appel contraint décide des campagnes que décrit le rapport (« phrases\|nom descriptif\|groupe »), à la place de celles de l'appel 1 ; le groupe donne une relation `attributed-to`. |
+| **2. Techniques** | Le code cherche les candidates de chaque comportement dans ATT&CK v20.0 (FTS5 sur les définitions et les procédures, sans celles tirées de l'article lui-même : `report_key` de son URL) ; le modèle choisit par lettres (« numéro:lettres »). `CTI_CARRIER=on` : il désigne aussi l'auteur du comportement parmi les entités numérotées (« numéro:lettres:auteur ») et le code crée la relation `uses`. Le comportement devient la description (procédure) des relations `uses` vers la technique. |
+| **3. Relations** | Un appel contraint sur le même texte (relu depuis le cache du serveur) suivi de la liste numérotée des entités et techniques retenues : « numéro source\|relation\|numéro cible\|numéros de phrases ». Une technique est désignée par son identifiant, jamais par son nom (« PowerShell » est aussi un outil). Les lignes refusées reviennent au modèle une fois ; un appel relie les îlots. |
+| **4. Vérification** | Chaque relation est jugée « o / n » contre le texte ; « n » la retire. |
 
 L'article entier doit tenir dans le contexte du serveur (`--max-model-len`) ; sinon le serveur refuse l'appel et la raison
-est inscrite dans les échecs de l'article (`failures`), sans troncature silencieuse. Un serveur lancé sans analyseur d'appels
-d'outils refuse l'étape 2 de la même façon : les techniques déjà valides sont gardées.
+est inscrite dans les échecs de l'article (`failures`), sans troncature silencieuse.
 
 ### Modules communs
 
@@ -171,7 +182,7 @@ d'outils refuse l'étape 2 de la même façon : les techniques déjà valides so
 | `graph/draft.py` | **`DraftGraph`**, le brouillon vérifié de l'article, et les outils de recherche dans ATT&CK (`search_attack`, `get_attack`). `declare` crée une entité par sa classe `stix2` ; `relate` crée une relation et contrôle : couple de types permis par la table de relations STIX, identifiant ATT&CK existant en v20.0 (révoqué → remplaçant), phrases citées existantes qui nomment l'entité reliée (ou les trois phrases précédentes, ou le titre de section). Les techniques, groupes et logiciels connus d'ATT&CK sont les objets officiels de MITRE, pas des copies. |
 | `preprocessing/cleaning/text/evidence.py` | Comparaison de noms normalisés, ancrage des preuves, confiance exprimée par l'auteur, analyse des dates. |
 | `graph/places.py` | Résout un nom de lieu (« Russia », « Russie », « Eastern Europe ») en code ISO 3166-1 ou en région du vocabulaire STIX `region-ov`. Un nom non résolu est refusé, jamais inventé. |
-| `observables/iocs.py` | IOC : valeurs candidates par règles (adresses, domaines, URL, courriels, hachages), filtres (adresses privées, domaines populaires, domaine de l'éditeur, extensions de fichier prises pour des TLD), regroupement par phrase ou section d'annexe, puis réponse fermée du modèle : rôle (`c2`, `payload-delivery`…) et entité de rattachement. Les IOC jugés non malveillants sont gardés dans le bundle avec `indicator_types: ["benign"]`, pas dans Neo4j. |
+| `observables/iocs.py` | IOC : valeurs candidates par règles (adresses, domaines, URL, courriels, hachages), filtres (adresses privées, domaines populaires, domaine de l'éditeur, extensions de fichier prises pour des TLD), regroupement par phrase ou section d'annexe, puis réponse fermée du modèle : rôle (`c2`, `payload-delivery`…) et entité de rattachement. Un IOC jugé non malveillant n'est pas un objet du graphe : il est écarté. Les IOC et règles sont écrits dans `article_<id>.iocs.json`, à part de la couche sémantique. |
 | `observables/rules.py` | Règles de détection lues dans le markdown complet (pas dans les unités, qui fusionnent les espaces). YARA compilée par `libyara`, Sigma lue en YAML avec `title`, `logsource` et `detection.condition`. Une règle invalide n'est jamais réparée : elle est écartée avec sa raison. Le modèle choisit l'entité détectée. |
 | `observables/update_reference.py` | Met à jour `observables/reference/tlds.txt` (IANA) et `reference/popular_domains.txt` (Tranco), données versionnées du filtrage des IOC. |
 
@@ -234,8 +245,9 @@ Le dossier `Annotations/` contient des articles annotés à la main en STIX (`*_
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `cti_eval.py` | CLI `cti-eval`. `--run` extrait les articles du manifeste (`--workers N` articles à la fois), sinon re-score les bundles de `--bundles` (défaut : `backend/evaluation/eval/latest`). Écrit `runs.json` (durées, appels par étape, échecs), `report.json` et `report.md` dans le dossier des bundles. |
+| `cti_eval.py` | CLI `cti-eval`. `--run` extrait les articles du manifeste (`--workers N` articles à la fois), sinon re-score les bundles de `--bundles` (défaut : `backend/evaluation/eval/latest`). Écrit `runs.json` (durées, appels par étape, échecs, trace), `report.json` et `report.md` dans le dossier des bundles. `--compare a1,a2 b1,b2` compare des configurations (plusieurs exécutions chacune) : écart et intervalle de confiance à 95 % par bootstrap sur les articles, compteurs de mécanisme. |
 | `score.py` | Méthode de score décrite ci-dessous. |
+| `losses.py` | Où se perd chaque élément required manqué ; techniques jamais proposées réparties en « aucun comportement relevé », « absente des candidates », « candidate non retenue » ; rappel de la recherche ; relations retirées par le vérificateur rapprochées du gold. |
 
 - **Rappel** (métrique principale) = objets `required` trouvés / total `required`.
 - **Précision** = objets `required` ou `acceptable` trouvés / total prédit.
@@ -244,7 +256,10 @@ Le dossier `Annotations/` contient des articles annotés à la main en STIX (`*_
 - **Normalisation** : identifiant ATT&CK (alias compris), CVE, puis nom normalisé. Types équivalents : malware/tool,
   intrusion-set/threat-actor, campaign/incident.
 - **Crédit partiel** des techniques : même identifiant = 1 ; même technique parente ou sous-techniques sœurs = 0,5. Une
-  relation vaut le plus petit crédit de ses deux extrémités.
+  relation vaut le plus petit crédit de ses deux extrémités. Le score **strict** (sans crédit partiel) est publié à côté.
+- **Score relâché** des relations `uses` : la source prédite peut être toute entité du groupe d'activité de la source gold
+  (campagne, groupe auquel elle est attribuée, malwares et outils reliés entre eux dans le gold). Il mesure ce dont
+  l'attribution a besoin (la technique a-t-elle été vue dans l'activité ?) sans la convention du porteur.
 - **Appariement** un pour un, meilleur crédit d'abord : un doublon prédit est un faux positif. Les campagnes, nommées
   différemment, sont appariées par le nombre de relations partagées.
 - **Hallucination** : identifiant ATT&CK absent de la v20.0.

@@ -34,13 +34,19 @@ def normalize_name(name: str | None) -> str:
 _QUOTE_MARKS = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"', "«": '"', "»": '"'})
 
 
+_LIST_MARKER = re.compile(r"(?m)^[ \t]*(?:[-*+•]|\d{1,3}[.)])[ \t]+")
+
+
 def normalize_quote(text: str) -> str:
     """Forme de comparaison d'une citation : insensible à la casse, aux guillemets typographiques, aux balises
-    de mise en forme Markdown et aux espaces."""
+    de mise en forme Markdown, aux puces de liste (une citation peut enjamber une phrase et la liste qu'elle annonce)
+    et aux espaces, y compris devant une ponctuation (« <groupe> , » d'un ancien export)."""
     text = unicodedata.normalize("NFKC", text or "")
     text = text.translate(_QUOTE_MARKS)
+    text = _LIST_MARKER.sub("", text)
     text = re.sub(r"[*_`]+", "", text)
-    return re.sub(r"\s+", " ", text).strip().casefold()
+    text = re.sub(r"\s+", " ", text)
+    return re.sub(r" (?=[,.;:!?)])", "", text).strip().casefold()
 
 
 def evidence_in_source(evidence: str, source_text: str, *, haystack: str | None = None) -> bool:
@@ -69,15 +75,10 @@ def prepare_text(text: str) -> tuple[set[str], set[str]]:
 
 
 def mentions_prepared(prepared: tuple[set[str], set[str]], terms: Iterable[str]) -> bool:
-    """Un terme précédé de `~` est un RADICAL : il reconnaît tout mot qui commence ainsi (« financial » pour
-    `financial-services`)."""
+    """`mentions` sur un texte déjà préparé (`prepare_text`). Un terme se compare mot à mot, tel quel : un nom de fichier
+    temporaire (« ~<nom>.dat ») est un nom comme un autre."""
     vocabulary, joined = prepared
     for term in terms:
-        if term.startswith("~"):
-            stem = term[1:]
-            if len(stem) >= 5 and any(w.startswith(stem) for w in vocabulary):
-                return True
-            continue
         toks = tokens(term)
         if toks and all(t in vocabulary for t in toks):
             return True

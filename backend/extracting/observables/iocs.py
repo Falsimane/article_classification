@@ -47,6 +47,13 @@ def tlds() -> frozenset[str]:
     return frozenset(_read_list("tlds.txt"))
 
 
+def is_domain_name(text: str) -> bool:
+    """« relay.example.ua » : un nom de domaine (TLD réel de la liste IANA, pas une extension de fichier ou de code). Un nom
+    avec majuscules (« ASP.NET », « Microsoft.Office ») est un nom de produit, pas un domaine."""
+    found = re.fullmatch(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+([a-z]{2,24})", text.strip())
+    return bool(found) and found.group(1) in tlds() and found.group(1) not in _CODE_EXTENSIONS
+
+
 @lru_cache(maxsize=1)
 def popular_domains() -> frozenset[str]:
     return frozenset(_read_list("popular_domains.txt"))
@@ -595,8 +602,7 @@ def extract_iocs(
     """IOC d'un article, avec rôle et rattachement. `entities` : entités finales de l'article (avec leur identifiant STIX).
 
     Un élément que le modèle n'a pas classé (réponse tronquée) reste `unknown` : conservé comme observable, jamais
-    présenté comme malveillant. Un élément jugé `not-malicious` est conservé sans rattachement, pour être audité : il devient
-    un indicateur `benign` (voir `build_ioc_objects`), jamais une infrastructure de l'attaquant."""
+    présenté comme malveillant. Un élément jugé `not-malicious` n'est jamais un objet du graphe (voir `build_ioc_objects`)."""
     result = IocResult()
     candidates, result.dropped = find_iocs(units, publishers=publisher_hosts(url), published=published)
     result.n_candidates = len(candidates)
@@ -612,7 +618,7 @@ def extract_iocs(
 
     def classify_batch(batch: list[Item]) -> tuple[llm.LLMResult, dict[int, tuple[str, str | None]]]:
         used = sorted({eid for it in batch for eid in it.attach_ids})
-        res = llm.try_generate(system, ioc_user(title, batch, attach), ioc_schema(batch, [by_eid[e] for e in used]), max_output_tokens=MAX_IOC_TOKENS)
+        res = llm.try_generate(system, ioc_user(title, batch, attach), ioc_schema(batch, [by_eid[e] for e in used]), max_output_tokens=MAX_IOC_TOKENS, stage="iocs")
         return res, parse_ioc_answers(res.parsed, batch)
 
     answers: dict[int, tuple[str, str | None]] = {}

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Download } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { useAsync } from "../lib/useAsync";
@@ -13,7 +13,7 @@ import { RuleTable } from "./RuleTable";
 
 const Empty = ({ children }: { children: string }) => <div className="flex h-full items-center justify-center p-8 text-sm text-faint">{children}</div>;
 
-export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
+export function ReportsView({ articles, onDeleted }: { articles: ArticleSummary[]; onDeleted: () => void }) {
   const [articleId, setArticleId] = useState<number | null>(articles[0]?.id ?? null);
   const [family, setFamily] = useState<Family | "all">("all");
   const [search, setSearch] = useState("");
@@ -42,17 +42,31 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
     }
   };
 
+  const deleteArticle = async (id: number) => {
+    const title = articles.find((a) => a.id === id)?.title ?? `Article ${id}`;
+    if (!confirm(`Supprimer « ${title} » du graphe ?\n\nSes entités et relations disparaissent sauf celles qu'un autre article étaye, ainsi que ses bundles STIX. cti-extract ne le reprendra plus (sauf --article-id ${id}).`)) return;
+    try {
+      await api.deleteArticle(id);
+      const rest = articles.filter((a) => a.id !== id);
+      const index = articles.findIndex((a) => a.id === id);
+      setArticleId(rest[Math.min(index, rest.length - 1)]?.id ?? null);
+      onDeleted();
+    } catch (e) {
+      setExportNote((e as Error).message);
+    }
+  };
+
   if (articles.length === 0) return <Empty>Aucun article extrait. Lancez : uv run cti-extractor --limit 10</Empty>;
   return (
     <div className="grid h-full grid-cols-[300px_1fr_360px]">
       <aside className="overflow-y-auto border-r border-line bg-panel">
-        <h2 className="border-b border-line px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-faint">Rapports ({articles.length})</h2>
+        <h2 className="border-b border-line px-4 py-2 text-xs font-semibold text-muted">Rapports ({articles.length})</h2>
         <ul>
           {articles.map((a) => (
             <li key={a.id}>
               <button onClick={() => setArticleId(a.id)} className={clsx("block w-full border-b border-line px-4 py-2.5 text-left", a.id === articleId ? "bg-raised" : "hover:bg-raised/50")}>
                 <div className="line-clamp-2 text-sm leading-5">{a.title}</div>
-                <div className="mt-1 flex gap-3 font-mono text-[10px] uppercase tracking-wide text-faint">
+                <div className="mt-1 flex gap-3 text-xs text-faint">
                   <span>{a.site_name ?? "—"}</span><span>{a.publication_date ?? ""}</span>
                   <span className="ml-auto">{a.entities_count} ent · {a.relations_count} rel</span>
                 </div>
@@ -73,6 +87,11 @@ export function ReportsView({ articles }: { articles: ArticleSummary[] }) {
           {articleId != null && (
             <button onClick={() => exportBundle(articleId)} title="Télécharger le bundle STIX 2.1 de l'article (JSON)" className="ml-auto flex items-center gap-1.5 border border-line px-2 py-1 text-xs text-muted hover:border-line-strong hover:text-ink">
               <Download size={12} /> Exporter STIX
+            </button>
+          )}
+          {articleId != null && (
+            <button onClick={() => deleteArticle(articleId)} title="Supprimer l'article du graphe" className="ml-2 flex items-center gap-1.5 border border-line px-2 py-1 text-xs text-muted hover:border-danger hover:text-danger">
+              <Trash2 size={12} /> Supprimer
             </button>
           )}
         </nav>

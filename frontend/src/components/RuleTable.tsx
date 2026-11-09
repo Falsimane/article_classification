@@ -34,7 +34,7 @@ export function RuleTable({ rows, empty = "Aucune règle de détection." }: { ro
       </div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-line text-left font-mono text-[10px] uppercase tracking-widest text-faint">
+          <tr className="border-b border-line text-left text-xs font-semibold text-muted">
             {["Règle", "Langage", "Détecte", "Confiance"].map((h) => (<th key={h} className="px-3 py-2 font-normal first:pl-6">{h}</th>))}
           </tr>
         </thead>
@@ -46,7 +46,7 @@ export function RuleTable({ rows, empty = "Aucune règle de détection." }: { ro
                   <div className="break-all font-mono text-xs">{r.name}</div>
                   {r.description && <div className="mt-0.5 line-clamp-1 text-xs text-muted">{r.description}</div>}
                 </td>
-                <td className="px-3 py-2"><span className="border border-line-strong px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-muted">{RULE_KIND_LABEL[r.kind] ?? r.kind}</span></td>
+                <td className="px-3 py-2"><span className="border border-line-strong px-1.5 py-0.5 text-xs text-muted">{RULE_KIND_LABEL[r.kind] ?? r.kind}</span></td>
                 <td className="px-3 py-2 text-muted">{r.detects.map((t) => t.name).join(", ") || "—"}</td>
                 <td className="px-3 py-2 font-mono text-xs text-muted">{r.confidence ?? "—"}</td>
               </tr>

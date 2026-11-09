@@ -112,6 +112,16 @@ def country_of(name: str) -> str | None:
     return _COUNTRY_BY_NAME.get(_key(text))
 
 
+def place_names(country: str | None, region: str | None) -> set[str]:
+    """Toutes les graphies connues d'un pays ou d'une région (anglaises et françaises) : un lieu nommé dans une langue
+    est reconnu dans un texte écrit dans l'autre (« Asie de l'Est » dans « East Asia »)."""
+    if country:
+        return {name for name, code in _COUNTRY_BY_NAME.items() if code == country}
+    if region:
+        return {name for name, value in _REGION_ALIASES.items() if value == region} | {region.replace("-", " ")}
+    return set()
+
+
 def resolve_location(name: str, country: str = "", region: str = "") -> tuple[str | None, str | None]:
     """(country, region) pour un lieu ; (None, None) si rien n'est établi. Les valeurs fournies par le modèle sont vérifiées."""
     code = country_of(country) if country else None

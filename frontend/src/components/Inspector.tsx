@@ -5,7 +5,7 @@ import type { GraphEdge, GraphNode } from "../types";
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="border-b border-line px-4 py-3">
-    <h3 className="mb-2 font-mono text-[10px] uppercase tracking-widest text-faint">{title}</h3>
+    <h3 className="mb-2 text-xs font-semibold text-muted">{title}</h3>
     {children}
   </section>
 );
@@ -17,7 +17,7 @@ export function Inspector({ node, nodes, edges, onSelect }: { node: GraphNode | 
   return (
     <div className="overflow-y-auto">
       <header className="border-b border-line px-4 py-3">
-        <div className="mb-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-faint">
+        <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-muted">
           {(() => { const Icon = iconOf(node.type); return <Icon size={14} color={FAMILY[node.family].color} strokeWidth={1.75} />; })()}
           {typeLabel(node.type)}
         </div>
@@ -49,7 +49,8 @@ export function Inspector({ node, nodes, edges, onSelect }: { node: GraphNode | 
                   {other && <button className="text-left font-medium text-accent hover:underline" onClick={() => onSelect(other.id)}>{other.label}</button>}
                   {e.confidence != null && <span className="ml-auto font-mono text-xs text-faint">{e.confidence}</span>}
                 </div>
-                {e.tactic && <div className="font-mono text-[10px] uppercase tracking-wide text-faint">{e.tactic}</div>}
+                {e.tactic && <div className="text-xs text-faint">{e.tactic}</div>}
+                {e.evidence[0]?.procedure && <div className="mt-1 text-xs text-ink">{e.evidence[0].procedure}</div>}
                 {e.evidence.map((ev, i) => (
                   <blockquote key={i} className="mt-1 border-l-2 border-line-strong pl-2 text-xs italic text-muted">{ev.quote}</blockquote>
                 ))}
