@@ -18,7 +18,8 @@ from stix2.v21.vocab import INDUSTRY_SECTOR
 from backend.extracting import llm
 from backend.extracting.graph.draft import DraftGraph, relationship_type_of
 from backend.extracting.stix.attack import TechniqueHit, attack_id
-from backend.extracting.stix.objects import ENTITY_CLASSES
+from backend.extracting.stix.objects import ENTITY_CLASSES, relation_table
+from backend.extracting.stix.specs import TYPE_SPECS, relation_definitions
 from backend.preprocessing.cleaning.text.evidence import mentions, normalize_name
 from backend.preprocessing.cleaning.text.segment import Unit
 
@@ -106,6 +107,28 @@ class TargetSpecialistAgent:
             "   - « identity|éditeur|organization » (l'éditeur du produit visé, ex: identity|<vendor_name>|organization).\n"
             "   - « vulnerability|CVE-YYYY-NNNNN » (vulnérabilité exploitée ou ciblée mentionnée dans le texte).\n"
             "JAMAIS : l'auteur du rapport, les éditeurs de sécurité publiant l'analyse, ni les hébergeurs/CDN ordinaires."
+        )
+
+
+# ======================================================================================================================
+# 2 bis. ContextObjectsAgent : Infrastructure, Mesures de défense, Analyses d'échantillons
+# ======================================================================================================================
+class ContextObjectsAgent:
+    """Types du registre qu'aucun autre prompt ne demande : infrastructure, course-of-action, malware-analysis.
+    Définitions et formes tirées de `specs.TYPE_SPECS`."""
+
+    TYPES = ("infrastructure", "course-of-action", "malware-analysis")
+    SCHEMA = _schema("objects")
+
+    @classmethod
+    def prompt(cls, text: str) -> str:
+        specs = "\n".join(f"   - {t} : {TYPE_SPECS[t].definition}\n     Forme : « {TYPE_SPECS[t].form} »" for t in cls.TYPES)
+        return (
+            f"{text}\n\n---\n"
+            "TÂCHE (Context Objects) : relève dans le rapport entier les objets STIX suivants, et eux seuls :\n"
+            f"{specs}\n"
+            "« objects » : éléments séparés par « ; », chacun sous la forme indiquée pour son type. Rien que le texte affirme ; "
+            "aucune IP, aucun domaine, aucune URL, aucun hachage ; rien pour un type que le rapport ne décrit pas."
         )
 
 
@@ -208,20 +231,13 @@ class RelationWeaverAgent:
             "TÂCHE (Relation Weaver) : relie UNIQUEMENT les entités de cette liste fermée selon les faits affirmés par le texte.\n"
             "Format : « numéro_source|relation|numéro_cible|numéros_de_phrases » séparés par « ; »\n"
             "(exemples : « 2|attributed-to|1|4 ; 2|uses|3|10 ; 3|drops|4|15 ; 2|targets|5|1 ; 6|has|7|2 »).\n\n"
-            "RÈGLES ONTOLOGIQUES STIX 2.1 :\n"
-            "1. ATTRIBUTION :\n"
-            "   - campaign --attributed-to--> intrusion-set / threat-actor (la campagne menée par le groupe/acteur)\n"
-            "   - intrusion-set --attributed-to--> threat-actor (groupe attribué à un sponsor étatique)\n"
-            "2. ARSENAL & CHAÎNE D'INFECTION (qui emploie quoi) :\n"
-            "   - campaign --uses--> malware / tool / infrastructure (arsenal déployé dans l'opération)\n"
-            "   - intrusion-set --uses--> malware / tool (arsenal propre ou historique du groupe)\n"
-            "   - malware / tool --drops / downloads / uses--> malware / tool (stager/dropper délivrant la charge utile)\n"
-            "3. VULNÉRABILITÉS & EXPLOITS :\n"
-            "   - software --has--> vulnerability (le produit logiciel affecté par la CVE)\n"
-            "   - malware / tool / campaign / intrusion-set --exploits / targets--> vulnerability (l'exploitation de la CVE)\n"
-            "   - software --related-to--> identity (l'éditeur du logiciel)\n"
-            "4. CIBLAGE (qui vise quoi) :\n"
-            "   - campaign / intrusion-set / malware --targets--> identity / location / software / vulnerability (victimes, secteurs, pays ciblés, produits visés)\n\n"
+            "TABLE DES RELATIONS STIX 2.1 ADMISES (source --relation--> cible ; aucune autre) :\n"
+            f"{relation_table()}\n"
+            f"SENS DES RELATIONS (choisis celle dont le sens correspond à ce que dit le texte) :\n{relation_definitions()}\n"
+            "Repères : attribution (attributed-to, authored-by), arsenal (uses, drops, downloads, delivers), ciblage (targets ; "
+            "exploits réservé au malware), infrastructure (beacons-to, communicates-with, exfiltrates-to, hosts, controls, owns, "
+            "compromises), origine (originates-from, located-at), défense (course-of-action mitigates / remediates), analyse "
+            "(malware-analysis analysis-of malware), software --has--> vulnerability, software --related-to--> identity (éditeur).\n\n"
             "RÈGLES D'OR DE MODÉLISATION ET DE PRÉCISION :\n"
             "- Chaque relation part de l'entité qui accomplit le geste. Ce qui livre une charge utile (dropper, loader, script) est employé par "
             "la campagne ou relié à la charge par drops / downloads ; la charge utile n'utilise ni n'exploite ce qui l'a livrée.\n"

@@ -1,0 +1,772 @@
+{
+	"type": "bundle",
+	"id": "bundle--242aeefe-4856-4c55-b00a-65ba642fb19b",
+	"objects": [
+		{
+			"spec_version": "2.1",
+			"type": "attack-pattern",
+			"id": "attack-pattern--2270b236-197e-4cf0-9fb5-a5be6fb8412d",
+			"created": "2020-02-01T17:42:00.229Z",
+			"modified": "2025-02-06T19:24:50.017Z",
+			"name": "Exfiltration / Exfiltration Over C2 Channel [T1041] (ENT)",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "attack-pattern",
+			"id": "attack-pattern--60ebf64b-2844-4d73-bdf3-1298a383f5f5",
+			"created": "2025-02-04T12:14:47.100Z",
+			"modified": "2025-03-14T17:00:34.710Z",
+			"name": "Command and Control / Commonly Used Port [T0885] (ICS)",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "attack-pattern",
+			"id": "attack-pattern--9e71363e-f68a-46f3-abe3-0b542f706eea",
+			"created": "2025-02-04T12:14:47.100Z",
+			"modified": "2026-04-01T15:16:18.220Z",
+			"name": "Initial Access / Internet Accessible Device [T0883] (ICS)",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "attack-pattern",
+			"id": "attack-pattern--d2ac2d2b-d219-4747-8c2f-81fd87845e1c",
+			"created": "2021-04-24T02:14:49.528Z",
+			"modified": "2026-07-09T14:56:20.460Z",
+			"name": "Impact / Data Manipulation [T1565] (ENT)",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "attack-pattern",
+			"id": "attack-pattern--ed077615-7892-4a97-85a5-082df0d8574f",
+			"created": "2020-08-04T20:02:09.329Z",
+			"modified": "2025-02-06T19:52:20.913Z",
+			"name": "Command and Control / Remote Access Software [T1219] (ENT)",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--0ad78ef7-dcc3-4e9d-914b-9a3790371af4",
+			"created": "2025-11-13T14:54:34.214Z",
+			"modified": "2026-07-21T16:16:09.487Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '79.133.46.209']",
+			"valid_from": "2025-11-13T14:54:34.214Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--1992425f-921a-42da-a526-efdf23119cb2",
+			"created": "2026-05-15T12:03:20.483Z",
+			"modified": "2026-07-10T14:58:10.147Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.175']",
+			"valid_from": "2026-05-15T12:03:20.483Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--2818c180-291d-414f-82ea-08dbbf4aaa47",
+			"created": "2026-03-06T02:23:00.536Z",
+			"modified": "2026-04-08T12:44:43.181Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.162']",
+			"valid_from": "2026-03-06T02:23:00.536Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--2ebee430-4158-4c78-b77e-5a4ceede1690",
+			"created": "2026-07-08T17:09:33.315Z",
+			"modified": "2026-07-09T14:56:20.538Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '192.142.54.79']",
+			"valid_from": "2026-07-08T17:09:33.315Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--48c8d277-44fd-4927-b436-82d32f46c949",
+			"created": "2026-05-15T12:03:20.440Z",
+			"modified": "2026-07-10T14:58:10.149Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '175.110.121.107']",
+			"valid_from": "2026-05-15T12:03:20.440Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--56b12439-ff27-471c-8116-117c408ff6a1",
+			"created": "2026-03-06T02:23:00.486Z",
+			"modified": "2026-04-08T12:44:43.181Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.167']",
+			"valid_from": "2026-03-06T02:23:00.486Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--5cd6809f-082f-49ae-bfe1-36ec6d331704",
+			"created": "2026-07-20T12:44:31.026Z",
+			"modified": "2026-07-21T16:16:09.430Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '88.80.150.200']",
+			"valid_from": "2026-07-20T12:44:31.026Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--809a6b17-8ab1-492c-8b4e-cdf257c77827",
+			"created": "2026-05-06T16:46:38.494Z",
+			"modified": "2026-07-10T14:58:10.152Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '175.110.121.42']",
+			"valid_from": "2026-05-06T16:46:38.494Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--9cbb4532-403a-4884-9a11-5a92f98b029b",
+			"created": "2026-04-01T14:14:46.530Z",
+			"modified": "2026-04-08T12:44:43.182Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.168']",
+			"valid_from": "2026-04-01T14:14:46.530Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--9da4d819-f8f0-4f17-9949-0c0521c9c4eb",
+			"created": "2026-03-06T02:23:00.471Z",
+			"modified": "2026-04-08T12:44:43.183Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.171']",
+			"valid_from": "2026-03-06T02:23:00.471Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--a06c4b02-eb0b-4bf6-a960-1d313a0950a7",
+			"created": "2026-03-06T02:23:00.446Z",
+			"modified": "2026-04-08T12:44:43.184Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.165']",
+			"valid_from": "2026-03-06T02:23:00.446Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--a109a394-b8b8-48c0-949c-845ce48ddb33",
+			"created": "2026-05-06T16:46:38.569Z",
+			"modified": "2026-07-10T14:58:10.154Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '175.110.121.41']",
+			"valid_from": "2026-05-06T16:46:38.569Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--a4a1f841-dbcc-4058-b3c3-fbdb2e3bc61d",
+			"created": "2026-07-20T12:44:30.439Z",
+			"modified": "2026-07-21T16:16:09.407Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '141.11.164.153']",
+			"valid_from": "2026-07-20T12:44:30.439Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--bfc273e8-b1ff-4e1d-a148-081672cb1cfd",
+			"created": "2026-03-06T02:23:00.520Z",
+			"modified": "2026-04-08T12:44:43.184Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.170']",
+			"valid_from": "2026-03-06T02:23:00.520Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--c573e7cc-2e3d-42e8-ad17-b16eabe9f0d0",
+			"created": "2026-05-04T13:05:30.486Z",
+			"modified": "2026-07-10T14:58:10.155Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '175.110.121.39']",
+			"valid_from": "2026-05-04T13:05:30.486Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--c81fe01c-c03a-4a43-adf3-c6392a964d30",
+			"created": "2026-07-20T12:44:31.106Z",
+			"modified": "2026-07-21T16:16:09.463Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '88.80.150.202']",
+			"valid_from": "2026-07-20T12:44:31.106Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--e1844465-6a12-4b57-93fa-45eb5e67ea97",
+			"created": "2026-07-20T12:44:30.921Z",
+			"modified": "2026-07-21T16:16:09.528Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '88.80.150.199']",
+			"valid_from": "2026-07-20T12:44:30.921Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--ecce5c40-3b3c-4f32-bf16-3076f553fdc0",
+			"created": "2026-07-08T17:09:33.678Z",
+			"modified": "2026-07-09T14:56:20.496Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.225.17.225']",
+			"valid_from": "2026-07-08T17:09:33.678Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--ee43b310-314d-4617-aa04-6347487f8aa1",
+			"created": "2026-03-06T02:23:00.425Z",
+			"modified": "2026-04-08T12:44:43.185Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '185.82.73.164']",
+			"valid_from": "2026-03-06T02:23:00.425Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--f08995a3-c1e0-460b-bf86-dd471ad54878",
+			"created": "2026-07-08T17:09:33.465Z",
+			"modified": "2026-07-09T14:56:20.578Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '84.200.205.165']",
+			"valid_from": "2026-07-08T17:09:33.465Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "indicator",
+			"id": "indicator--ff491c85-02ba-46c3-90e0-176295b255ba",
+			"created": "2026-04-01T14:14:46.323Z",
+			"modified": "2026-04-08T12:44:43.186Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"pattern": "[ipv4-addr:value = '135.136.1.133']",
+			"valid_from": "2026-04-01T14:14:46.323Z",
+			"pattern_type": "stix",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "malware",
+			"id": "malware--6aa373b9-a228-4919-91c9-a484c9941ca3",
+			"created": "2025-11-13T16:24:14.724Z",
+			"modified": "2025-11-13T18:01:21.238Z",
+			"name": "Secure Shell (SSH)",
+			"is_family": true,
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "malware",
+			"id": "malware--85b0fbcb-7ca2-4d1b-9f5a-809002ddb6d3",
+			"created": "2018-08-14T13:27:29.282Z",
+			"modified": "2026-04-01T15:16:18.278Z",
+			"name": "Dropbear",
+			"is_family": true,
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--232170cd-2955-4f75-9f73-098433ee2c84",
+			"created": "2026-04-08T18:24:14.945Z",
+			"modified": "2026-04-08T18:24:14.945Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--56b12439-ff27-471c-8116-117c408ff6a1",
+			"target_ref": "threat-actor--86691ded-72cc-4ccc-a557-f18d0cc7cd88",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--4ce27568-d932-400a-9308-c4ed0ad3798c",
+			"created": "2026-07-09T14:56:20.599Z",
+			"modified": "2026-07-09T14:56:20.599Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--9cbb4532-403a-4884-9a11-5a92f98b029b",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--53c1a983-df45-4380-8119-33ca85e8ec72",
+			"created": "2026-07-09T14:56:20.519Z",
+			"modified": "2026-07-09T14:56:20.519Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--a06c4b02-eb0b-4bf6-a960-1d313a0950a7",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--8a8fc1e6-6ad7-453e-bc02-87bf2148b3c2",
+			"created": "2026-07-09T14:56:20.505Z",
+			"modified": "2026-07-09T14:56:20.505Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--9da4d819-f8f0-4f17-9949-0c0521c9c4eb",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--9c7dbb1f-9d40-4b91-a26b-28a8c3ec0c87",
+			"created": "2026-07-09T14:56:20.586Z",
+			"modified": "2026-07-09T14:56:20.586Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--ff491c85-02ba-46c3-90e0-176295b255ba",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--c21afd84-5bfa-40e9-a681-71ac0d312d7d",
+			"created": "2026-07-09T14:56:20.491Z",
+			"modified": "2026-07-09T14:56:20.491Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--bfc273e8-b1ff-4e1d-a148-081672cb1cfd",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--cfe77433-c048-415f-b163-34e36530061c",
+			"created": "2026-04-08T18:24:14.956Z",
+			"modified": "2026-04-08T18:24:14.956Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--9cbb4532-403a-4884-9a11-5a92f98b029b",
+			"target_ref": "threat-actor--86691ded-72cc-4ccc-a557-f18d0cc7cd88",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--d9fabf90-d6cd-4664-9f42-4c0d45ca2f21",
+			"created": "2026-07-09T14:56:20.534Z",
+			"modified": "2026-07-09T14:56:20.534Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--2818c180-291d-414f-82ea-08dbbf4aaa47",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--e0882097-ba77-4b0e-a40b-b2dc0ba9cddc",
+			"created": "2026-07-09T14:56:20.568Z",
+			"modified": "2026-07-09T14:56:20.568Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--ee43b310-314d-4617-aa04-6347487f8aa1",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "relationship",
+			"id": "relationship--ed672581-e38e-4641-b6a6-f93cd426d29b",
+			"created": "2026-07-09T14:56:20.547Z",
+			"modified": "2026-07-09T14:56:20.547Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"relationship_type": "indicates",
+			"source_ref": "indicator--56b12439-ff27-471c-8116-117c408ff6a1",
+			"target_ref": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "report",
+			"id": "report--5c8e14ad-6083-47b1-9cfd-8c72c800c5bd",
+			"created": "2026-07-21T14:36:32.205Z",
+			"modified": "2026-07-21T16:16:09.540Z",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			],
+			"name": "AA26-097A Iranian-Affiliated Cyber Actors Exploit Programmable Logic Controllers Across US Critical Infrastructure",
+			"description": "This STIX file provides indicators of compromise (IOCs) associated with malicious activity reported in CISA CSA, AA26-097A Iranian-Affiliated Cyber Actors Exploit Programmable Logic Controllers Across US Critical Infrastructure.",
+			"published": "2026-07-21T00:00:00.000Z",
+			"object_refs": [
+				"attack-pattern--2270b236-197e-4cf0-9fb5-a5be6fb8412d",
+				"attack-pattern--60ebf64b-2844-4d73-bdf3-1298a383f5f5",
+				"attack-pattern--9e71363e-f68a-46f3-abe3-0b542f706eea",
+				"attack-pattern--d2ac2d2b-d219-4747-8c2f-81fd87845e1c",
+				"attack-pattern--ed077615-7892-4a97-85a5-082df0d8574f",
+				"indicator--0ad78ef7-dcc3-4e9d-914b-9a3790371af4",
+				"indicator--1992425f-921a-42da-a526-efdf23119cb2",
+				"indicator--2818c180-291d-414f-82ea-08dbbf4aaa47",
+				"indicator--2ebee430-4158-4c78-b77e-5a4ceede1690",
+				"indicator--48c8d277-44fd-4927-b436-82d32f46c949",
+				"indicator--56b12439-ff27-471c-8116-117c408ff6a1",
+				"indicator--5cd6809f-082f-49ae-bfe1-36ec6d331704",
+				"indicator--809a6b17-8ab1-492c-8b4e-cdf257c77827",
+				"indicator--9cbb4532-403a-4884-9a11-5a92f98b029b",
+				"indicator--9da4d819-f8f0-4f17-9949-0c0521c9c4eb",
+				"indicator--a06c4b02-eb0b-4bf6-a960-1d313a0950a7",
+				"indicator--a109a394-b8b8-48c0-949c-845ce48ddb33",
+				"indicator--a4a1f841-dbcc-4058-b3c3-fbdb2e3bc61d",
+				"indicator--bfc273e8-b1ff-4e1d-a148-081672cb1cfd",
+				"indicator--c573e7cc-2e3d-42e8-ad17-b16eabe9f0d0",
+				"indicator--c81fe01c-c03a-4a43-adf3-c6392a964d30",
+				"indicator--e1844465-6a12-4b57-93fa-45eb5e67ea97",
+				"indicator--ecce5c40-3b3c-4f32-bf16-3076f553fdc0",
+				"indicator--ee43b310-314d-4617-aa04-6347487f8aa1",
+				"indicator--f08995a3-c1e0-460b-bf86-dd471ad54878",
+				"indicator--ff491c85-02ba-46c3-90e0-176295b255ba",
+				"malware--6aa373b9-a228-4919-91c9-a484c9941ca3",
+				"malware--85b0fbcb-7ca2-4d1b-9f5a-809002ddb6d3",
+				"relationship--232170cd-2955-4f75-9f73-098433ee2c84",
+				"relationship--4ce27568-d932-400a-9308-c4ed0ad3798c",
+				"relationship--53c1a983-df45-4380-8119-33ca85e8ec72",
+				"relationship--8a8fc1e6-6ad7-453e-bc02-87bf2148b3c2",
+				"relationship--9c7dbb1f-9d40-4b91-a26b-28a8c3ec0c87",
+				"relationship--c21afd84-5bfa-40e9-a681-71ac0d312d7d",
+				"relationship--cfe77433-c048-415f-b163-34e36530061c",
+				"relationship--d9fabf90-d6cd-4664-9f42-4c0d45ca2f21",
+				"relationship--e0882097-ba77-4b0e-a40b-b2dc0ba9cddc",
+				"relationship--ed672581-e38e-4641-b6a6-f93cd426d29b",
+				"threat-actor--1cad666d-497a-4146-8099-1b7077d64c0a",
+				"threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+				"threat-actor--86691ded-72cc-4ccc-a557-f18d0cc7cd88",
+				"threat-actor--aaf3c55a-264e-466e-8fe9-0e5480a146ff",
+				"threat-actor--e06a41df-912d-4330-ae99-1625206f2f58",
+				"threat-actor--f32db75e-ce13-45b0-b2d6-bf65d53fa637",
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"location--78a7f0f3-ea60-4ca2-894e-9e825b94b592",
+				"relationship--b6fe158f-fa95-4a40-ac68-78e480a54c69"
+			],
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01"
+		},
+		{
+			"spec_version": "2.1",
+			"type": "threat-actor",
+			"id": "threat-actor--1cad666d-497a-4146-8099-1b7077d64c0a",
+			"created": "2022-09-09T15:50:40.427Z",
+			"modified": "2025-08-14T17:55:35.684Z",
+			"name": "Islamic Revolutionary Guard Corps",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "threat-actor",
+			"id": "threat-actor--39db5ac8-af80-4114-9077-4b7ebae5b490",
+			"created": "2026-01-07T09:56:57.649Z",
+			"modified": "2026-05-01T16:38:48.756Z",
+			"name": "HYDROKITTEN",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "threat-actor",
+			"id": "threat-actor--86691ded-72cc-4ccc-a557-f18d0cc7cd88",
+			"created": "2023-10-11T12:16:59.589Z",
+			"modified": "2026-07-09T14:56:20.640Z",
+			"name": "CYBER AVENG3RS",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "threat-actor",
+			"id": "threat-actor--aaf3c55a-264e-466e-8fe9-0e5480a146ff",
+			"created": "2024-11-21T15:14:03.651Z",
+			"modified": "2025-08-20T00:41:57.989Z",
+			"name": "BAUXITE",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "threat-actor",
+			"id": "threat-actor--e06a41df-912d-4330-ae99-1625206f2f58",
+			"created": "2026-07-20T12:54:25.412Z",
+			"modified": "2026-07-21T16:16:09.388Z",
+			"name": "APT Iran",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"spec_version": "2.1",
+			"type": "threat-actor",
+			"id": "threat-actor--f32db75e-ce13-45b0-b2d6-bf65d53fa637",
+			"created": "2026-04-22T12:02:22.669Z",
+			"modified": "2026-07-09T14:56:20.443Z",
+			"name": "Iranian-affiliated APT",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"type": "marking-definition",
+			"spec_version": "2.1",
+			"id": "marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+			"created": "2026-07-21T16:23:31.642Z",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01",
+			"extensions": {
+				"extension-definition--3a65884d-005a-4290-8335-cb2d778a83ce": {
+					"extension_type": "property-extension",
+					"identifier": "isa:guide.19001.DFTA-a9bdb603-7f4f-44c6-acb0-d47f614e64b2",
+					"create_date_time": "2026-07-21T16:23:31.643Z",
+					"responsible_entity_custodian": "USA.DHS.CISA.CSD.TH",
+					"responsible_entity_originator": "USA.DHS.CISA.CSD.TH",
+					"policy_reference": "urn:isa:policy:acs:ns:v3.0?privdefault=permit&sharedefault=permit",
+					"control_set": {
+						"classification": "U",
+						"formal_determination": [
+							"INFORMATION-DIRECTLY-RELATED-TO-CYBERSECURITY-THREAT",
+							"PUBREL"
+						]
+					},
+					"authority_reference": [
+						"urn:isa:authority:ais"
+					],
+					"access_privilege": [
+						{
+							"privilege_action": "ANONYMOUSACCESS",
+							"rule_effect": "permit",
+							"privilege_scope": {
+								"entity": [
+									"ALL"
+								],
+								"permitted_nationalities": [
+									"ALL"
+								],
+								"permitted_organizations": [
+									"ALL"
+								]
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"administrative_area": "US-DC",
+			"country": "US",
+			"created": "2021-03-13T20:09:21.286293Z",
+			"created_by_ref": "identity--8ce3f695-d5a4-4dc8-9e93-a65af453a31a",
+			"id": "location--78a7f0f3-ea60-4ca2-894e-9e825b94b592",
+			"modified": "2021-12-01T16:19:51.601791Z",
+			"name": "District of Columbia",
+			"spec_version": "2.1",
+			"type": "location",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		},
+		{
+			"type": "relationship",
+			"spec_version": "2.1",
+			"id": "relationship--b6fe158f-fa95-4a40-ac68-78e480a54c69",
+			"created_by_ref": "identity--b3bca3c2-1f3d-4b54-b44f-dac42c3a8f01",
+			"created": "2024-08-07T16:30:26.628Z",
+			"modified": "2024-08-07T16:30:26.628Z",
+			"source_ref": "identity--b1160532-b8f3-4cfa-9b7d-423e253fbc59",
+			"relationship_type": "located-at",
+			"target_ref": "location--78a7f0f3-ea60-4ca2-894e-9e825b94b592",
+			"object_marking_refs": [
+				"marking-definition--d78afe16-6ee9-4b4c-925e-b8c622b2a692",
+				"marking-definition--94868c89-83c2-464b-929b-a1a8aa3c8487"
+			]
+		}
+	]
+}

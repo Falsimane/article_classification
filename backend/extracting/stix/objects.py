@@ -17,12 +17,14 @@ from stix2 import (
     TLP_WHITE,
     Bundle,
     Campaign,
+    CourseOfAction,
     ExternalReference,
     Identity,
     Infrastructure,
     IntrusionSet,
     Location,
     Malware,
+    MalwareAnalysis,
     Relationship,
     Report,
     Software,
@@ -31,13 +33,15 @@ from stix2 import (
     Vulnerability,
 )
 
+from backend.extracting.stix.specs import RELATIONS, TYPE_SPECS
 from backend.preprocessing.cleaning.text.evidence import normalize_name
 
 # Espace de noms fixe du projet : ne jamais le modifier, sous peine de changer tous les identifiants.
 PROJECT_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "https://cti-knowledge-graph.local/stix/2.1")
 
-# Entités que l'agent peut déclarer (couche sémantique) ; les techniques ATT&CK sont les objets officiels de MITRE
-ENTITY_CLASSES = {
+# Entités que le modèle peut déclarer (couche sémantique, registre `specs.TYPE_SPECS`) ; les techniques ATT&CK sont les objets
+# officiels de MITRE
+_CLASSES = {
     "intrusion-set": IntrusionSet,
     "threat-actor": ThreatActor,
     "campaign": Campaign,
@@ -48,24 +52,14 @@ ENTITY_CLASSES = {
     "identity": Identity,
     "location": Location,
     "software": Software,
+    "course-of-action": CourseOfAction,
+    "malware-analysis": MalwareAnalysis,
 }
+ENTITY_CLASSES = {t: _CLASSES[t] for t in TYPE_SPECS}
 
-# Relations admises (sources, relations, cibles) : celles de STIX 2.1 entre ces types ; un produit visé (`software`, observable
-# STIX) est relié comme dans OpenCTI (« software has vulnerability », « … targets software »). Une vulnérabilité, un lieu, une
-# identité ne sont jamais la source d'une relation. `DraftGraph.relate` refuse le reste ; le prompt affiche la même table.
-RELATIONS = (
-    (("campaign",), ("attributed-to",), ("intrusion-set", "threat-actor")),
-    (("intrusion-set",), ("attributed-to",), ("threat-actor",)),
-    (("intrusion-set", "threat-actor", "campaign", "malware", "tool"), ("uses",), ("attack-pattern", "malware", "tool", "infrastructure")),
-    (("intrusion-set", "threat-actor", "campaign", "malware", "tool", "attack-pattern"), ("targets",), ("identity", "location", "vulnerability", "software")),
-    (("malware",), ("exploits",), ("vulnerability",)),
-    (("software",), ("has",), ("vulnerability",)),
-    (("software",), ("related-to",), ("identity",)),
-    (("malware", "tool"), ("drops",), ("malware", "tool")),
-    (("malware",), ("downloads",), ("malware", "tool")),
-    (("malware",), ("variant-of",), ("malware",)),
-    (("malware",), ("communicates-with", "beacons-to", "exfiltrates-to"), ("infrastructure",)),
-)
+# Relations admises (sources, relations, cibles) : table complète de STIX 2.1 entre ces types (`specs.RELATIONS`). Une
+# vulnérabilité, un lieu, une identité ne sont jamais la source d'une relation (sauf identity located-at). `DraftGraph.relate`
+# refuse le reste ; le prompt affiche la même table.
 ALLOWED_RELATIONS = frozenset((s, r, t) for sources, rels, targets in RELATIONS for s in sources for r in rels for t in targets)
 
 
@@ -115,6 +109,9 @@ def entity(stix_type: str, name: str, ctx: ArticleContext, **props):
         raise ValueError(f"type « {stix_type} » hors périmètre (types : {', '.join(ENTITY_CLASSES)})")
     if stix_type == "software":  # observable : identifiant calculé par stix2 selon la norme, ni auteur ni dates
         return Software(name=name, object_marking_refs=[TLP_WHITE.id], **props)
+    if stix_type == "malware-analysis":  # sans `name` : le produit (ou la méthode) d'analyse et son verdict
+        key = {"product": _name_key(name), "result": props.get("result", "")}
+        return MalwareAnalysis(id=deterministic_id(stix_type, **key), product=name, **ctx.common, **props)
     if stix_type == "vulnerability":
         cve = next((r["external_id"] for r in props.get("external_references", []) if r.get("source_name") == "cve"), None)
         key = {"cve": cve.upper()} if cve else {"name": _name_key(name)}
