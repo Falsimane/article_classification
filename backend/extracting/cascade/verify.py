@@ -110,7 +110,7 @@ def decide(claim: Claim, verdict: Verdict | None, agents: list[str]) -> Decision
         if verdict.agent == 0:
             if source:  # une technique au niveau du rapport n'a pas d'auteur nommé : c'est attendu
                 return Decision("drop", reason="auteur de l'action non dit")
-        elif agents[verdict.agent - 1] != source:
+        elif agents[verdict.agent - 1] not in (source, claim.key[2]):  # l'agent nommé est la cible (« X uses malware ») : rien à déplacer
             new_source = agents[verdict.agent - 1]
     if claim.kind == "technique":
         if verdict.mechanism == "none":

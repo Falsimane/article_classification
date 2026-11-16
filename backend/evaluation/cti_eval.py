@@ -233,7 +233,10 @@ def compare(groups: list[list[Path]], samples: int = 4000, seed: int = 0) -> str
     names = [" + ".join(p.name for p in g) for g in groups]
     rng = random.Random(seed)
     draws = [[rng.choice(ids) for _ in ids] for _ in range(samples)]
+    judged = {(p / "semantic_matches.json").exists() for g in groups for p in g}
     lines = [f"# Comparaison ({len(ids)} articles communs)", "", *[f"- **{chr(65 + i)}** : {n}" for i, n in enumerate(names)], ""]
+    if len(judged) > 1:
+        lines += ["**ATTENTION : certains dossiers ont un appariement sémantique (`--semantic`) et d'autres non ; les écarts ne sont pas comparables.**", ""]
     lines += ["| Score | " + " | ".join(chr(65 + i) for i in range(len(groups))) + " | " + " | ".join(f"{chr(65 + i)} − A (IC 95 %)" for i in range(1, len(groups))) + " |",
               "|---" * (2 * len(groups)) + "|"]  # fmt: skip
     for key, label in _METRICS:
@@ -314,6 +317,7 @@ def main() -> None:
     if losses:
         summary["losses"] = tally(list(losses.values()))
     articles = [{**s.as_dict(), **({"losses": losses[s.article_id]} if s.article_id in losses else {})} for s in scores]
+    summary["semantic"] = (out_dir / "semantic_matches.json").exists()  # méthode de score : --compare refuse le mélange
     summary["semantic_matches"] = {str(k): v for k, v in sorted(semantic.items()) if v}
     report = {"system": out_dir.name, "summary": summary, "runs": runs, "wall_seconds": wall, "articles": articles}
     (out_dir / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")

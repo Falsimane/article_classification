@@ -1,5 +1,5 @@
 """Appariement sémantique de l'évaluation : une entité prédite et une entité du gold qui désignent le même objet sous deux
-libellés différents (« C++ loader » / « first stage C++ DLL implant ») ne partagent aucun nom, donc aucun crédit.
+libellés différents (« <rôle> loader » / « first stage <rôle> implant ») ne partagent aucun nom, donc aucun crédit.
 
 Un juge (le modèle, sortie contrainte) décide, classe par classe, quelles entités restées sans appariement désignent la même
 chose, d'après leur nom, leur description et les phrases de leurs relations. Il ne voit que les entités que le score n'a pas

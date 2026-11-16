@@ -41,3 +41,8 @@ def test_correction_asks_one_label_per_refused_component():
     fix = {"labels": [{"item": 1, "name": "first-stage loader"}, {"item": 2, "name": "second-stage downloader"}]}
     draft, sids, _ = _run({"entities": two, "entities:corrections": fix})
     assert [draft.name_of(s) for s in sids] == ["first-stage loader", "second-stage downloader"]
+
+
+def test_corrected_entity_is_recognised_by_its_file_name():
+    draft, sids, _ = _run({"entities": _entity("alpha_loader.dll"), "entities:corrections": {"labels": [{"item": 1, "name": "first-stage loader"}]}})
+    assert draft.resolve("alpha_loader.dll")[0] == sids[0]
