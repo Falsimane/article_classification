@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Révision du gold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #eef1f4; --surface: #ffffff; --ink: #1d2733; --muted: #5e6b78; --line: #d5dbe2;
+  --focus: #34468a; --move: #b06d12; --tint: #f6f8fa; --fade: 0.12;
+  --actor: #7a3e9d; --campaign: #34468a; --code: #b23b3b; --infra: #2f7f8a; --tech: #5e6b78; --target: #2d7a64;
+  --ui: "Public Sans", system-ui, sans-serif; --text: "Source Serif 4", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #1a1f27; --surface: #222833; --ink: #e3e8ee; --muted: #9aa6b2; --line: #343c48; --focus: #8d9de0;
+    --move: #e0a54a; --tint: #262d38; --actor: #c08fe0; --campaign: #8d9de0; --code: #e57373; --infra: #6cc3cf; --tech: #9aa6b2; --target: #5cbf9f; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--ui); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.app { display: grid; grid-template-columns: 320px 1fr; grid-template-rows: auto 1fr; height: 100vh; }
+header { grid-column: 1 / -1; display: flex; align-items: center; gap: 20px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+header h1 { font-size: 16px; font-weight: 700; margin: 0; }
+.tabs { display: flex; gap: 4px; }
+.tabs a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 3px 10px; border-radius: 6px; border: 1px solid transparent; }
+.tabs a[aria-current="page"] { color: var(--focus); border-color: var(--focus); font-weight: 600; }
+.counts { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.counts b { color: var(--ink); }
+.saved { margin-left: auto; color: var(--muted); font-size: 13px; min-width: 9ch; text-align: right; }
+
+.side-list { overflow-y: auto; border-right: 1px solid var(--line); padding: 8px 0 24px; }
+.filter { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 16px 10px; }
+.filter button { border: 1px solid var(--line); background: none; border-radius: 6px; padding: 2px 10px; font-size: 13px; cursor: pointer; }
+.filter button[aria-pressed="true"] { border-color: var(--focus); color: var(--focus); font-weight: 600; }
+.group { width: 100%; text-align: left; border: 0; background: none; cursor: pointer; padding: 12px 16px 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.group small { display: block; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item { display: flex; gap: 8px; align-items: baseline; width: 100%; border: 0; background: none; text-align: left; padding: 4px 16px; cursor: pointer; font-size: 13.5px; }
+.item:hover { background: var(--tint); }
+.item[aria-current="true"] { background: var(--tint); box-shadow: inset 3px 0 0 var(--focus); }
+.mark { flex: none; width: 16px; text-align: center; font-weight: 700; color: var(--muted); }
+.mark.move { color: var(--move); }
+.item .tid { font-variant-numeric: tabular-nums; font-weight: 600; }
+.item .who { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+main { overflow-y: auto; padding: 20px 28px 40px; display: grid; gap: 16px; align-content: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px; }
+.where { color: var(--muted); font-size: 13px; margin: 0 0 4px; }
+.tech { font-size: 20px; font-weight: 700; line-height: 1.25; margin: 0 0 4px; }
+.tech .tid { color: var(--focus); margin-right: 8px; }
+.flow { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+.flow b { color: var(--ink); } .flow .to { color: var(--move); font-weight: 600; }
+blockquote { font: 16px/1.6 var(--text); margin: 8px 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); max-width: 75ch; }
+.ctx { color: var(--muted); font-size: 13.5px; max-width: 80ch; margin: 0 0 12px; }
+.choices { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.choice { border: 1.5px solid var(--line); background: none; border-radius: 8px; padding: 4px 10px; cursor: pointer; font-size: 13.5px; text-align: left; }
+.choice kbd { font: 700 12px var(--ui); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-right: 6px; }
+.choice .grp { color: var(--muted); font-size: 11.5px; margin-left: 4px; }
+.choice[aria-pressed="true"] { border-color: var(--move); color: var(--move); font-weight: 600; }
+.choice.keep[aria-pressed="true"] { border-color: var(--focus); color: var(--focus); }
+textarea { width: 100%; min-height: 44px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font: 14px/1.4 var(--ui); background: var(--paper); color: var(--ink); }
+.keys { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+.graph-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.graph-head h2 { font-size: 14px; margin: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; background: var(--c); vertical-align: middle; }
+.graph { overflow: auto; max-height: 70vh; border-top: 1px solid var(--line); padding-top: 8px; }
+svg text { font: 11px var(--ui); fill: var(--ink); }
+svg .layer { font: 600 11px var(--ui); fill: var(--muted); }
+.edge { fill: none; stroke: var(--muted); stroke-width: 1.1; opacity: 0.55; }
+.edge.targets { stroke: var(--target); } .edge.attributed-to { stroke: var(--actor); }
+.edge.moved { stroke: var(--move); stroke-width: 2.2; opacity: 0.9; }
+.edge.old { stroke: var(--move); stroke-dasharray: 5 4; stroke-width: 2.2; opacity: 0.9; }
+.edge.hl { stroke: var(--focus); stroke-width: 3; opacity: 1; }
+svg.dim .edge:not(.hl), svg.dim .node:not(.hl) { opacity: var(--fade); }
+.node { cursor: pointer; }
+.node circle { stroke: var(--surface); stroke-width: 1.5; }
+.node.hl circle { stroke: var(--focus); stroke-width: 3; }
+.empty { color: var(--muted); font-style: italic; }
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height: auto; }
+  .side-list { max-height: 30vh; border-right: 0; border-bottom: 1px solid var(--line); }
+  main { padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Révision du gold</h1>
+    <div class="tabs"><a href="/">Audit</a><a href="/revision" aria-current="page">Révision du gold et graphe</a></div>
+    <div class="counts" id="counts"></div>
+    <div class="saved" id="saved" role="status"></div>
+  </header>
+  <div class="side-list" aria-label="Relations du gold à réviser">
+    <div class="filter" id="filters">
+      <button data-f="all" aria-pressed="true">Toutes</button>
+      <button data-f="move" aria-pressed="false">Déplacées</button>
+      <button data-f="campaign" aria-pressed="false">Parties de la campagne</button>
+    </div>
+    <div id="list"></div>
+  </div>
+  <main>
+    <section class="card" id="detail"><p class="empty">Chargement…</p></section>
+    <section class="card">
+      <div class="graph-head">
+        <h2 id="gtitle">Graphe</h2>
+        <div class="filter" id="views" style="padding:0">
+          <button data-v="revised" aria-pressed="true">Gold révisé</button>
+          <button data-v="original" aria-pressed="false">Gold d'origine</button>
+          <button data-v="pred" aria-pressed="false">Prédiction</button>
+        </div>
+        <div class="legend">
+          <span style="--c:var(--actor)">groupe</span><span style="--c:var(--campaign)">campagne</span>
+          <span style="--c:var(--code)">malware / outil</span><span style="--c:var(--infra)">infrastructure</span>
+          <span style="--c:var(--tech)">technique</span><span style="--c:var(--target)">cible</span>
+          <span style="--c:var(--move)">déplacée (trait plein) / ancien porteur (tirets)</span>
+        </div>
+      </div>
+      <div class="graph" id="graph"></div>
+    </section>
+  </main>
+</div>
+<script>
+// Aucun innerHTML : tout texte (article, gold) passe par textContent ; le SVG est construit nœud par nœud.
+const $ = (id) => document.getElementById(id);
+const SVG = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v); }
+  for (const k of kids) if (k) n.append(k);
+  return n;
+}
+function sv(tag, attrs = {}, text) {
+  const n = document.createElementNS(SVG, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+let articles = [], flat = [], current = 0, filter = "all", view = "revised", graph = null, graphKey = "", pinned = null, run = "";
+
+async function load() {
+  const r = await fetch("/api/revision");
+  if (!r.ok) { $("detail").replaceChildren(el("p", { class: "empty", text: "Le serveur ne répond pas. Relancez fp_audit --serve." })); return; }
+  const data = await r.json();
+  run = data.run; articles = data.articles.filter((a) => a.rows.length);
+  $("views").querySelector('[data-v="pred"]').textContent = `Prédiction (${run})`;
+  flat = articles.flatMap((a) => a.rows.map((row, i) => ({ a, row, i })));
+  const wanted = Number(new URLSearchParams(location.search).get("article"));
+  current = Math.max(0, flat.findIndex((x) => x.a.article === wanted)); render();
+}
+
+const shown = (x) => filter === "all" || (filter === "move" ? x.row.decision === "move" : x.row.source.startsWith("campaign:"));
+const nameOf = (a, sid) => a.carriers[sid] || sid;
+
+function renderCounts() {
+  const moved = flat.filter((x) => x.row.decision === "move").length;
+  $("counts").replaceChildren(el("b", { text: `${moved}` }), ` déplacées sur ${flat.length} relations « uses → technique »`);
+}
+
+function renderList() {
+  const list = $("list"); list.replaceChildren();
+  let art = null;
+  flat.forEach((x, idx) => {
+    if (!shown(x) && idx !== current) return;
+    if (x.a !== art) {
+      art = x.a;
+      const g = el("button", { class: "group" }, `Article ${x.a.article}`, el("small", { text: x.a.title }));
+      g.onclick = () => { current = flat.findIndex((y) => y.a === x.a); pinned = null; render(); };
+      list.append(g);
+    }
+    const target = x.row.decision === "move" ? nameOf(x.a, x.row.new_source) : x.row.source;
+    const b = el("button", { class: "item", "aria-current": String(idx === current) },
+      el("span", { class: "mark" + (x.row.decision === "move" ? " move" : ""), text: x.row.decision === "move" ? "→" : "·" }),
+      el("span", { class: "tid", text: x.row.technique }), el("span", { class: "who", text: target.split(":").slice(1).join(":") }));
+    b.onclick = () => { current = idx; pinned = null; render(); };
+    list.append(b);
+  });
+  list.querySelector('[aria-current="true"]')?.scrollIntoView({ block: "nearest" });
+}
+
+function options(x) {
+  const cand = new Set(x.row.candidates);
+  const ids = Object.keys(x.a.carriers).sort((p, q) => (cand.has(q) - cand.has(p)) || x.a.carriers[p].localeCompare(x.a.carriers[q]));
+  return ids;
+}
+
+function renderDetail() {
+  const x = flat[current]; const box = $("detail");
+  if (!x) { box.replaceChildren(el("p", { class: "empty", text: "Aucune feuille de révision. Lancez gold_carriers worksheet all." })); return; }
+  const r = x.row;
+  const keep = el("button", { class: "choice keep", "aria-pressed": String(r.decision !== "move") }, el("kbd", { text: "K" }), `Garder : ${r.source}`);
+  keep.onclick = () => decide("keep", null);
+  const choices = [keep];
+  options(x).forEach((sid, k) => {
+    if (x.a.carriers[sid] === r.source) return;
+    const b = el("button", { class: "choice", "aria-pressed": String(r.decision === "move" && r.new_source === sid) },
+      k < 9 ? el("kbd", { text: String(k + 1) }) : null, x.a.carriers[sid],
+      r.candidates.includes(sid) ? el("span", { class: "grp", text: "même groupe d'activité" }) : null);
+    b.onclick = () => decide("move", sid);
+    choices.push(b);
+  });
+  const reason = el("textarea", { id: "reason", placeholder: "Raison : la phrase qui désigne l'auteur de l'action (C pour écrire, Échap pour sortir)" });
+  reason.value = r.reason || "";
+  reason.addEventListener("change", () => decide(r.decision, r.new_source, reason.value));
+  box.replaceChildren(...[
+    el("p", { class: "where", text: `Article ${x.a.article} — ${x.a.title}` }),
+    el("p", { class: "tech" }, el("span", { class: "tid", text: r.technique }), r.technique_name),
+    el("p", { class: "flow" }, "Gold : ", el("b", { text: r.source }),
+      r.decision === "move" ? el("span", { class: "to", text: `  →  ${nameOf(x.a, r.new_source)}` }) : " (gardé)"),
+    el("blockquote", { text: r.quote || "(pas de citation)" }),
+    r.context ? el("p", { class: "ctx", text: r.context }) : null,
+    el("div", { class: "choices" }, ...choices), reason,
+    el("p", { class: "keys", text: "K garder · 1–9 déplacer vers ce porteur · ↑ ↓ naviguer · G changer de vue du graphe · clic sur un nœud : ses relations" }),
+  ].filter(Boolean));
+}
+
+async function decide(decision, sid, reasonText) {
+  const x = flat[current]; if (!x) return;
+  const reason = reasonText ?? x.row.reason ?? "";
+  $("saved").textContent = "Enregistrement…";
+  const r = await fetch("/api/revision", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ article: x.a.article, relation_id: x.row.relation_id, decision, new_source: sid, reason }) });
+  if (!r.ok) { $("saved").textContent = await r.text(); return; }
+  Object.assign(x.row, { decision, new_source: decision === "move" ? sid : null, reason });
+  $("saved").textContent = "Enregistré"; graphKey = ""; render();
+}
+
+// --- Graphe : couches (groupe, campagne, code et infrastructure, techniques par tactique, cibles) ---------------------
+const LAYERS = [
+  { name: "Groupes", types: ["intrusion-set", "threat-actor"], color: "--actor" },
+  { name: "Campagnes", types: ["campaign"], color: "--campaign" },
+  { name: "Malwares, outils, infrastructure", types: ["malware", "tool", "infrastructure"], color: "--code" },
+  { name: "Techniques", types: ["attack-pattern"], color: "--tech" },
+  { name: "Cibles et autres", types: null, color: "--target" },
+];
+function colorOf(type) {
+  if (type === "intrusion-set" || type === "threat-actor") return "var(--actor)";
+  if (type === "campaign") return "var(--campaign)";
+  if (type === "malware" || type === "tool") return "var(--code)";
+  if (type === "infrastructure") return "var(--infra)";
+  if (type === "attack-pattern") return "var(--tech)";
+  return "var(--target)";
+}
+const short = (s, n) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+
+async function loadGraph() {
+  const x = flat[current]; if (!x) return;
+  const key = `${x.a.article}|${view}`;
+  if (key !== graphKey) {
+    const r = await fetch(`/api/graph?article=${x.a.article}&view=${view}`);
+    graph = r.ok ? await r.json() : { nodes: [], edges: [], tactic_order: [] };
+    graphKey = key;
+  }
+  drawGraph();
+}
+
+function drawGraph() {
+  const x = flat[current], box = $("graph");
+  $("gtitle").textContent = `Graphe — article ${x.a.article}`;
+  if (!graph.nodes.length) { box.replaceChildren(el("p", { class: "empty", text: "Pas de bundle pour cette vue." })); return; }
+  const W = Math.max(900, box.clientWidth - 8), PER = Math.max(6, Math.floor((W - 160) / 118)), ROW = 74;
+  const order = graph.tactic_order || [];
+  const rank = (n) => { const t = (n.tactics || []).map((t) => order.indexOf(t)).filter((i) => i >= 0); return t.length ? Math.min(...t) : 99; };
+  const placed = new Map(); let y = 34; const labels = [];
+  for (const L of LAYERS) {
+    const inLayer = graph.nodes.filter((n) => L.types ? L.types.includes(n.type) : !LAYERS.slice(0, 4).some((M) => M.types.includes(n.type)));
+    if (!inLayer.length) continue;
+    inLayer.sort((p, q) => (L.types?.[0] === "attack-pattern" ? rank(p) - rank(q) || (p.technique || "").localeCompare(q.technique || "") : p.type.localeCompare(q.type) || p.name.localeCompare(q.name)));
+    labels.push([L.name, y]);
+    for (let i = 0; i < inLayer.length; i += PER) {
+      const row = inLayer.slice(i, i + PER), step = (W - 160) / row.length;
+      row.forEach((n, k) => placed.set(n.id, { n, x: 150 + step * (k + 0.5), y: y + 12 }));
+      y += ROW;
+    }
+    y += 10;
+  }
+  const svg = sv("svg", { width: W, height: y + 10, viewBox: `0 0 ${W} ${y + 10}`, role: "img", "aria-label": "Graphe de l'article" });
+  for (const [name, ly] of labels) svg.append(sv("text", { class: "layer", x: 8, y: ly + 16 }, name));
+  const r = x.row, techId = (graph.nodes.find((n) => n.technique === r.technique) || {}).id;
+  const selSource = view === "original" || r.decision !== "move" ? null : r.new_source;
+  const edgesG = sv("g"), nodesG = sv("g");
+  const highlight = new Set();
+  for (const e of graph.edges) {
+    const a = placed.get(e.source), b = placed.get(e.target); if (!a || !b) continue;
+    const midY = (a.y + b.y) / 2;
+    const path = sv("path", { d: `M${a.x},${a.y} C${a.x},${midY} ${b.x},${midY} ${b.x},${b.y}`, class: `edge ${e.rel}` });
+    const isRow = e.target === techId && (view === "original" ? e.id === r.relation_id : (e.id === r.relation_id || (r.decision === "move" && e.source === r.new_source)));
+    if (view === "revised" && (e.moved_from || (e.merged_from || []).length)) path.classList.add("moved");
+    if (view === "original" && r.decision === "move" && e.id === r.relation_id) path.classList.add("old");
+    const pin = pinned && (e.source === pinned || e.target === pinned);
+    if ((pinned ? pin : isRow)) { path.classList.add("hl"); highlight.add(e.source); highlight.add(e.target); }
+    path.append(sv("title", {}, `${placed.get(e.source).n.name} —${e.rel}→ ${placed.get(e.target).n.name}${(e.quotes || []).length ? "\n« " + e.quotes[0] + " »" : ""}`));
+    edgesG.append(path);
+  }
+  for (const { n, x: nx, y: ny } of placed.values()) {
+    const g = sv("g", { class: "node" + (highlight.has(n.id) ? " hl" : ""), transform: `translate(${nx},${ny})` });
+    g.append(sv("circle", { r: n.type === "attack-pattern" ? 6 : 9, fill: colorOf(n.type) }));
+    const label = n.technique ? `${n.technique} ${n.name}` : n.name;
+    g.append(sv("text", { "text-anchor": "middle", y: 22 }, short(label, 22)));
+    g.append(sv("title", {}, `${n.type} : ${label}${n.tactics?.length ? " [" + n.tactics.join(", ") + "]" : ""}`));
+    g.addEventListener("click", (ev) => { ev.stopPropagation(); pinned = pinned === n.id ? null : n.id; drawGraph(); });
+    nodesG.append(g);
+  }
+  svg.append(edgesG, nodesG);
+  if (highlight.size) svg.classList.add("dim");
+  svg.addEventListener("click", () => { if (pinned) { pinned = null; drawGraph(); } });
+  box.replaceChildren(svg);
+}
+
+function render() { renderCounts(); renderList(); renderDetail(); loadGraph(); }
+
+$("filters").querySelectorAll("button").forEach((b) => (b.onclick = () => {
+  filter = b.dataset.f; $("filters").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); renderList();
+}));
+function setView(v) {
+  view = v; $("views").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === v))); loadGraph();
+}
+$("views").querySelectorAll("button").forEach((b) => (b.onclick = () => setView(b.dataset.v)));
+function step(d) {
+  for (let k = current + d; k >= 0 && k < flat.length; k += d) if (shown(flat[k])) { current = k; pinned = null; render(); return; }
+}
+document.addEventListener("keydown", (e) => {
+  if (e.target.id === "reason") { if (e.key === "Escape") e.target.blur(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const x = flat[current]; if (!x) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowRight") { e.preventDefault(); step(1); }
+  else if (e.key === "ArrowUp" || e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+  else if (e.key.toLowerCase() === "k") decide("keep", null);
+  else if (/^[1-9]$/.test(e.key)) {
+    const ids = options(x); const sid = ids[Number(e.key) - 1];
+    if (sid && x.a.carriers[sid] !== x.row.source) decide("move", sid);
+  }
+  else if (e.key.toLowerCase() === "g") { const vs = ["revised", "original", "pred"]; setView(vs[(vs.indexOf(view) + 1) % 3]); }
+  else if (e.key.toLowerCase() === "c") { e.preventDefault(); $("reason").focus(); }
+});
+window.addEventListener("resize", () => graph && drawGraph());
+load();
+</script>
+</body>
+</html>

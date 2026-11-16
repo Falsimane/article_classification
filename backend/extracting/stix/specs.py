@@ -1,10 +1,10 @@
 """Registre des types STIX 2.1 extraits par le modèle (couche sémantique) et table complète de leurs relations.
 
 Une entrée par type : définition montrée au modèle (d'après la norme STIX 2.1, sans aucun nom tiré d'un article), forme de la
-déclaration. Les relations sont celles du résumé des relations de STIX 2.1 (annexe « Relationship Summary ») entre ces types,
-plus quelques extensions marquées :
-- ATT&CK : un outil « uses » une technique, un malware ou un outil (convention des données MITRE ATT&CK) ;
-- OpenCTI : le produit visé (`software`, observable) « has » une vulnérabilité, est visé (« targets »), est relié à son éditeur.
+déclaration. Les relations sont exactement celles que la norme définit entre ces types (docs/stix-v2.1-os.pdf, sections
+« 4.x.2 Relationships », qui font foi sur l'annexe B), sans extension : ni `related-to`, ni type libre, ni `software` (observable
+sans relation définie). Seule orientation interne hors norme : `tool uses attack-pattern` (porteur d'une technique, comme dans
+les données ATT&CK), écrite `attack-pattern uses tool` dans le bundle (`objects.TOOL_TECHNIQUE`).
 Les IOC (adresses, domaines, URL, fichiers), `indicator` et `observed-data` restent dans la couche observable, extraite par
 règles : ils ne figurent ni ici ni dans la table.
 
@@ -28,7 +28,8 @@ TYPE_SPECS: dict[str, TypeSpec] = {
         "intrusion-set|<nom>|<alias1;alias2>",
     ),
     "threat-actor": TypeSpec(
-        "personne, organisation ou État réellement identifié derrière l'activité (commanditaire, individu nommé).",
+        "personne, organisation ou État réellement identifié derrière l'activité : individu nommé, ou État commanditaire auquel le "
+        "rapport rattache un groupe (« nation-state »). Jamais un gouvernement victime ou usurpé.",
         "threat-actor|<nom>|<alias1;alias2>",
     ),
     "campaign": TypeSpec(
@@ -37,30 +38,33 @@ TYPE_SPECS: dict[str, TypeSpec] = {
         "campaign|<nom descriptif en anglais>",
     ),
     "malware": TypeSpec(
-        "code malveillant nommé, ou composant que l'article désigne par un libellé descriptif (reprendre ce libellé).",
+        "code malveillant nommé, ou composant que l'article désigne par un libellé descriptif (reprendre ce libellé). Jamais un nom "
+        "de fichier (« <nom>.dll », « <nom>.log ») : c'est un IOC ; le composant prend le libellé que l'article lui donne.",
         "malware|<nom>|<alias1;alias2>",
     ),
     "tool": TypeSpec(
-        "logiciel légitime détourné par l'attaquant (outil d'administration, de tunnel, d'accès à distance, packer). Jamais une "
-        "fonction, un appel système ou une bibliothèque de programmation.",
+        "logiciel tiers légitime ou offensif employé par l'attaquant (outil d'administration, de tunnel, d'accès à distance, "
+        "packer). Un utilitaire livré avec le système d'exploitation n'est un outil que si ATT&CK le connaît comme logiciel ; "
+        "sinon seule la technique qui l'emploie est relevée. Jamais une fonction, un appel système ou une bibliothèque.",
         "tool|<nom>|<alias1;alias2>",
     ),
     "infrastructure": TypeSpec(
         "service ou système NOMMÉ ou décrit que l'attaquant emploie ou contrôle : serveur de commande (C2), botnet, service "
-        "d'hébergement ou de stockage détourné, réseau de relais. Jamais une IP, un domaine ou une URL (ce sont des IOC).",
+        "d'hébergement ou de stockage détourné, réseau de relais. Nommée avec les mots du texte, sans qualificatif ajouté. Jamais "
+        "une IP, un domaine ou une URL, ni dans le nom (ce sont des IOC) ; une entreprise d'hébergement n'est pas une infrastructure.",
         "infrastructure|<nom ou description courte>",
     ),
     "vulnerability": TypeSpec("vulnérabilité identifiée par une CVE.", "vulnerability|CVE-YYYY-NNNNN"),
-    "software": TypeSpec("produit logiciel légitime visé ou compromis, avec son éditeur.", "software|<produit>|<éditeur>"),
     "identity": TypeSpec(
-        "victime visée (organisation nommée, secteur entier) ou éditeur du produit visé. Jamais l'auteur du rapport, un chercheur "
-        "ou un éditeur de sécurité.",
+        "victime visée (organisation nommée, secteur entier), ou gouvernement commanditaire. Jamais l'auteur du rapport, un "
+        "chercheur ou un éditeur de sécurité ; une organisation dont le nom est usurpé dans un leurre n'est pas une victime ; un "
+        "pays est un location, jamais une identity.",
         "identity|<nom ou secteur>|<secteur STIX;classe>",
     ),
-    "location": TypeSpec("pays ou région visés, ou d'où provient l'attaquant.", "location|<pays>|<code ISO 3166-1>"),
+    "location": TypeSpec("pays ou région visés, ou d'où provient l'attaquant (toujours un location, jamais une identity).", "location|<pays>|<code ISO 3166-1>"),
     "course-of-action": TypeSpec(
-        "mesure de défense que le rapport recommande ou décrit contre l'attaque : correctif, configuration, blocage, détection. "
-        "Nom court qui résume l'action.",
+        "correctif ou mise à jour qui corrige une vulnérabilité nommée (CVE). Aucune autre recommandation (filtrage, blocage, "
+        "surveillance, produit de sécurité). Nom court qui résume l'action.",
         "course-of-action|<action courte en anglais>|<description d'une phrase>",
     ),
     "malware-analysis": TypeSpec(
@@ -71,7 +75,7 @@ TYPE_SPECS: dict[str, TypeSpec] = {
 }
 
 _ACTORS = ("campaign", "intrusion-set", "threat-actor")
-_TARGETS = ("identity", "location", "vulnerability", "software")
+_TARGETS = ("identity", "location", "vulnerability")
 
 # (sources, relations, cibles)
 RELATIONS: tuple[tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]], ...] = (
@@ -83,21 +87,20 @@ RELATIONS: tuple[tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]], ...] 
     (("malware",), ("authored-by",), ("intrusion-set", "threat-actor")),
     # Emploi (techniques, logiciels, infrastructure)
     ((*_ACTORS, "malware"), ("uses",), ("attack-pattern", "malware", "tool", "infrastructure")),
-    (("tool",), ("uses",), ("attack-pattern", "malware", "tool", "infrastructure")),  # ATT&CK pour attack-pattern / malware / tool
+    (("tool",), ("uses",), ("infrastructure",)),
     (("attack-pattern",), ("uses",), ("malware", "tool")),
     (("attack-pattern", "infrastructure", "tool"), ("delivers",), ("malware",)),
-    (("malware", "tool"), ("drops",), ("malware", "tool")),
-    (("malware",), ("downloads",), ("malware", "tool")),
+    (("malware",), ("drops", "downloads"), ("malware", "tool")),
+    (("tool",), ("drops",), ("malware",)),
     (("malware",), ("controls",), ("malware",)),
     (("malware",), ("variant-of",), ("malware",)),
     # Ciblage et exploitation
     ((*_ACTORS, "malware", "tool", "attack-pattern"), ("targets",), _TARGETS),
     (("malware", "tool"), ("targets",), ("infrastructure",)),
     (("malware",), ("exploits",), ("vulnerability",)),
-    (("software", "infrastructure", "tool"), ("has",), ("vulnerability",)),
-    (("software",), ("related-to",), ("identity",)),
+    (("infrastructure", "tool"), ("has",), ("vulnerability",)),
     # Infrastructure
-    (("malware",), ("communicates-with", "beacons-to", "exfiltrates-to"), ("infrastructure",)),
+    (("malware",), ("beacons-to", "exfiltrates-to"), ("infrastructure",)),
     (("infrastructure",), ("communicates-with", "consists-of", "uses"), ("infrastructure",)),
     (("infrastructure",), ("controls",), ("infrastructure", "malware")),
     (("infrastructure",), ("hosts",), ("malware", "tool")),
@@ -109,7 +112,7 @@ RELATIONS: tuple[tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]], ...] 
     # Défense et analyse
     (("course-of-action",), ("mitigates",), ("attack-pattern", "malware", "tool", "vulnerability")),
     (("course-of-action",), ("remediates",), ("malware", "vulnerability")),
-    (("malware-analysis",), ("analysis-of", "characterizes", "static-analysis-of", "dynamic-analysis-of", "av-analysis-of"), ("malware",)),
+    (("malware-analysis",), ("analysis-of", "characterizes", "static-analysis-of", "dynamic-analysis-of"), ("malware",)),
 )
 
 
@@ -125,11 +128,10 @@ RELATION_DEFINITIONS: dict[str, str] = {
     "downloads": "le malware récupère un autre logiciel depuis le réseau",
     "controls": "la source pilote la cible (serveur qui commande un malware, malware qui en commande un autre)",
     "variant-of": "la source est une variante ou une nouvelle version de la cible",
-    "targets": "la source vise la cible (victime, secteur, lieu, produit, vulnérabilité, infrastructure attaquée)",
+    "targets": "la source vise la cible (victime, secteur, lieu, vulnérabilité, infrastructure attaquée) ; jamais une organisation seulement usurpée dans un leurre",
     "exploits": "le code du malware exploite lui-même la vulnérabilité ; ce qui seulement dépose ou suit l'exploitation ne l'exploite pas",
-    "has": "le produit ou le système comporte la vulnérabilité",
-    "related-to": "le produit logiciel est édité par cette identité",
-    "communicates-with": "le malware ou l'infrastructure échange avec cette infrastructure sur le réseau",
+    "has": "l'infrastructure ou l'outil comporte la vulnérabilité",
+    "communicates-with": "l'infrastructure échange avec cette autre infrastructure sur le réseau",
     "beacons-to": "le malware signale régulièrement sa présence à son serveur de commande",
     "exfiltrates-to": "le malware envoie les données volées vers cette infrastructure",
     "consists-of": "l'infrastructure se compose de la cible",
@@ -144,7 +146,6 @@ RELATION_DEFINITIONS: dict[str, str] = {
     "characterizes": "l'analyse décrit ce malware",
     "static-analysis-of": "analyse statique de cet échantillon",
     "dynamic-analysis-of": "analyse dynamique (exécution, bac à sable) de cet échantillon",
-    "av-analysis-of": "verdict d'un antivirus sur cet échantillon",
 }
 
 

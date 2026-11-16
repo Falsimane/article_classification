@@ -33,6 +33,11 @@ if str(root_dir) not in sys.path:
 from backend.config import EVAL_DIR, SOURCE_ARTICLES_DB  # noqa: E402
 from backend.evaluation.losses import ENTITY_STAGES, RELATION_STAGES, TECHNIQUE_STAGES, diagnose, tally, trace_of  # noqa: E402
 from backend.evaluation.score import ArticleScore, score_article, total  # noqa: E402
+from backend.evaluation.semantic_match import llm_judge, match_article  # noqa: E402
+from backend.evaluation.semantic_match import load as load_semantic  # noqa: E402
+from backend.evaluation.semantic_match import save as save_semantic  # noqa: E402
+from backend.extracting.stix.attack import get_attack_kb  # noqa: E402
+from backend.evaluation.stability import stability  # noqa: E402
 
 MANIFEST = root_dir / "Annotations" / "manifest.json"
 
@@ -174,6 +179,10 @@ def markdown_report(system: str, scores: list[ArticleScore], summary: dict, runs
     for t, c in summary["relations_by_pattern"].items():
         lines.append(f"| {t} | {c['gold_required']} | {c['found_required']:g} | {_pct(c['recall'])} | {c['predicted']} | {_pct(c['precision'])} |")
     lines += checks_report(summary)
+    pairs = summary.get("semantic_matches") or {}
+    if pairs:
+        lines += ["", "## Appariements sémantiques (jugés par le modèle, `semantic_matches.json`)", "", "| Article | Gold | Prédit |", "|---|---|---|"]
+        lines += [f"| {aid} | {x['gold_name']} | {x['pred_name']} |" for aid, rows in pairs.items() for x in rows]
     if losses:
         lines += losses_report(losses)
     for s in scores:
@@ -241,6 +250,12 @@ def compare(groups: list[list[Path]], samples: int = 4000, seed: int = 0) -> str
               "| Compteur | " + " | ".join(chr(65 + i) for i in range(len(groups))) + " |", "|---" * (len(groups) + 1) + "|"]  # fmt: skip
     for k in data[0][ids[0]]["mechanism"]:
         lines.append(f"| {k} | " + " | ".join(f"{sum(d[i]['mechanism'].get(k, 0) for i in ids):.1f}" for d in data) + " |")
+    lines += ["", "## Stabilité entre deux exécutions (Jaccard, deux premiers dossiers)", "",
+              "| Configuration | entités | techniques | relations |", "|---|---|---|---|"]  # fmt: skip
+    for i, g in enumerate(groups):
+        if len(g) >= 2:
+            s = stability(g[0], g[1])
+            lines.append(f"| {chr(65 + i)} | {s['entities']:.2f} | {s['techniques']:.2f} | {s['relations']:.2f} |")
     lines += ["", "## Relations par article (rappel / précision)", "", "| Article | " + " | ".join(chr(65 + i) for i in range(len(groups))) + " |",
               "|---" * (len(groups) + 1) + "|"]  # fmt: skip
     for i in ids:
@@ -255,6 +270,7 @@ def main() -> None:
     parser.add_argument("--article-id", type=int, action="append", help="Limiter à ces articles (option répétable)")
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
     parser.add_argument("--workers", type=int, default=1, help="Articles extraits en même temps")
+    parser.add_argument("--semantic", action="store_true", help="Juge d'abord les entités sans nom commun avec le gold (appels au modèle), écrit semantic_matches.json")
     parser.add_argument("--compare", nargs="+", metavar="DOSSIERS", help="Configurations à comparer, chacune « dossier1,dossier2 » (la première est la référence)")
     args = parser.parse_args()
     if args.compare:
@@ -274,6 +290,7 @@ def main() -> None:
             console.print(f"[bold]Extraction[/] article {art['id']} — {art['title']}")
         wall = run_all(list(arts.values()), out_dir, args.workers, runs)
     scores, losses = [], {}
+    semantic = {} if args.semantic else load_semantic(out_dir)  # sans --semantic : les paires déjà jugées, sans appel au modèle
     for entry in entries:
         art = arts[entry["article_id"]]
         pred_path = out_dir / f"article_{art['id']}.json"
@@ -282,17 +299,22 @@ def main() -> None:
             continue
         gold = json.loads(entry["gold_path"].read_text(encoding="utf-8"))
         pred = json.loads(pred_path.read_text(encoding="utf-8"))
-        scores.append(score_article(art["id"], gold, pred, art["clean_markdown"]))
+        if args.semantic:
+            semantic[art["id"]] = match_article(gold, pred, get_attack_kb(), llm_judge)
+        scores.append(score_article(art["id"], gold, pred, art["clean_markdown"], semantic=semantic.get(art["id"])))
         if "trace" in runs.get(art["id"], {}):  # exécutions antérieures à la trace : pas de pertes par étape
             losses[art["id"]] = diagnose(gold, pred, runs[art["id"]]["trace"], source_text=art["clean_markdown"])
     if not scores:
         return
+    if args.semantic:
+        save_semantic(out_dir, semantic)
     summary = total(scores)
     runs = {k: v for k, v in runs.items() if k in {s.article_id for s in scores}}
     print_scores(scores, summary, runs, wall)
     if losses:
         summary["losses"] = tally(list(losses.values()))
     articles = [{**s.as_dict(), **({"losses": losses[s.article_id]} if s.article_id in losses else {})} for s in scores]
+    summary["semantic_matches"] = {str(k): v for k, v in sorted(semantic.items()) if v}
     report = {"system": out_dir.name, "summary": summary, "runs": runs, "wall_seconds": wall, "articles": articles}
     (out_dir / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding="utf-8")
     (out_dir / "report.md").write_text(markdown_report(out_dir.name, scores, summary, runs, wall, losses), encoding="utf-8")

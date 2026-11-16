@@ -99,7 +99,7 @@
       "created": "2026-04-01T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "name": "Compromission du paquet npm Axios (31 mars 2026)",
-      "description": "Compromission du paquet npm Axios au moyen d'identifiants de mainteneur volés, pour déployer des variantes de ZshBucket propres à chaque plateforme (Linux, macOS, Windows).",
+      "description": "Compromission du paquet npm Axios au moyen d'identifiants de mainteneur volés, pour déployer des variantes de ZshBucket propres à chaque plateforme (Linux, macOS, Windows). | Produit visé : Axios",
       "first_seen": "2026-03-31T00:00:00.000Z",
       "x_gold_sequence": [
         {
@@ -161,21 +161,6 @@
         "gold:required"
       ],
       "x_gold_evidence_quote": "InvisibleFerret malware in May 2025"
-    },
-    {
-      "type": "software",
-      "spec_version": "2.1",
-      "id": "software--521335b8-c72b-5bdf-aa79-0883ee3488a4",
-      "name": "Axios",
-      "x_gold_description": "Bibliothèque client HTTP distribuée sous forme de paquet npm, compromise via les identifiants d'un mainteneur. Éditeur et versions affectées non précisés.",
-      "x_gold_name_variants": [
-        "axios",
-        "Axios npm package"
-      ],
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "the widely used HTTP client library Axios Node Package Manager (npm) package"
     },
     {
       "type": "identity",
@@ -422,12 +407,13 @@
       "created": "2026-04-01T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "source_ref": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
       "target_ref": "attack-pattern--b17a1a56-e99c-403c-8948-561df0cffe81",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "a threat actor used stolen maintainer credentials to compromise"
+      "x_gold_evidence_quote": "a threat actor used stolen maintainer credentials to compromise",
+      "x_gold_revised_from": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3"
     },
     {
       "type": "relationship",
@@ -436,27 +422,13 @@
       "created": "2026-04-01T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "source_ref": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
       "target_ref": "attack-pattern--191cc6af-1bb2-4344-ab5f-28e496638720",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "compromise the widely used HTTP client library Axios Node Package Manager (npm) package"
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
-      "id": "relationship--bfb3d5b9-3d40-5c4f-9be9-24fd2104abdc",
-      "created": "2026-04-01T00:00:00.000Z",
-      "modified": "2026-10-26T00:00:00.000Z",
-      "relationship_type": "targets",
-      "source_ref": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
-      "target_ref": "software--521335b8-c72b-5bdf-aa79-0883ee3488a4",
-      "labels": [
-        "gold:required"
-      ],
       "x_gold_evidence_quote": "compromise the widely used HTTP client library Axios Node Package Manager (npm) package",
-      "x_gold_context": "Axios est le paquet compromis (vecteur), non la victime finale ; l'article indique que les cibles visées restent inconnues."
+      "x_gold_revised_from": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3"
     },
     {
       "type": "relationship",

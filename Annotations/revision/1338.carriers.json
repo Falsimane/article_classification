@@ -1,0 +1,135 @@
+[
+  {
+    "relation_id": "relationship--eddb7365-b04d-57d2-9f22-84b854c6e85c",
+    "source": "intrusion-set:SCATTERED SPIDER",
+    "technique": "T1078",
+    "technique_name": "Valid Accounts",
+    "quote": "the adversary is largely leveraging valid accounts as the initial access vector",
+    "context": "",
+    "candidates": [
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71"
+    ],
+    "candidate_names": {
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587": "intrusion-set:SCATTERED SPIDER",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71": "malware:Pilote noyau malveillant (désactivation de csagent.sys)"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--802056cd-96d2-5e49-b1e1-b235622eaaea",
+    "source": "intrusion-set:SCATTERED SPIDER",
+    "technique": "T1621",
+    "technique_name": "Multi-Factor Authentication Request Generation",
+    "quote": "overwhelms targets using multifactor authentication (MFA) notification fatigue tactics",
+    "context": "",
+    "candidates": [
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71"
+    ],
+    "candidate_names": {
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587": "intrusion-set:SCATTERED SPIDER",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71": "malware:Pilote noyau malveillant (désactivation de csagent.sys)"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--fdf7ee8e-f713-5cf4-9849-3a786b5832a5",
+    "source": "intrusion-set:SCATTERED SPIDER",
+    "technique": "T1598",
+    "technique_name": "Phishing for Information",
+    "quote": "leverages a combination of credential phishing and social engineering to capture one-time-password (OTP) codes",
+    "context": "",
+    "candidates": [
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71"
+    ],
+    "candidate_names": {
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587": "intrusion-set:SCATTERED SPIDER",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71": "malware:Pilote noyau malveillant (désactivation de csagent.sys)"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--97d8d480-6500-579d-b14e-1212cad2005d",
+    "source": "intrusion-set:SCATTERED SPIDER",
+    "technique": "T1219",
+    "technique_name": "Remote Access Tools",
+    "quote": "favoring a wide range of legitimate remote management tools to maintain persistent access",
+    "context": "",
+    "candidates": [
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71"
+    ],
+    "candidate_names": {
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587": "intrusion-set:SCATTERED SPIDER",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71": "malware:Pilote noyau malveillant (désactivation de csagent.sys)"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--a7c4af7a-ef91-56df-86ac-3e73deb89903",
+    "source": "intrusion-set:SCATTERED SPIDER",
+    "technique": "T1068",
+    "technique_name": "Exploitation for Privilege Escalation",
+    "quote": "a novel attempt by this adversary to deploy a malicious kernel driver through a vulnerability (CVE-2015-2291)",
+    "context": "Le pilote malveillant est chargé par l'acteur via CVE-2015-2291.",
+    "candidates": [
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71"
+    ],
+    "candidate_names": {
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587": "intrusion-set:SCATTERED SPIDER",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71": "malware:Pilote noyau malveillant (désactivation de csagent.sys)"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--6b3bf619-8085-58ba-890d-3082edc9ed85",
+    "source": "malware:Pilote noyau malveillant (désactivation de csagent.sys)",
+    "technique": "T1685",
+    "technique_name": "Disable or Modify Tools",
+    "quote": "The intent of the adversary is to disable the endpoint security products visibility and prevention capabilities",
+    "context": "Section Technical Analysis : le pilote patche csagent.sys.",
+    "candidates": [
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71"
+    ],
+    "candidate_names": {
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587": "intrusion-set:SCATTERED SPIDER",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71": "malware:Pilote noyau malveillant (désactivation de csagent.sys)"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--38582bd9-9084-5cfe-941d-ed1cae33e1b6",
+    "source": "malware:Pilote noyau malveillant (désactivation de csagent.sys)",
+    "technique": "T1553.002",
+    "technique_name": "Code Signing",
+    "quote": "signed by different certificates and authorities — including stolen certificates originally issued to NVIDIA and Global Software LLC",
+    "context": "",
+    "candidates": [
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71"
+    ],
+    "candidate_names": {
+      "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587": "intrusion-set:SCATTERED SPIDER",
+      "malware--0e28117f-2e73-5d80-9c13-df20735b0e71": "malware:Pilote noyau malveillant (désactivation de csagent.sys)"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  }
+]

@@ -385,22 +385,6 @@
     {
       "type": "tool",
       "spec_version": "2.1",
-      "id": "tool--83143c16-3e68-5d56-8121-c5194564c758",
-      "created": "2026-06-25T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "name": "curl",
-      "description": "Utilitaire en ligne de commande utilisé pour envoyer en HTTP POST les résultats d'énumération vers une adresse IP de l'attaquant.",
-      "x_gold_name_variants": [
-        "curl.exe"
-      ],
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "we noted activity sending the results of network and system enumeration directly to an actor-controlled IP address using curl."
-    },
-    {
-      "type": "tool",
-      "spec_version": "2.1",
       "id": "tool--5dabce0f-03fb-52e0-b924-3847f7043e32",
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
@@ -1480,20 +1464,6 @@
     {
       "type": "relationship",
       "spec_version": "2.1",
-      "id": "relationship--17acf20f-5480-5d9f-bd97-9faca1e1021c",
-      "created": "2026-06-25T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
-      "target_ref": "tool--83143c16-3e68-5d56-8121-c5194564c758",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "we noted activity sending the results of network and system enumeration directly to an actor-controlled IP address using curl."
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
       "id": "relationship--9ae61328-96a4-5951-80d6-34d098c1306a",
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
@@ -1543,12 +1513,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--5502c4e9-24ef-4d5f-8ee9-9e906c2f82c4",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "We observed attackers scanning the entities for vulnerabilities"
+      "x_gold_evidence_quote": "We observed attackers scanning the entities for vulnerabilities",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1557,12 +1528,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--3f886f2a-874f-4333-b794-aa6075009b1c",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "The intrusions we observed typically begin with the attackers exploiting web applications to deploy ASPX web shells."
+      "x_gold_evidence_quote": "The intrusions we observed typically begin with the attackers exploiting web applications to deploy ASPX web shells.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1571,12 +1543,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--5d0d3609-d06d-49e1-b9c9-b544e0c618cb",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "The intrusions we observed typically begin with the attackers exploiting web applications to deploy ASPX web shells."
+      "x_gold_evidence_quote": "The intrusions we observed typically begin with the attackers exploiting web applications to deploy ASPX web shells.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1585,12 +1558,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "resulted in the victim networks downloading malicious payloads that included SoftEther VPN components and RAR archives containing the group's tools."
+      "x_gold_evidence_quote": "resulted in the victim networks downloading malicious payloads that included SoftEther VPN components and RAR archives containing the group's tools.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1599,12 +1573,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--4fe28b27-b13c-453e-a386-c2ef362a573b",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "The attackers behind the activity frequently use tunneling tools for command and control (C2) and data exfiltration."
+      "x_gold_evidence_quote": "The attackers behind the activity frequently use tunneling tools for command and control (C2) and data exfiltration.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1613,12 +1588,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--1c4e5d32-1fe9-4116-9d9d-59e3925bd6a2",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "These tools were often disguised as legitimate system files, such as VMware executables or an XDR agent."
+      "x_gold_evidence_quote": "These tools were often disguised as legitimate system files, such as VMware executables or an XDR agent.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1627,12 +1603,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--005a06c6-14bf-4118-afa0-ebcd8aebb0c9",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "Figure 7. Creating a scheduled task to execute a VNT binary."
+      "x_gold_evidence_quote": "Figure 7. Creating a scheduled task to execute a VNT binary.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1641,12 +1618,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--00f90846-cbd1-4fc5-9233-df5c2bf2a662",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "For data staging and exfiltration, they frequently compressed findings into password-protected RAR archives."
+      "x_gold_evidence_quote": "For data staging and exfiltration, they frequently compressed findings into password-protected RAR archives.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1655,12 +1633,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--248d3fe1-7fe1-4d71-91c7-8bb7ef35cad3",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "Figure 1 shows the command line used to exfiltrate data from an MSSQL server."
+      "x_gold_evidence_quote": "Figure 1 shows the command line used to exfiltrate data from an MSSQL server.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1669,13 +1648,14 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--1c34f7aa-9341-4a48-bfab-af22e51aca6c",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "we observed the attacker staging and exfiltrating an entire directory of web server source code from the government entity",
-      "x_gold_context": "Figure 2 : archive web.rar écrite à la racine de c:\\ sur l'hôte compromis."
+      "x_gold_context": "Figure 2 : archive web.rar écrite à la racine de c:\\ sur l'hôte compromis.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1684,13 +1664,14 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--a19e86f8-1c0a-4fea-8407-23b73d615776",
       "labels": [
         "gold:acceptable"
       ],
       "x_gold_evidence_quote": "sending the results of network and system enumeration directly to an actor-controlled IP address using curl",
-      "x_gold_context": "Adresse IP de l'attaquant non présentée comme C2 ; Figure 4 (texte alternatif) : requêtes HTTP POST."
+      "x_gold_context": "Adresse IP de l'attaquant non présentée comme C2 ; Figure 4 (texte alternatif) : requêtes HTTP POST.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1699,13 +1680,14 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--707399d6-ab3e-4963-9315-d9d3818cd6a0",
       "labels": [
         "gold:acceptable"
       ],
       "x_gold_evidence_quote": "In one instance, the attackers used traceroute to identify potential lateral movement paths to another government entity.",
-      "x_gold_context": "traceroute, et requêtes de configuration IP de la Figure 4."
+      "x_gold_context": "traceroute, et requêtes de configuration IP de la Figure 4.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1714,13 +1696,14 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--03d7999c-1f4c-42cc-8373-e7690d318104",
       "labels": [
         "gold:acceptable"
       ],
       "x_gold_evidence_quote": "The commands include checks for system identity, IP configuration, and domain admins.",
-      "x_gold_context": "Texte alternatif de la Figure 4."
+      "x_gold_context": "Texte alternatif de la Figure 4.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1729,13 +1712,14 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--2aed01ad-3df3-4410-a8cb-11ea4ded587c",
       "labels": [
         "gold:acceptable"
       ],
       "x_gold_evidence_quote": "The commands include checks for system identity, IP configuration, and domain admins.",
-      "x_gold_context": "Texte alternatif de la Figure 4."
+      "x_gold_context": "Texte alternatif de la Figure 4.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1744,13 +1728,14 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--354a7f88-63fb-41b5-a801-ce3b377b36f1",
       "labels": [
         "gold:acceptable"
       ],
       "x_gold_evidence_quote": "Figure 4. System enumeration command lines.",
-      "x_gold_context": "Énumération système envoyée par curl ; le détail des commandes n'est visible que dans la capture."
+      "x_gold_context": "Énumération système envoyée par curl ; le détail des commandes n'est visible que dans la capture.",
+      "x_gold_revised_from": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d"
     },
     {
       "type": "relationship",
@@ -1774,12 +1759,13 @@
       "created": "2026-06-25T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4",
+      "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
       "target_ref": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "When the user runs the executable, the .NET runtime reads the adjacent configuration file. This forces the loading of a malicious DLL (MyAppDomainManager.dll) to act as the application's manager."
+      "x_gold_evidence_quote": "When the user runs the executable, the .NET runtime reads the adjacent configuration file. This forces the loading of a malicious DLL (MyAppDomainManager.dll) to act as the application's manager.",
+      "x_gold_revised_from": "malware--4d6998b6-8ab4-5a20-9601-be2e7c5f37b4"
     },
     {
       "type": "relationship",

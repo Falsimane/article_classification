@@ -396,6 +396,24 @@ class AttackKB:
     def _hit(obj: dict) -> TechniqueHit:
         return TechniqueHit(obj["attack_id"], obj["full_name"], tuple(obj["tactics"]), obj["summary"])
 
+    def tactic_rows(self) -> list[tuple[str, str, str]]:
+        """(nom court, nom, résumé) des tactiques actives, dans l'ordre ATT&CK."""
+        rows = self._db().execute("SELECT tactics, name, summary FROM objects WHERE type = 'x-mitre-tactic' AND status = 'active' ORDER BY attack_id")
+        return [(json.loads(r[0])[0], r[1], r[2] or "") for r in rows]
+
+    def techniques_of_tactic(self, tactic: str) -> list[TechniqueHit]:
+        """Toutes les techniques actives d'une tactique, parentes et sous-techniques, par identifiant : la liste fermée du choix."""
+        rows = self._db().execute(
+            "SELECT attack_id FROM objects WHERE type = 'attack-pattern' AND status = 'active' AND tactics LIKE ? ORDER BY attack_id",
+            (f'%"{tactic}"%',),
+        )
+        return [self._hit(self.get(r[0])) for r in rows]
+
+    def parent_techniques(self) -> list[TechniqueHit]:
+        """Toutes les techniques parentes actives (227 en v20), par identifiant."""
+        rows = self._db().execute("SELECT attack_id FROM objects WHERE type = 'attack-pattern' AND status = 'active' AND parent IS NULL ORDER BY attack_id")
+        return [self._hit(self.get(r[0])) for r in rows]
+
     def tactics(self) -> list[tuple[str, str]]:
         """(nom court, nom) des tactiques actives, dans l'ordre ATT&CK."""
         rows = self._db().execute("SELECT tactics, name FROM objects WHERE type = 'x-mitre-tactic' AND status = 'active' ORDER BY attack_id")

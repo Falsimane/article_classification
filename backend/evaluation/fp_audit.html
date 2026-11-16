@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit des faux positifs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #eef1f4; --surface: #ffffff; --ink: #1d2733; --muted: #5e6b78; --line: #d5dbe2;
+  --focus: #34468a; --j: #2d7a64; --d: #a8701a; --f: #b23b3b; --tint: #f6f8fa;
+  --ui: "Public Sans", system-ui, sans-serif; --text: "Source Serif 4", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #1a1f27; --surface: #222833; --ink: #e3e8ee; --muted: #9aa6b2; --line: #343c48;
+    --focus: #8d9de0; --j: #5cbf9f; --d: #e0a54a; --f: #e57373; --tint: #262d38; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--ui); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.app { display: grid; grid-template-columns: 300px 1fr; grid-template-rows: auto 1fr; height: 100vh; }
+header { grid-column: 1 / -1; display: flex; align-items: center; gap: 24px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+header h1 { font-size: 16px; font-weight: 700; margin: 0; }
+.run { color: var(--muted); }
+.bar { flex: 1; max-width: 420px; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; display: flex; }
+.bar span { display: block; height: 100%; }
+.counts { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.counts b { color: var(--ink); }
+.tabs { display: flex; gap: 4px; }
+.tabs a { color: var(--muted); text-decoration: none; font-size: 13px; padding: 3px 10px; border-radius: 6px; border: 1px solid transparent; }
+.tabs a[aria-current="page"] { color: var(--focus); border-color: var(--focus); font-weight: 600; }
+.saved { margin-left: auto; color: var(--muted); font-size: 13px; min-width: 9ch; text-align: right; }
+
+nav { overflow-y: auto; border-right: 1px solid var(--line); padding: 8px 0 24px; }
+.filter { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 16px 10px; }
+.filter button { border: 1px solid var(--line); background: none; border-radius: 6px; padding: 2px 10px; font-size: 13px; cursor: pointer; }
+.filter button[aria-pressed="true"] { border-color: var(--focus); color: var(--focus); font-weight: 600; }
+.group { padding: 12px 16px 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.group small { display: block; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item { display: flex; gap: 10px; align-items: baseline; width: 100%; border: 0; background: none; text-align: left; padding: 5px 16px; cursor: pointer; font-size: 14px; }
+.item:hover { background: var(--tint); }
+.item[aria-current="true"] { background: var(--tint); box-shadow: inset 3px 0 0 var(--focus); }
+.dot { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line); font-size: 11px; font-weight: 700; display: grid; place-items: center; color: #fff; }
+.dot.J { background: var(--j); border-color: var(--j); } .dot.D { background: var(--d); border-color: var(--d); } .dot.F { background: var(--f); border-color: var(--f); }
+.item .tid { font-variant-numeric: tabular-nums; font-weight: 600; }
+.item .tname { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+main { overflow-y: auto; padding: 24px 32px 140px; }
+.where { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.side { padding: 20px 24px; min-width: 0; }
+.side + .side { border-left: 1px solid var(--line); background: var(--tint); border-radius: 0 10px 10px 0; }
+.side h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0 0 12px; }
+.tech { font-size: 22px; font-weight: 700; line-height: 1.25; margin: 0; }
+.tech .tid { color: var(--focus); margin-right: 8px; }
+.tactics { color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
+.summary { color: var(--muted); font-size: 14px; margin: 0 0 16px; max-width: 70ch; }
+.field { margin: 14px 0 0; }
+.field dt { font-size: 13px; color: var(--muted); }
+.field dd { margin: 2px 0 0; }
+blockquote { font: 16px/1.6 var(--text); margin: 8px 0 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); max-width: 70ch; }
+.near { padding: 12px 0; border-top: 1px solid var(--line); }
+.near:first-of-type { border-top: 0; padding-top: 0; }
+.near .tech { font-size: 17px; }
+.empty { color: var(--muted); font-style: italic; }
+.flag { display: inline-block; font-size: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 0 8px; margin-left: 6px; color: var(--muted); }
+details { margin-top: 18px; font-size: 13px; color: var(--muted); }
+details span { display: inline-block; margin: 2px 8px 0 0; font-variant-numeric: tabular-nums; }
+
+.dock { position: fixed; left: 300px; right: 0; bottom: 0; display: flex; gap: 12px; align-items: stretch; padding: 14px 32px; background: var(--surface); border-top: 1px solid var(--line); }
+.verdict { min-width: 168px; border: 1.5px solid var(--line); background: none; border-radius: 8px; padding: 8px 12px; text-align: left; cursor: pointer; }
+.verdict kbd { font: 700 13px var(--ui); border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; margin-right: 8px; }
+.verdict small { display: block; color: var(--muted); font-size: 12px; }
+.verdict.J { color: var(--j); } .verdict.D { color: var(--d); } .verdict.F { color: var(--f); }
+.verdict[aria-pressed="true"] { background: currentColor; }
+.verdict[aria-pressed="true"] * , .verdict[aria-pressed="true"] { color: var(--surface); }
+.verdict[aria-pressed="true"] kbd { border-color: var(--surface); }
+textarea { flex: 1; min-height: 52px; resize: none; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: 14px/1.4 var(--ui); background: var(--paper); color: var(--ink); }
+.keys { color: var(--muted); font-size: 12px; align-self: center; white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height: auto; }
+  nav { max-height: 30vh; border-right: 0; border-bottom: 1px solid var(--line); }
+  .compare { grid-template-columns: 1fr; }
+  .side + .side { border-left: 0; border-top: 1px solid var(--line); border-radius: 0 0 10px 10px; }
+  .dock { left: 0; flex-wrap: wrap; padding: 12px 16px; }
+  .verdict { min-width: 0; flex: 1; }
+  main { padding: 16px 16px 220px; }
+  .keys { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Audit des faux positifs <span class="run" id="run"></span></h1>
+    <div class="tabs"><a href="/" aria-current="page">Audit</a><a href="/revision">Révision du gold et graphe</a></div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="counts" id="counts"></div>
+    <div class="saved" id="saved" role="status"></div>
+  </header>
+  <nav aria-label="Éléments à auditer">
+    <div class="filter">
+      <button id="f-all" aria-pressed="true">Toutes</button>
+      <button id="f-todo" aria-pressed="false">À juger</button>
+    </div>
+    <div class="filter" id="kinds">
+      <button data-kind="" aria-pressed="true">Tout</button>
+      <button data-kind="technique" aria-pressed="false">Techniques</button>
+      <button data-kind="entity" aria-pressed="false">Entités</button>
+      <button data-kind="relation" aria-pressed="false">Relations</button>
+    </div>
+    <div id="list"></div>
+  </nav>
+  <main id="main"><p class="empty">Chargement…</p></main>
+</div>
+<div class="dock">
+  <button class="verdict J" data-v="J"><kbd>J</kbd>Juste<small>le gold ne l'a pas retenue</small></button>
+  <button class="verdict D" data-v="D"><kbd>D</kbd>Défendable<small>lecture possible du texte</small></button>
+  <button class="verdict F" data-v="F"><kbd>F</kbd>Fausse<small>le texte ne la soutient pas</small></button>
+  <textarea id="comment" placeholder="Commentaire (C pour écrire, Échap pour sortir)" aria-label="Commentaire"></textarea>
+  <div class="keys">← → naviguer<br>N prochaine à juger</div>
+</div>
+<script>
+// Aucun innerHTML : tout texte (article, gold, ATT&CK) passe par textContent.
+const $ = (id) => document.getElementById(id);
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+  }
+  for (const k of kids) if (k) n.append(k);
+  return n;
+}
+let items = [], verdicts = {}, current = 0, onlyTodo = false, kindFilter = "", saveTimer = null;
+const KIND = { technique: "Technique", entity: "Entité", relation: "Relation" };
+const kindOf = (it) => it.kind || "technique";
+
+async function load() {
+  const r = await fetch("/api/items");
+  if (!r.ok) { $("main").replaceChildren(el("p", { class: "empty", text: "Le serveur d'audit ne répond pas. Relancez-le avec --serve." })); return; }
+  const data = await r.json();
+  items = data.items; verdicts = data.verdicts || {};
+  $("run").textContent = data.run;
+  const first = items.findIndex((i) => !verdicts[i.key]?.verdict);
+  current = first >= 0 ? first : 0;
+  render();
+}
+
+async function save(key) {
+  const v = verdicts[key] || {};
+  $("saved").textContent = "Enregistrement…";
+  try {
+    const r = await fetch("/api/verdict", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, verdict: v.verdict || null, comment: v.comment || "" }) });
+    $("saved").textContent = r.ok ? "Enregistré" : "Non enregistré : " + (await r.text());
+  } catch { $("saved").textContent = "Non enregistré : serveur arrêté"; }
+}
+
+function progress() {
+  const n = { J: 0, D: 0, F: 0 };
+  for (const i of items) { const v = verdicts[i.key]?.verdict; if (v) n[v]++; }
+  const done = n.J + n.D + n.F;
+  const bar = $("bar"); bar.replaceChildren();
+  for (const v of ["J", "D", "F"]) bar.append(el("span", { style: `width:${items.length ? (100 * n[v]) / items.length : 0}%;background:var(--${v.toLowerCase()})` }));
+  $("counts").replaceChildren(el("b", { text: `${done} / ${items.length}` }), ` jugées · J ${n.J} · D ${n.D} · F ${n.F}`);
+}
+
+function renderList() {
+  const list = $("list"); list.replaceChildren();
+  let article = null;
+  items.forEach((it, idx) => {
+    const v = verdicts[it.key]?.verdict;
+    if (onlyTodo && v && idx !== current) return;
+    if (kindFilter && kindOf(it) !== kindFilter && idx !== current) return;
+    if (it.article !== article) {
+      article = it.article;
+      list.append(el("div", { class: "group" }, `Article ${it.article}`, el("small", { text: it.title })));
+    }
+    const b = el("button", { class: "item", "aria-current": String(idx === current) },
+      el("span", { class: "dot " + (v || ""), text: v || "" }),
+      kindOf(it) === "technique" ? el("span", { class: "tid", text: it.technique.id }) : el("span", { class: "tid", text: KIND[kindOf(it)] }),
+      el("span", { class: "tname", text: kindOf(it) === "technique" ? it.technique.name : it.label }));
+    b.onclick = () => { current = idx; render(); };
+    list.append(b);
+  });
+  list.querySelector('[aria-current="true"]')?.scrollIntoView({ block: "nearest" });
+}
+
+function quotes(list) { return list.map((q) => el("blockquote", { text: q })); }
+
+function renderMain() {
+  const it = items[current];
+  const main = $("main");
+  if (!it) { main.replaceChildren(el("p", { class: "empty", text: "Aucun faux positif à auditer pour cette exécution." })); return; }
+  if (kindOf(it) !== "technique") { renderOther(it, main); return; }
+  const t = it.technique;
+  const left = el("section", { class: "side" },
+    el("h2", { text: "Prédit par l'extraction" }),
+    el("p", { class: "tech" }, el("span", { class: "tid", text: t.id }), t.name,
+      it.same_event ? el("span", { class: "flag", text: "même événement qu'une technique du gold" }) : null),
+    el("p", { class: "tactics", text: t.tactics.join(", ") }),
+    el("p", { class: "summary", text: t.summary }),
+    el("dl", {},
+      el("div", { class: "field" }, el("dt", { text: "Porteur" }), el("dd", { text: it.carriers.join(", ") || "aucun porteur nommé (technique au niveau du rapport)" })),
+      it.procedures.length ? el("div", { class: "field" }, el("dt", { text: "Procédure écrite par le modèle" }), el("dd", { text: it.procedures.join(" ; ") })) : null,
+      el("div", { class: "field" }, el("dt", { text: "Phrases citées" }),
+        el("dd", {}, ...(it.quotes.length ? quotes(it.quotes) : [el("span", { class: "empty", text: "aucune phrase citée" })])))));
+  const right = el("section", { class: "side" }, el("h2", { text: "Ce que le gold a mis sur ces phrases" }));
+  if (it.gold_near.length) {
+    for (const g of it.gold_near) right.append(el("div", { class: "near" },
+      el("p", { class: "tech" }, el("span", { class: "tid", text: g.id }), g.name),
+      el("p", { class: "tactics", text: g.tactics.join(", ") + (g.carriers.length ? " — porteur : " + g.carriers.join(", ") : "") }),
+      el("p", { class: "summary", text: g.summary })));
+  } else {
+    right.append(el("p", { class: "empty", text: "Rien : le gold n'annote aucune technique sur ces phrases." }));
+  }
+  right.append(el("details", {}, el("summary", { text: `Toutes les techniques du gold pour cet article (${it.gold_article.length})` }),
+    ...it.gold_article.map((g) => el("span", { text: g }))));
+  main.replaceChildren(el("p", { class: "where", text: `Article ${it.article} — ${it.title}` }), el("div", { class: "compare" }, left, right));
+  main.scrollTop = 0;
+}
+
+function renderOther(it, main) {
+  const left = el("section", { class: "side" },
+    el("h2", { text: `${KIND[kindOf(it)]} prédite par l'extraction` }),
+    el("p", { class: "tech", text: it.label }),
+    el("dl", {}, el("div", { class: "field" }, el("dt", { text: kindOf(it) === "entity" ? "Phrases qui la nomment" : "Phrase citée" }),
+      el("dd", {}, ...(it.quotes.length ? quotes(it.quotes) : [el("span", { class: "empty", text: "aucune phrase" })])))));
+  const right = el("section", { class: "side" }, el("h2", { text: "Dans le gold" }),
+    el("p", { class: "empty", text: kindOf(it) === "entity"
+      ? "Aucune entité du gold ne correspond (ni nom, ni alias, ni type compatible)."
+      : "Aucune relation du gold ne relie ces deux extrémités par cette relation. Juste : le texte l'affirme et l'auteur de l'action est le bon. Défendable : lecture possible. Fausse : le texte ne la soutient pas, ou mauvais porteur." }));
+  main.replaceChildren(el("p", { class: "where", text: `Article ${it.article} — ${it.title}` }), el("div", { class: "compare" }, left, right));
+  main.scrollTop = 0;
+}
+
+function renderDock() {
+  const v = verdicts[items[current]?.key] || {};
+  document.querySelectorAll(".verdict").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === v.verdict)));
+  $("comment").value = v.comment || "";
+}
+
+function render() { progress(); renderList(); renderMain(); renderDock(); }
+
+function nextTodo() {
+  for (let k = 1; k <= items.length; k++) {
+    const idx = (current + k) % items.length;
+    if (!verdicts[items[idx].key]?.verdict) return idx;
+  }
+  return current;
+}
+
+function setVerdict(v) {
+  const it = items[current]; if (!it) return;
+  const entry = verdicts[it.key] || {};
+  entry.verdict = entry.verdict === v ? null : v;  // second appui : retire le verdict
+  verdicts[it.key] = entry;
+  save(it.key);
+  if (entry.verdict) current = nextTodo();
+  render();
+}
+
+document.querySelectorAll(".verdict").forEach((b) => (b.onclick = () => setVerdict(b.dataset.v)));
+$("comment").addEventListener("input", () => {
+  const it = items[current]; if (!it) return;
+  verdicts[it.key] = { ...(verdicts[it.key] || {}), comment: $("comment").value };
+  clearTimeout(saveTimer); saveTimer = setTimeout(() => save(it.key), 600);
+});
+$("f-all").onclick = () => { onlyTodo = false; $("f-all").setAttribute("aria-pressed", "true"); $("f-todo").setAttribute("aria-pressed", "false"); renderList(); };
+$("f-todo").onclick = () => { onlyTodo = true; $("f-todo").setAttribute("aria-pressed", "true"); $("f-all").setAttribute("aria-pressed", "false"); renderList(); };
+document.querySelectorAll("#kinds button").forEach((b) => (b.onclick = () => {
+  kindFilter = b.dataset.kind;
+  document.querySelectorAll("#kinds button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  renderList();
+}));
+document.addEventListener("keydown", (e) => {
+  if (e.target === $("comment")) { if (e.key === "Escape") $("comment").blur(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === "j" || k === "d" || k === "f") { e.preventDefault(); setVerdict(k.toUpperCase()); }
+  else if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); current = Math.min(items.length - 1, current + 1); render(); }
+  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); current = Math.max(0, current - 1); render(); }
+  else if (k === "n") { current = nextTodo(); render(); }
+  else if (k === "c") { e.preventDefault(); $("comment").focus(); }
+});
+load();
+</script>
+</body>
+</html>

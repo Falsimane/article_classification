@@ -1,0 +1,758 @@
+[
+  {
+    "relation_id": "relationship--c8c2e14b-2d66-58e1-ba90-46b1c19d42a1",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1566.001",
+    "technique_name": "Spearphishing Attachment",
+    "quote": "The email contains a RAR archive as an attachment",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « The email contains a RAR archive as an attachment »"
+  },
+  {
+    "relation_id": "relationship--bc1ade22-d113-510d-96ba-e57f0a1d591e",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1586.002",
+    "technique_name": "Email Accounts",
+    "quote": "These emails originated from compromised governmental, law enforcement, and justice system accounts.",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « These emails originated from compromised governmental, law enforcement, and justice system accounts. »"
+  },
+  {
+    "relation_id": "relationship--8e7cc81d-931f-57c8-a996-23ba6d9ae9ae",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1684.002",
+    "technique_name": "Email Spoofing",
+    "quote": "sends an email whose `From:` header impersonates a Ukrainian government entity while the envelope sender reveals the true authenticated account",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « sends an email whose `From:` header impersonates a Ukrainian government entity while the envelope sender reveals the true authenticated account »"
+  },
+  {
+    "relation_id": "relationship--a6f23f7a-f115-5d96-8d9a-68e309bac890",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1584.001",
+    "technique_name": "Domains",
+    "quote": "By hijacking a 5 year old domain, the operator passes SPF and DKIM checks and scored a completely clean rating.",
+    "context": "Domaine joymobile.com.ua détourné via le compte Ukrnames compromis de son propriétaire (MX et SPF ajoutés).",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « By hijacking a 5 year old domain, the operator passes SPF and DKIM checks and scored a completely clean rating. »"
+  },
+  {
+    "relation_id": "relationship--3ee22ef4-d51f-5c28-9a29-810fdec0e026",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1583.007",
+    "technique_name": "Serverless",
+    "quote": "Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure.",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure. »"
+  },
+  {
+    "relation_id": "relationship--d7221275-ea7c-51c5-b977-30e830524f41",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1583.001",
+    "technique_name": "Domains",
+    "quote": "This dual TLD registration pattern (`.ru` and `.online`) is consistent across Gamaredon fallback C2 domains since at least September 2025",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « This dual TLD registration pattern (`.ru` and `.online`) is consistent across Gamaredon fallback C2 domains since at least September 2025 »"
+  },
+  {
+    "relation_id": "relationship--f3d08e35-1dd7-55f8-b77d-73da6a432a35",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1568.001",
+    "technique_name": "Fast Flux DNS",
+    "quote": "here too we found samples that leveraged `check-hosts[.]net` to resolve fast flux domains to their current IP address",
+    "context": "Échantillons de la campagne non rattachés à une famille précise : relation portée par la campagne.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « here too we found samples that leveraged `check-hosts[.]net` to resolve fast flux domains to their current IP address »"
+  },
+  {
+    "relation_id": "relationship--09154117-f631-53bf-a6a8-e75e6cdb73f3",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1547.001",
+    "technique_name": "Registry Run Keys / Startup Folder",
+    "quote": "writing the VBS payload to `%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\`, achieving persistence via the `Startup` folder",
+    "context": "C'est l'extraction de l'archive (exploit CVE-2025-8088), non GammaDrop lui-même, qui place la charge dans Startup.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « writing the VBS payload to `%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\`, achieving persistence via the `Startup` folder »"
+  },
+  {
+    "relation_id": "relationship--c5f58069-d3b0-56f1-916c-62a4b0527a72",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1036.008",
+    "technique_name": "Masquerade File Type",
+    "quote": "the actor switched from RAR to ARJ archives disguised with a `.rar` or `.zip` extension",
+    "context": "Vagues des 5, 7 et 8 mai 2026.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « the actor switched from RAR to ARJ archives disguised with a `.rar` or `.zip` extension »"
+  },
+  {
+    "relation_id": "relationship--4a359f1b-c661-5c50-88f2-47a449ff7edb",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1203",
+    "technique_name": "Exploitation for Client Execution",
+    "quote": "The stream name contains a path traversal sequence that, upon extraction, causes WinRAR to write the VBS payload to the Windows Startup folder",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « The stream name contains a path traversal sequence that, upon extraction, causes WinRAR to write the VBS payload to the Windows Startup folder »"
+  },
+  {
+    "relation_id": "relationship--b670716a-da93-57a1-903b-3a738e7dd9f7",
+    "source": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+    "technique": "T1204.002",
+    "technique_name": "Malicious File",
+    "quote": "it serves as the visible file the victim sees upon extraction",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "actes des opérateurs (groupe nommé) — « it serves as the visible file the victim sees upon extraction »"
+  },
+  {
+    "relation_id": "relationship--925a597e-8b12-5515-a1ec-8bed13c1b067",
+    "source": "malware:GammaDrop",
+    "technique": "T1059.005",
+    "technique_name": "Visual Basic",
+    "quote": "This heavily obfuscated VBS payload fetches a remote HTA (GammaLoad)",
+    "context": "Section GammaDrop – 1st stage.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--faabae1d-2970-5ce6-a2f0-bedd12cccaf3",
+    "source": "malware:GammaDrop",
+    "technique": "T1027",
+    "technique_name": "Obfuscated Files or Information",
+    "quote": "The script uses randomized variable names, junk functions and string building techniques consistent with Gamaredon’s auto-generated tooling.",
+    "context": "Section GammaDrop – 1st stage.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--90ea3830-bbc5-5bba-b63b-f0d4dfb0e4e7",
+    "source": "malware:GammaDrop",
+    "technique": "T1105",
+    "technique_name": "Ingress Tool Transfer",
+    "quote": "fetches a remote HTA (GammaLoad) from a Cloudflare Workers C2 server, drops it to `%TEMP%\\brushedGpI.hta`, and executes it",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--dfe53f1d-addf-568a-933d-469cdf627d60",
+    "source": "malware:GammaDrop",
+    "technique": "T1218.005",
+    "technique_name": "Mshta",
+    "quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window.",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--ccbdd2ea-5452-5a2f-adcb-0a3674cffdf1",
+    "source": "malware:GammaDrop",
+    "technique": "T1564.003",
+    "technique_name": "Hidden Window",
+    "quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window.",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--0e8fa9ea-2cb6-5e7a-904c-dac959b340dc",
+    "source": "malware:GammaDrop",
+    "technique": "T1027.016",
+    "technique_name": "Junk Code Insertion",
+    "quote": "The script uses randomized variable names, junk functions and string building techniques",
+    "context": "Section GammaDrop – 1st stage.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--0e387def-9990-52bf-b485-77358b0bb2b8",
+    "source": "malware:GammaDrop",
+    "technique": "T1547.001",
+    "technique_name": "Registry Run Keys / Startup Folder",
+    "quote": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\1_13_4_1882_18.03.2026.vbs|GammaDrop",
+    "context": "Annexe IOC (chemins) : GammaDrop réside dans Startup, où l'exploit l'a écrit ; persistance non mise en place par son propre code.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+    "reason": "persistance posée par l'exploit des opérateurs, pas par GammaDrop — « %APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\1_13_4_1882_18.03.2026.vbs|GammaDrop »"
+  },
+  {
+    "relation_id": "relationship--ebc346ad-db25-5323-b548-6c58aa550177",
+    "source": "malware:GammaLoad",
+    "technique": "T1059.005",
+    "technique_name": "Visual Basic",
+    "quote": "This file contains a two-layered VBScript malware wrapped inside an HTML script",
+    "context": "",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--648ce8f1-15c5-559f-9774-f48d5a9a87bc",
+    "source": "malware:GammaLoad",
+    "technique": "T1027",
+    "technique_name": "Obfuscated Files or Information",
+    "quote": "The obfuscated VBScript spans roughly 4,000-5,000 lines, which reduce to approximately 130 after deobfuscation.",
+    "context": "Section GammaLoad – 2nd stage.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--a8386f06-ea11-5f9e-9a06-fee3ae1bcc44",
+    "source": "malware:GammaLoad",
+    "technique": "T1140",
+    "technique_name": "Deobfuscate/Decode Files or Information",
+    "quote": "Decodes a Base64-encoded blob and writes it to disk at `%TEMP%\\casto0O.icl`.",
+    "context": "Couche externe (Installer) de GammaLoad.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--6b0c7373-f5c7-5232-8709-8505d7cf5ee3",
+    "source": "malware:GammaLoad",
+    "technique": "T1547.001",
+    "technique_name": "Registry Run Keys / Startup Folder",
+    "quote": "Establishes persistence via a _RunOnce_ registry key",
+    "context": "Couche externe : HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce\\integralXk3.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--f94fdc47-9c3c-597e-9dc8-954282df01cd",
+    "source": "malware:GammaLoad",
+    "technique": "T1082",
+    "technique_name": "System Information Discovery",
+    "quote": "collects host information and beacons it to a set of C2 servers",
+    "context": "Couche interne (C2 beacon) de GammaLoad.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--6b2887fd-ad88-5886-8740-41bb927586d7",
+    "source": "malware:GammaLoad",
+    "technique": "T1071.001",
+    "technique_name": "Web Protocols",
+    "quote": "The victim’s identity and check-in time are embedded in the `User-Agent` header, alongside a standard browser string",
+    "context": "Balise HTTP GET via MSXML2.XMLHTTP (section C2 Communications).",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--74c174ef-68ff-5baf-9097-d602ce32e1c8",
+    "source": "malware:GammaLoad",
+    "technique": "T1008",
+    "technique_name": "Fallback Channels",
+    "quote": "The implant is configured with two C2 servers. The primary and fallback use different URL structures",
+    "context": "Section GammaLoad – 2nd stage.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--dcabc4ab-0886-5917-87c3-75b2a2488d6d",
+    "source": "malware:GammaLoad",
+    "technique": "T1105",
+    "technique_name": "Ingress Tool Transfer",
+    "quote": "Its purpose is to serve as a persistent C2 beacon that profiles the infected host, downloads a next-stage payload, and executes it.",
+    "context": "Section GammaLoad – 2nd stage.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--1c95df55-efb6-51e1-92f1-066e36de9a1b",
+    "source": "malware:GammaLoad",
+    "technique": "T1047",
+    "technique_name": "Windows Management Instrumentation",
+    "quote": "Queries via WMI (`Select VolumeSerialNumber from Win32_LogicalDisk Where DeviceID = '<%SYSTEMDRIVE%>'`)",
+    "context": "Section GammaLoad – 2nd stage.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--8de8faca-f779-5812-98cc-3c23ba7a9cc1",
+    "source": "malware:GammaLoad",
+    "technique": "T1041",
+    "technique_name": "Exfiltration Over C2 Channel",
+    "quote": "`<COMPUTERNAME>_<SERIAL>` | Unique victim identifier",
+    "context": "Segment du User-Agent de la balise GammaLoad.",
+    "candidates": [
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7"
+    ],
+    "candidate_names": {
+      "campaign--0242924f-462e-557f-8379-ebf5484cf014": "campaign:Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
+      "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f": "intrusion-set:Gamaredon",
+      "malware--1a321d3e-6938-5068-8e59-d963d4277f79": "malware:GammaDrop",
+      "malware--8786fa2f-1476-5253-9375-b0ad09b4f653": "malware:GammaLoad",
+      "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47": "tool:wscript",
+      "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7": "tool:mshta"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  }
+]

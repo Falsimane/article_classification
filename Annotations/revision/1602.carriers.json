@@ -1,0 +1,177 @@
+[
+  {
+    "relation_id": "relationship--0cc69368-ae05-58a7-9993-242e9cac7f7b",
+    "source": "tool:certutil",
+    "technique": "T1140",
+    "technique_name": "Deobfuscate/Decode Files or Information",
+    "quote": "certutil.exe” -decode",
+    "context": "Artefact : commande certutil -decode qui transforme le fichier base64 en exécutable ISMAgent.",
+    "candidates": [
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37"
+    ],
+    "candidate_names": {
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8": "intrusion-set:GreenBug",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930": "malware:ISMAgent",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc": "tool:certutil",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37": "tool:PowerShell"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--288ad00e-4713-5a94-96e8-853438e72e79",
+    "source": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+    "technique": "T1203",
+    "technique_name": "Exploitation for Client Execution",
+    "quote": "exploits CVE-2017-0199 and calls the following URL",
+    "context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). L'exploitation du document conduit à l'exécution d'une commande (« which in turn runs this command »).",
+    "candidates": [
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37"
+    ],
+    "candidate_names": {
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8": "intrusion-set:GreenBug",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930": "malware:ISMAgent",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc": "tool:certutil",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37": "tool:PowerShell"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+    "reason": "actes des opérateurs (groupe nommé) — « exploits CVE-2017-0199 and calls the following URL »"
+  },
+  {
+    "relation_id": "relationship--24f9192c-7646-5fd4-a005-73105f76b774",
+    "source": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+    "technique": "T1059.001",
+    "technique_name": "PowerShell",
+    "quote": "which in turn runs this command:",
+    "context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). La commande citée est un appel à powershell.exe.",
+    "candidates": [
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37"
+    ],
+    "candidate_names": {
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8": "intrusion-set:GreenBug",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930": "malware:ISMAgent",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc": "tool:certutil",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37": "tool:PowerShell"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+    "reason": "actes des opérateurs (groupe nommé) — « which in turn runs this command: »"
+  },
+  {
+    "relation_id": "relationship--6e8e24ff-dd7e-5772-ba43-7d89c91d3570",
+    "source": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+    "technique": "T1105",
+    "technique_name": "Ingress Tool Transfer",
+    "quote": "The command downloads  _ntluca.txt_ from",
+    "context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »).",
+    "candidates": [
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37"
+    ],
+    "candidate_names": {
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8": "intrusion-set:GreenBug",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930": "malware:ISMAgent",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc": "tool:certutil",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37": "tool:PowerShell"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+    "reason": "actes des opérateurs (groupe nommé) — « The command downloads  _ntluca.txt_ from »"
+  },
+  {
+    "relation_id": "relationship--d7737333-3fde-5637-924f-55621220ef1a",
+    "source": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+    "technique": "T1564.003",
+    "technique_name": "Hidden Window",
+    "quote": "-nologo -WindowStyle Hidden",
+    "context": "Artefact : option de la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »).",
+    "candidates": [
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37"
+    ],
+    "candidate_names": {
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8": "intrusion-set:GreenBug",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930": "malware:ISMAgent",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc": "tool:certutil",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37": "tool:PowerShell"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+    "reason": "actes des opérateurs (groupe nommé) — « -nologo -WindowStyle Hidden »"
+  },
+  {
+    "relation_id": "relationship--d3b4c59a-d405-5094-831e-794f198e903f",
+    "source": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+    "technique": "T1027.013",
+    "technique_name": "Encrypted/Encoded File",
+    "quote": "Disguised as a base64 digital certificate, the file actually decodes to an ISMagent sample",
+    "context": "« the file » renvoie à ntluca.txt, téléchargé par la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »).",
+    "candidates": [
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37"
+    ],
+    "candidate_names": {
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8": "intrusion-set:GreenBug",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930": "malware:ISMAgent",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc": "tool:certutil",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37": "tool:PowerShell"
+    },
+    "decision": "move",
+    "new_source": "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+    "reason": "le fichier encodé est l'échantillon ISMAgent — « Disguised as a base64 digital certificate, the file actually decodes to an ISMagent sample »"
+  },
+  {
+    "relation_id": "relationship--ff9d6a93-381f-57c5-ac7c-7d8a5bf54db6",
+    "source": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+    "technique": "T1140",
+    "technique_name": "Deobfuscate/Decode Files or Information",
+    "quote": "the malware is disguised as a base64 digital certificate and decoded via certutil.exe",
+    "context": "Première phrase, mécanisme de livraison de la campagne ; commande certutil -decode dans la section « change managment.dot ».",
+    "candidates": [
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37"
+    ],
+    "candidate_names": {
+      "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05": "campaign:Nouvelle campagne ISMAgent (ClearSky, août 2017)",
+      "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8": "intrusion-set:GreenBug",
+      "malware--78d43467-c455-5ad5-b2e4-c73b95d74930": "malware:ISMAgent",
+      "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc": "tool:certutil",
+      "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37": "tool:PowerShell"
+    },
+    "decision": "move",
+    "new_source": "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
+    "reason": "certutil effectue le décodage — « the malware is disguised as a base64 digital certificate and decoded via certutil.exe »"
+  }
+]

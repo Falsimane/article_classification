@@ -345,6 +345,15 @@ class StixStore:
             for r in rels:
                 edges.append({"source": r["source"], "target": r["target"], "type": r["type"], **dict(r["p"])})
                 nodes[r["n"]["id"]] = dict(r["n"])
+            # Commanditaire à travers un threat-actor parent (chaîne STIX 2.1 : intrusion-set → threat-actor → identity)
+            sponsors = session.run(
+                "MATCH (a:Stix {id: $id})-[:ATTRIBUTED_TO]->(t:Stix:ThreatActor)-[x:ATTRIBUTED_TO]->(i:Stix:Identity) "
+                "WHERE x.id IS NOT NULL RETURN t.id AS source, i.id AS target, type(x) AS type, properties(x) AS p, properties(i) AS n",
+                id=actor_id,
+            )
+            for r in sponsors:
+                edges.append({"source": r["source"], "target": r["target"], "type": r["type"], **dict(r["p"])})
+                nodes[r["n"]["id"]] = dict(r["n"])
             reports = [
                 dict(r)
                 for r in session.run(

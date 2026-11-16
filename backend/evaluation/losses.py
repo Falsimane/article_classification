@@ -48,6 +48,7 @@ def trace_of(result) -> dict:
         "refused_techniques": [list(x) for x in result.refused_techniques],
         "refused_relations": [list(x) for x in result.refused_relations],
         "behaviors": result.behaviors,
+        "verdicts": getattr(result, "verdicts", []),
     }
 
 

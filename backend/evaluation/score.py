@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 
 from backend.preprocessing.cleaning.text.evidence import evidence_in_source, normalize_name, normalize_quote, tokens
 from backend.extracting.stix.attack import AttackKB, get_attack_kb
+from backend.extracting.stix.objects import to_internal
 
 IOC_TYPES = frozenset(
     {
@@ -57,8 +58,13 @@ def type_class(stix_type: str) -> str:
     return TYPE_CLASS.get(stix_type, stix_type)
 
 
+# Hors couche sémantique depuis la décision STIX strict (2026-11-13) : ni vrai ni faux positif, comme les IOC
+OUT_OF_SCOPE_TYPES = frozenset({"software"})
+
+
 def in_scope(obj: dict) -> bool:
-    return obj.get("type") not in IOC_TYPES and obj.get("type") not in CONTAINER_TYPES and not obj.get("type", "").startswith("x-")
+    kind = obj.get("type", "")
+    return kind not in IOC_TYPES and kind not in CONTAINER_TYPES and kind not in OUT_OF_SCOPE_TYPES and not kind.startswith("x-")
 
 
 def attack_ids(obj: dict) -> list[str]:
@@ -155,11 +161,14 @@ def load_bundle(bundle: dict, kb: AttackKB, gold: bool) -> tuple[dict[str, Entit
         for o in objs
         if in_scope(o) and o["id"] not in publishers
     }
-    relations = [
-        Relation(o["id"], o["source_ref"], o["relationship_type"], o["target_ref"], _label(o) if gold else None, _quotes(o))
-        for o in objs
-        if o.get("type") == "relationship" and o.get("source_ref") in entities and o.get("target_ref") in entities
-    ]
+    relations = []
+    for o in objs:
+        if o.get("type") != "relationship" or o.get("source_ref") not in entities or o.get("target_ref") not in entities:
+            continue
+        s, t = o["source_ref"], o["target_ref"]
+        if to_internal(entities[s].stix_type, o["relationship_type"], entities[t].stix_type):  # « technique uses outil »
+            s, t = t, s
+        relations.append(Relation(o["id"], s, o["relationship_type"], t, _label(o) if gold else None, _quotes(o)))
     return entities, relations
 
 
@@ -412,7 +421,11 @@ def _tally(gold: dict, predicted: dict, matches: dict, bucket_of) -> tuple[Count
     return total, buckets
 
 
-def score_article(article_id: int, gold_bundle: dict, pred_bundle: dict, source_text: str | None = None, kb: AttackKB | None = None) -> ArticleScore:
+def score_article(
+    article_id: int, gold_bundle: dict, pred_bundle: dict, source_text: str | None = None, kb: AttackKB | None = None, semantic: list[dict] | None = None
+) -> ArticleScore:
+    """`semantic` : paires {gold, pred} jugées identiques par `semantic_match` (même objet sous deux libellés), créditées
+    comme un appariement par le nom ; ignorées si les identifiants ou les classes ne correspondent pas."""
     kb = kb or get_attack_kb()
     gold, gold_rels = load_bundle(gold_bundle, kb, gold=True)
     pred, pred_rels = load_bundle(pred_bundle, kb, gold=False)
@@ -420,6 +433,9 @@ def score_article(article_id: int, gold_bundle: dict, pred_bundle: dict, source_
     # Entités
     cands = _candidates(gold, pred)
     _align_operations(gold, pred, gold_rels, pred_rels, cands)
+    judged = [(x["pred"], x["gold"]) for x in semantic or [] if x.get("pred") in pred and x.get("gold") in gold and pred[x["pred"]].klass == gold[x["gold"]].klass]
+    for p_sid, g_sid in judged:
+        cands.setdefault(p_sid, {})[g_sid] = 1.0
     matched = _greedy([(c, p, g) for p, gs in cands.items() for g, c in gs.items()])
     ents, by_type = _tally(gold, pred, matched, lambda e, _: e.stix_type)
 
@@ -430,6 +446,8 @@ def score_article(article_id: int, gold_bundle: dict, pred_bundle: dict, source_
 
     # Variantes : sans crédit partiel ; source « uses » prise dans le groupe d'activité de la source gold
     strict = _candidates(gold, pred, strict=True)
+    for p_sid, g_sid in judged:
+        strict.setdefault(p_sid, {})[g_sid] = 1.0
     for p_sid, gs in cands.items():  # campagnes appariées par leurs relations : même appariement
         strict.setdefault(p_sid, {}).update({g: c for g, c in gs.items() if gold[g].klass == "campaign"})
     ents_strict, _ = _tally(gold, pred, _greedy([(c, p, g) for p, gs in strict.items() for g, c in gs.items()]), lambda e, _: e.stix_type)
