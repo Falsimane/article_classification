@@ -1,0 +1,128 @@
+[
+  {
+    "relation_id": "relationship--33ee106b-094c-5b63-bee3-5af98c350096",
+    "source": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+    "technique": "T1078",
+    "technique_name": "Valid Accounts",
+    "quote": "a threat actor used stolen maintainer credentials to compromise",
+    "context": "",
+    "candidates": [
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329"
+    ],
+    "candidate_names": {
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d": "intrusion-set:STARDUST CHOLLIMA",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329": "malware:ZshBucket"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+    "reason": "actes des opérateurs (groupe nommé) — « a threat actor used stolen maintainer credentials to compromise »"
+  },
+  {
+    "relation_id": "relationship--9d207e1e-e184-5f94-80de-8452e0b7ce58",
+    "source": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+    "technique": "T1195.001",
+    "technique_name": "Compromise Software Dependencies and Development Tools",
+    "quote": "compromise the widely used HTTP client library Axios Node Package Manager (npm) package",
+    "context": "",
+    "candidates": [
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329"
+    ],
+    "candidate_names": {
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d": "intrusion-set:STARDUST CHOLLIMA",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329": "malware:ZshBucket"
+    },
+    "decision": "move",
+    "new_source": "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+    "reason": "actes des opérateurs (groupe nommé) — « compromise the widely used HTTP client library Axios Node Package Manager (npm) package »"
+  },
+  {
+    "relation_id": "relationship--4f6ce8a3-98c0-5889-9e03-bd4986ab885f",
+    "source": "malware:ZshBucket",
+    "technique": "T1082",
+    "technique_name": "System Information Discovery",
+    "quote": "including how it profiles the user and host of the operating system",
+    "context": "« it » renvoie à ZshBucket : le paragraphe décrit les caractéristiques conservées par toutes les variantes, dont celles déployées dans l'incident.",
+    "candidates": [
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329"
+    ],
+    "candidate_names": {
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d": "intrusion-set:STARDUST CHOLLIMA",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329": "malware:ZshBucket"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--e9391218-0300-50fc-9a0b-1fc20be59405",
+    "source": "malware:ZshBucket",
+    "technique": "T1033",
+    "technique_name": "System Owner/User Discovery",
+    "quote": "including how it profiles the user and host of the operating system",
+    "context": "« it » renvoie à ZshBucket : le paragraphe décrit les caractéristiques conservées par toutes les variantes, dont celles déployées dans l'incident.",
+    "candidates": [
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329"
+    ],
+    "candidate_names": {
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d": "intrusion-set:STARDUST CHOLLIMA",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329": "malware:ZshBucket"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--e686ef9e-53e0-5024-be9b-35b04bd03d81",
+    "source": "malware:ZshBucket",
+    "technique": "T1059",
+    "technique_name": "Command and Scripting Interpreter",
+    "quote": "execute arbitrary scripts and commands",
+    "context": "Liste des mises à jour de l'instance de ZshBucket déployée dans cet incident (« the _ZshBucket_ instance deployed in this incident »).",
+    "candidates": [
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329"
+    ],
+    "candidate_names": {
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d": "intrusion-set:STARDUST CHOLLIMA",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329": "malware:ZshBucket"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--78fcd361-e967-5079-9dce-97795f6adb98",
+    "source": "malware:ZshBucket",
+    "technique": "T1083",
+    "technique_name": "File and Directory Discovery",
+    "quote": "enumerate the file system",
+    "context": "Liste des mises à jour de l'instance de ZshBucket déployée dans cet incident (« the _ZshBucket_ instance deployed in this incident »).",
+    "candidates": [
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329"
+    ],
+    "candidate_names": {
+      "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3": "campaign:Compromission du paquet npm Axios (31 mars 2026)",
+      "intrusion-set--58f7add8-07be-59fb-a1a2-51f1705a6b4d": "intrusion-set:STARDUST CHOLLIMA",
+      "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329": "malware:ZshBucket"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  }
+]

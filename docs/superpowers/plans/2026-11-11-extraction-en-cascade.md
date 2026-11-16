@@ -186,6 +186,32 @@ techniques) :
 | Coût : 3 à 6 grappes × (1 grille + ~5 choix) | appels courts, même préfixe (cache), sorties contraintes |
 | Sensibilité aux prompts (une phrase change une campagne) | chaque variante mesurée sur deux exécutions, comparée avec `cti-eval --compare` |
 
+### 1.12 Ce que changent la littérature et le test du 2026-11-12
+
+Le test (une exécution, 9 articles) a mesuré le pipeline actuel : techniques du rapport R ≈ 70 %, mais couple
+porteur–technique R ≈ 22 %. **Le rattachement est le vrai trou.** Les grappes lues dans le texte montent le couple, compté
+au niveau du groupe d'activité, de 27 % à 37 %. Le résumé en événements perd 37 % des entités : il n'est pas une entrée.
+
+| Source | Constat | Décision pour la cascade |
+|---|---|---|
+| Qian 2026 (2610.20417) | 65,6 % des faux positifs sont des **mentions de contexte** (vraie chaîne, mauvais incident), 1,2 % des hallucinations | chaque grappe déclare `scope` : `incident` ou `background` ; les grappes `background` (autres campagnes, historique, travaux cités) ne passent pas par la grille |
+| Qian 2026 | aligner le schéma sur les **entités primaires** corrige la sur-extraction d'acteurs (+0,11 à +0,17 F1) ; le CoT **dégrade** les techniques | le prompt des grappes demande les porteurs de l'incident ; le choix de la technique se fait sans raisonnement |
+| Qian 2026 | la confiance verbalisée ne vaut rien ; la fréquence d'auto-cohérence (5 tirages, T = 0,7) classe, sans vérifier | pas de confiance déclarée par le modèle ; l'auto-cohérence de la grille est une variante ultérieure, mesurée à part |
+| Sardianos 2026 (méta-analyse KG + LLM) | le graphe sert plus comme **vérificateur / contrainte** (1,7 % de sorties non étayées) que comme source de recherche (21,4 %) | listes fermées imposées au décodage plutôt que top-k BM25 ; le pipeline actuel (BM25) est la référence « recherche textuelle » appariée |
+| Li 2026 (MTPE) | l'union de plusieurs températures améliore le rappel des TTP implicites ; chiffres sur textes courts (CTINexus) | variante ultérieure, comme l'auto-cohérence |
+| KGAgent4CTI | la réécriture du texte crée des écarts de sens (critique d'AttacKG+) ; jugement « même comportement ? » | confirme le test : ni réécriture ni résumé comme entrée |
+| TACTIC-KG, CTINexus | vérificateur binaire en monde clos ; îlots reliés au nœud central | déjà en place (`draft.relate`) ; la grappe joue le rôle de l'îlot |
+| Test du 2026-11-12 | sorties vides à température 0 (`{"clusters": []}`) ; doublons entre grappes qui se chevauchent ; malware et campagne confondus comme porteur | `minItems: 1` sur les grappes ; fusion des couples (porteur, technique) par le code ; règle du porteur écrite dans le prompt |
+
+**Règle du porteur** (prompt des grappes et de la grille) : une action est portée par l'entité que le texte présente comme
+son auteur. Ce que fait le code d'un malware (chiffrer, communiquer, persister) appartient au malware ; ce que font les
+opérateurs (envoyer les courriels, choisir les cibles, déployer le malware, louer l'infrastructure) appartient à la campagne
+ou au groupe.
+
+**Choix de la technique en une étape** : le test a montré qu'une liste fermée de la tactique avec parentes et
+sous-techniques (au plus 151 entrées pour stealth) fonctionne en un appel. La liste est placée dans le message système :
+elle est relue depuis le cache pour chaque grappe. L'étape « sous-technique » séparée est abandonnée.
+
 ---
 
 ## Partie 2 — Feuille de route

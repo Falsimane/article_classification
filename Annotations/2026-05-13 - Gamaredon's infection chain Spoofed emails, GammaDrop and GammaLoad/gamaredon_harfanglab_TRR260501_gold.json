@@ -150,7 +150,7 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "name": "Campagne de spearphishing Gamaredon exploitant CVE-2025-8088 (septembre 2025 - mai 2026)",
-      "description": "Douze vagues d'e-mails (environ une par mois), envoyés depuis des comptes gouvernementaux compromis ou usurpés via des relais, avec des archives RAR (puis ARJ en mai 2026) exploitant CVE-2025-8088 pour déposer GammaDrop dans le dossier Startup ; GammaDrop télécharge GammaLoad, balise C2 qui reçoit une charge choisie par l'opérateur.",
+      "description": "Douze vagues d'e-mails (environ une par mois), envoyés depuis des comptes gouvernementaux compromis ou usurpés via des relais, avec des archives RAR (puis ARJ en mai 2026) exploitant CVE-2025-8088 pour déposer GammaDrop dans le dossier Startup ; GammaDrop télécharge GammaLoad, balise C2 qui reçoit une charge choisie par l'opérateur. | Produit visé : WinRAR",
       "objective": "Compromission d'institutions de l'État ukrainien (SSU, justice, forces de l'ordre, administration).",
       "labels": [
         "gold:required"
@@ -262,38 +262,6 @@
       "x_gold_evidence_quote": "Its purpose is to serve as a persistent C2 beacon that profiles the infected host, downloads a next-stage payload, and executes it."
     },
     {
-      "type": "tool",
-      "spec_version": "2.1",
-      "id": "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7",
-      "created": "2026-05-13T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "name": "mshta",
-      "description": "Binaire Windows légitime exécutant le fichier HTA de GammaLoad, lancé par GammaDrop dans une fenêtre cachée.",
-      "x_gold_name_variants": [
-        "mshta.exe"
-      ],
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
-    },
-    {
-      "type": "tool",
-      "spec_version": "2.1",
-      "id": "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
-      "created": "2026-05-13T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "name": "wscript",
-      "description": "Windows Script Host : exécute la couche interne de GammaLoad (valeur RunOnce et lancement direct, //e:vbscript).",
-      "x_gold_name_variants": [
-        "wscript.exe"
-      ],
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "Once a payload is received, it is executed within the same `wscript.exe` process via VBScript’s _Execute_ statement."
-    },
-    {
       "type": "infrastructure",
       "spec_version": "2.1",
       "id": "infrastructure--366afff2-62e5-5fc2-841b-884903d619f7",
@@ -316,7 +284,7 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "name": "CVE-2025-8088",
-      "description": "Traversée de répertoire dans WinRAR (jusqu'à la v7.13) : le nom d'un flux ADS contenant une séquence de traversée amène WinRAR à écrire la charge VBS dans le dossier Startup à l'extraction.",
+      "description": "Traversée de répertoire dans WinRAR (jusqu'à la v7.13) : le nom d'un flux ADS contenant une séquence de traversée amène WinRAR à écrire la charge VBS dans le dossier Startup à l'extraction. | Produit visé : WinRAR",
       "external_references": [
         {
           "source_name": "cve",
@@ -327,17 +295,6 @@
         "gold:required"
       ],
       "x_gold_evidence_quote": "Spearphishing emails containing weaponized RAR archives exploiting CVE-2025-8088"
-    },
-    {
-      "type": "software",
-      "spec_version": "2.1",
-      "id": "software--0819b5eb-92b8-56c8-8fb6-50d2c2dd675e",
-      "name": "WinRAR",
-      "x_gold_description": "Logiciel d'archivage visé par CVE-2025-8088 ; versions affectées : jusqu'à la v7.13. Éditeur non nommé par l'article.",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "a WinRAR directory traversal vulnerability (up to v7.13)"
     },
     {
       "type": "identity",
@@ -1110,20 +1067,6 @@
     {
       "type": "relationship",
       "spec_version": "2.1",
-      "id": "relationship--eb4bfe29-64a7-53b3-8186-65a14cb816a3",
-      "created": "2026-05-13T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "targets",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
-      "target_ref": "software--0819b5eb-92b8-56c8-8fb6-50d2c2dd675e",
-      "labels": [
-        "gold:acceptable"
-      ],
-      "x_gold_evidence_quote": "causes WinRAR to write the VBS payload to the Windows Startup folder"
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
       "id": "relationship--76053061-af19-58b4-815a-155d9718c328",
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
@@ -1166,30 +1109,17 @@
     {
       "type": "relationship",
       "spec_version": "2.1",
-      "id": "relationship--10bce3ec-f655-5693-a0d2-165820389e56",
-      "created": "2026-05-13T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "has",
-      "source_ref": "software--0819b5eb-92b8-56c8-8fb6-50d2c2dd675e",
-      "target_ref": "vulnerability--a9e3f038-a67b-5b28-9c04-f3a50a046527",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "a WinRAR directory traversal vulnerability (up to v7.13)"
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
       "id": "relationship--c8c2e14b-2d66-58e1-ba90-46b1c19d42a1",
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--2e34237d-8574-43f6-aace-ae2915de8597",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "The email contains a RAR archive as an attachment"
+      "x_gold_evidence_quote": "The email contains a RAR archive as an attachment",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1198,12 +1128,13 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--3dc8c101-d4db-4f4d-8150-1b5a76ca5f1b",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "These emails originated from compromised governmental, law enforcement, and justice system accounts."
+      "x_gold_evidence_quote": "These emails originated from compromised governmental, law enforcement, and justice system accounts.",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1212,12 +1143,13 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--fcf5bccf-be7a-48ff-b7a7-8d6019279301",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "sends an email whose `From:` header impersonates a Ukrainian government entity while the envelope sender reveals the true authenticated account"
+      "x_gold_evidence_quote": "sends an email whose `From:` header impersonates a Ukrainian government entity while the envelope sender reveals the true authenticated account",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1226,13 +1158,14 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--f9cc4d06-775f-4ee1-b401-4e2cc0da30ba",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "By hijacking a 5 year old domain, the operator passes SPF and DKIM checks and scored a completely clean rating.",
-      "x_gold_context": "Domaine joymobile.com.ua détourné via le compte Ukrnames compromis de son propriétaire (MX et SPF ajoutés)."
+      "x_gold_context": "Domaine joymobile.com.ua détourné via le compte Ukrnames compromis de son propriétaire (MX et SPF ajoutés).",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1241,12 +1174,13 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--04a5a8ab-3bc8-4c83-95c9-55274a89786d",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure."
+      "x_gold_evidence_quote": "Gammaredon uses Cloudflare Workers as an easy to setup, somewhat disposable, legitimate-looking infrastructure.",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1255,12 +1189,13 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--40f5caa0-4cb7-4117-89fc-d421bb493df3",
       "labels": [
         "gold:required"
       ],
-      "x_gold_evidence_quote": "This dual TLD registration pattern (`.ru` and `.online`) is consistent across Gamaredon fallback C2 domains since at least September 2025"
+      "x_gold_evidence_quote": "This dual TLD registration pattern (`.ru` and `.online`) is consistent across Gamaredon fallback C2 domains since at least September 2025",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1269,13 +1204,14 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--29ba5a15-3b7b-4732-b817-65ea8f6468e6",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "here too we found samples that leveraged `check-hosts[.]net` to resolve fast flux domains to their current IP address",
-      "x_gold_context": "Échantillons de la campagne non rattachés à une famille précise : relation portée par la campagne."
+      "x_gold_context": "Échantillons de la campagne non rattachés à une famille précise : relation portée par la campagne.",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1284,13 +1220,18 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "writing the VBS payload to `%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\`, achieving persistence via the `Startup` folder",
-      "x_gold_context": "C'est l'extraction de l'archive (exploit CVE-2025-8088), non GammaDrop lui-même, qui place la charge dans Startup."
+      "x_gold_context": "C'est l'extraction de l'archive (exploit CVE-2025-8088), non GammaDrop lui-même, qui place la charge dans Startup.",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "description": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\1_13_4_1882_18.03.2026.vbs|GammaDrop",
+      "x_gold_merged_from": [
+        "malware--1a321d3e-6938-5068-8e59-d963d4277f79"
+      ]
     },
     {
       "type": "relationship",
@@ -1299,13 +1240,14 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--208884f1-7b83-4473-ac22-4e1cf6c41471",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "the actor switched from RAR to ARJ archives disguised with a `.rar` or `.zip` extension",
-      "x_gold_context": "Vagues des 5, 7 et 8 mai 2026."
+      "x_gold_context": "Vagues des 5, 7 et 8 mai 2026.",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1314,12 +1256,13 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
       "labels": [
         "gold:acceptable"
       ],
-      "x_gold_evidence_quote": "The stream name contains a path traversal sequence that, upon extraction, causes WinRAR to write the VBS payload to the Windows Startup folder"
+      "x_gold_evidence_quote": "The stream name contains a path traversal sequence that, upon extraction, causes WinRAR to write the VBS payload to the Windows Startup folder",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1328,12 +1271,13 @@
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "source_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
       "target_ref": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
       "labels": [
         "gold:acceptable"
       ],
-      "x_gold_evidence_quote": "it serves as the visible file the victim sees upon extraction"
+      "x_gold_evidence_quote": "it serves as the visible file the victim sees upon extraction",
+      "x_gold_revised_from": "campaign--0242924f-462e-557f-8379-ebf5484cf014"
     },
     {
       "type": "relationship",
@@ -1439,21 +1383,6 @@
     {
       "type": "relationship",
       "spec_version": "2.1",
-      "id": "relationship--0e387def-9990-52bf-b485-77358b0bb2b8",
-      "created": "2026-05-13T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "uses",
-      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
-      "target_ref": "attack-pattern--9efb1ea7-c37b-4595-9640-b7680cd84279",
-      "labels": [
-        "gold:acceptable"
-      ],
-      "x_gold_evidence_quote": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\1_13_4_1882_18.03.2026.vbs|GammaDrop",
-      "x_gold_context": "Annexe IOC (chemins) : GammaDrop réside dans Startup, où l'exploit l'a écrit ; persistance non mise en place par son propre code."
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
       "id": "relationship--f437185c-4073-5ec0-8dff-2d1e68814b19",
       "created": "2026-05-13T00:00:00.000Z",
       "modified": "2026-10-27T00:00:00.000Z",
@@ -1464,20 +1393,6 @@
         "gold:required"
       ],
       "x_gold_evidence_quote": "fetches a remote HTA (GammaLoad) from a Cloudflare Workers C2 server"
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
-      "id": "relationship--1b5d12a1-b033-5f29-82af-1ec647e632f7",
-      "created": "2026-05-13T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "uses",
-      "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
-      "target_ref": "tool--276318d1-58a8-5aa6-ac38-6c749af4b2c7",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "Executed by GammaDrop via `Wscript.Shell.Run`, which launches `mshta.exe` in a hidden window."
     },
     {
       "type": "relationship",
@@ -1641,21 +1556,6 @@
       ],
       "x_gold_evidence_quote": "`<COMPUTERNAME>_<SERIAL>` | Unique victim identifier",
       "x_gold_context": "Segment du User-Agent de la balise GammaLoad."
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
-      "id": "relationship--cb8befb8-5bf9-5270-8679-91586eecc8da",
-      "created": "2026-05-13T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "uses",
-      "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
-      "target_ref": "tool--0c1899e8-538a-51af-bccb-ef1d0ed5db47",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "Once a payload is received, it is executed within the same `wscript.exe` process via VBScript’s _Execute_ statement.",
-      "x_gold_context": "La valeur RunOnce et le lancement de la couche interne passent aussi par wscript."
     },
     {
       "type": "relationship",

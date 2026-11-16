@@ -62,6 +62,21 @@ ENTITY_CLASSES = {t: _CLASSES[t] for t in TYPE_SPECS}
 # refuse le reste ; le prompt affiche la même table.
 ALLOWED_RELATIONS = frozenset((s, r, t) for sources, rels, targets in RELATIONS for s in sources for r in rels for t in targets)
 
+# Orientation interne d'un outil qui réalise une technique : le porteur en source, comme pour un malware ou un acteur (règle du
+# porteur, vérificateur, score). Hors norme : le bundle l'écrit `attack-pattern uses tool` (docs/stix-v2.1-os.pdf, 4.1.2).
+TOOL_TECHNIQUE = ("tool", "uses", "attack-pattern")
+DRAFT_RELATIONS = ALLOWED_RELATIONS | {TOOL_TECHNIQUE}
+
+
+def to_stix(s_type: str, rel: str, t_type: str) -> bool:
+    """Vrai si la relation interne doit être inversée pour être écrite selon la norme."""
+    return (s_type, rel, t_type) == TOOL_TECHNIQUE
+
+
+def to_internal(s_type: str, rel: str, t_type: str) -> bool:
+    """Vrai si la relation écrite selon la norme doit être inversée pour l'orientation interne."""
+    return (s_type, rel, t_type) == ("attack-pattern", "uses", "tool")
+
 
 def relation_table() -> str:
     """La table `RELATIONS` pour le prompt, une ligne par entrée."""

@@ -90,7 +90,7 @@
       "modified": "2026-10-27T00:00:00.000Z",
       "name": "Pilote noyau malveillant (désactivation de csagent.sys)",
       "is_family": false,
-      "description": "Pilote noyau Windows 64 bits (moins de 35 fonctions) chargé via un pilote Intel vulnérable ; déchiffre par XOR une liste de produits de sécurité ciblés, trouve csagent.sys (composant noyau CrowdStrike Falcon) et le patche en mémoire à des offsets codés en dur ; les routines installées signalent un succès au capteur sans rien faire.",
+      "description": "Pilote noyau Windows 64 bits (moins de 35 fonctions) chargé via un pilote Intel vulnérable ; déchiffre par XOR une liste de produits de sécurité ciblés, trouve csagent.sys (composant noyau CrowdStrike Falcon) et le patche en mémoire à des offsets codés en dur ; les routines installées signalent un succès au capteur sans rien faire. | Produit visé : CrowdStrike Falcon sensor (CrowdStrike)",
       "labels": [
         "gold:required"
       ],
@@ -110,37 +110,11 @@
           "external_id": "CVE-2015-2291"
         }
       ],
-      "description": "Vulnérabilité du pilote de diagnostic Ethernet Intel pour Windows, exploitée pour charger un pilote malveillant dans le noyau (BYOVD).",
+      "description": "Vulnérabilité du pilote de diagnostic Ethernet Intel pour Windows, exploitée pour charger un pilote malveillant dans le noyau (BYOVD). | Produit visé : Intel Ethernet diagnostics driver (Intel)",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "a vulnerability (CVE-2015-2291) in the Intel Ethernet diagnostics driver"
-    },
-    {
-      "type": "software",
-      "spec_version": "2.1",
-      "id": "software--a6f3dbdc-a784-51e4-a4de-c62df1fd0b3d",
-      "name": "Intel Ethernet diagnostics driver",
-      "vendor": "Intel",
-      "x_gold_description": "Pilote de diagnostic Ethernet Intel pour Windows, vulnérable à CVE-2015-2291. Versions affectées non précisées.",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "the Intel Ethernet diagnostics driver for Windows",
-      "x_gold_context": "Produit affecté par CVE-2015-2291 ; versions affectées non précisées."
-    },
-    {
-      "type": "software",
-      "spec_version": "2.1",
-      "id": "software--e7b9baa5-612e-5f69-8a37-83bc270cc1b4",
-      "name": "CrowdStrike Falcon sensor",
-      "vendor": "CrowdStrike",
-      "x_gold_description": "Capteur CrowdStrike Falcon, dont le composant noyau csagent.sys est la cible du patch mémoire du pilote malveillant.",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "searching for `csagent.sys` (the CrowdStrike Falcon kernel component)",
-      "x_gold_context": "Le pilote recherche csagent.sys, « the CrowdStrike Falcon kernel component » (même paragraphe de l'article)."
     },
     {
       "type": "identity",
@@ -337,7 +311,8 @@
         "gold:required"
       ],
       "x_gold_evidence_quote": "The intent of the adversary is to disable the endpoint security products visibility and prevention capabilities",
-      "x_gold_context": "Le pilote patche en mémoire csagent.sys. T1685 remplace T1562.001 (révoquée en v20.0)."
+      "x_gold_context": "Le pilote patche en mémoire csagent.sys. T1685 remplace T1562.001 (révoquée en v20.0).",
+      "description": "Produit visé : CrowdStrike Falcon sensor (CrowdStrike)"
     },
     {
       "type": "attack-pattern",
@@ -538,48 +513,6 @@
         "gold:required"
       ],
       "x_gold_evidence_quote": "deploy a malicious kernel driver through a vulnerability (CVE-2015-2291)"
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
-      "id": "relationship--ddc4eaec-90a1-5ed5-999a-951e9dbe2e5f",
-      "created": "2023-01-10T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "has",
-      "source_ref": "software--a6f3dbdc-a784-51e4-a4de-c62df1fd0b3d",
-      "target_ref": "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "a vulnerability (CVE-2015-2291) in the Intel Ethernet diagnostics driver for Windows"
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
-      "id": "relationship--7c207d30-e255-5822-92ee-bcf542215536",
-      "created": "2023-01-10T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "targets",
-      "source_ref": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
-      "target_ref": "software--e7b9baa5-612e-5f69-8a37-83bc270cc1b4",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "searching for `csagent.sys` (the CrowdStrike Falcon kernel component)"
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
-      "id": "relationship--08fb3c77-8cd5-5393-94e8-a9417ffae509",
-      "created": "2023-01-10T00:00:00.000Z",
-      "modified": "2026-10-27T00:00:00.000Z",
-      "relationship_type": "targets",
-      "source_ref": "attack-pattern--bbde9781-60aa-4b8a-a911-895b0c1b3872",
-      "target_ref": "software--e7b9baa5-612e-5f69-8a37-83bc270cc1b4",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "searching for `csagent.sys` (the CrowdStrike Falcon kernel component)"
     }
   ]
 }

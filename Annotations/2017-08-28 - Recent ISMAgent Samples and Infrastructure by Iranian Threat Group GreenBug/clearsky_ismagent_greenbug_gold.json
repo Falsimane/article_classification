@@ -174,23 +174,6 @@
       "x_gold_evidence_quote": "the malware is disguised as a base64 digital certificate and decoded via certutil.exe"
     },
     {
-      "type": "tool",
-      "spec_version": "2.1",
-      "id": "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37",
-      "created": "2017-08-28T00:00:00.000Z",
-      "modified": "2026-10-26T00:00:00.000Z",
-      "name": "PowerShell",
-      "description": "Interpréteur lancé après l'exploitation de CVE-2017-0199 pour télécharger le fichier encodé (WebClient.DownloadString).",
-      "labels": [
-        "gold:acceptable"
-      ],
-      "x_gold_name_variants": [
-        "powershell.exe"
-      ],
-      "x_gold_evidence_quote": "“C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe” -nologo -WindowStyle Hidden",
-      "x_gold_context": "Artefact : la commande citée dans la section « change managment.dot ». Recouvre la technique requise T1059.001 ; PowerShell n'est pas un logiciel ATT&CK."
-    },
-    {
       "type": "attack-pattern",
       "spec_version": "2.1",
       "id": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
@@ -434,32 +417,22 @@
     {
       "type": "relationship",
       "spec_version": "2.1",
-      "id": "relationship--61ae72d4-afd7-5678-9159-b718b26d113d",
-      "created": "2017-08-28T00:00:00.000Z",
-      "modified": "2026-10-26T00:00:00.000Z",
-      "relationship_type": "uses",
-      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
-      "target_ref": "tool--13b3e559-ce6c-55d1-9f03-1c17f8c38f37",
-      "labels": [
-        "gold:acceptable"
-      ],
-      "x_gold_evidence_quote": "“C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe” -nologo -WindowStyle Hidden",
-      "x_gold_context": "Artefact : commande lancée après l'exploitation (« which in turn runs this command »). Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
       "id": "relationship--0cc69368-ae05-58a7-9993-242e9cac7f7b",
       "created": "2017-08-28T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
-      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "source_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+      "target_ref": "tool--0a68f1f1-da74-4d28-8d9a-696c082706cc",
       "labels": [
-        "gold:acceptable"
+        "gold:required"
       ],
       "x_gold_evidence_quote": "certutil.exe” -decode",
-      "x_gold_context": "Artefact : commande certutil -decode qui transforme le fichier base64 en exécutable ISMAgent."
+      "x_gold_context": "Artefact : commande certutil -decode qui transforme le fichier base64 en exécutable ISMAgent.",
+      "description": "the malware is disguised as a base64 digital certificate and decoded via certutil.exe",
+      "x_gold_merged_from": [
+        "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05"
+      ],
+      "x_gold_inverted": true
     },
     {
       "type": "relationship",
@@ -468,13 +441,14 @@
       "created": "2017-08-28T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "source_ref": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
       "target_ref": "attack-pattern--be2dcee9-a7a7-4e38-afd6-21b31ecc3d63",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "exploits CVE-2017-0199 and calls the following URL",
-      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). L'exploitation du document conduit à l'exécution d'une commande (« which in turn runs this command »)."
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). L'exploitation du document conduit à l'exécution d'une commande (« which in turn runs this command »).",
+      "x_gold_revised_from": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05"
     },
     {
       "type": "relationship",
@@ -483,13 +457,14 @@
       "created": "2017-08-28T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "source_ref": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
       "target_ref": "attack-pattern--970a3432-3237-47ad-bcca-7d8cbb217736",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "which in turn runs this command:",
-      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). La commande citée est un appel à powershell.exe."
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »). La commande citée est un appel à powershell.exe.",
+      "x_gold_revised_from": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05"
     },
     {
       "type": "relationship",
@@ -498,13 +473,14 @@
       "created": "2017-08-28T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "source_ref": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
       "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "The command downloads  _ntluca.txt_ from",
-      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
+      "x_gold_context": "Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »).",
+      "x_gold_revised_from": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05"
     },
     {
       "type": "relationship",
@@ -513,13 +489,14 @@
       "created": "2017-08-28T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "source_ref": "intrusion-set--f1a371ab-5eb3-5bd4-b46c-84343338a5b8",
       "target_ref": "attack-pattern--cbb66055-0325-4111-aca0-40547b6ad5b0",
       "labels": [
         "gold:acceptable"
       ],
       "x_gold_evidence_quote": "-nologo -WindowStyle Hidden",
-      "x_gold_context": "Artefact : option de la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
+      "x_gold_context": "Artefact : option de la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »).",
+      "x_gold_revised_from": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05"
     },
     {
       "type": "relationship",
@@ -528,28 +505,14 @@
       "created": "2017-08-28T00:00:00.000Z",
       "modified": "2026-10-26T00:00:00.000Z",
       "relationship_type": "uses",
-      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "source_ref": "malware--78d43467-c455-5ad5-b2e4-c73b95d74930",
       "target_ref": "attack-pattern--0d91b3c0-5e50-47c3-949a-2a796f04d144",
       "labels": [
         "gold:required"
       ],
       "x_gold_evidence_quote": "Disguised as a base64 digital certificate, the file actually decodes to an ISMagent sample",
-      "x_gold_context": "« the file » renvoie à ntluca.txt, téléchargé par la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »)."
-    },
-    {
-      "type": "relationship",
-      "spec_version": "2.1",
-      "id": "relationship--ff9d6a93-381f-57c5-ac7c-7d8a5bf54db6",
-      "created": "2017-08-28T00:00:00.000Z",
-      "modified": "2026-10-26T00:00:00.000Z",
-      "relationship_type": "uses",
-      "source_ref": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
-      "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
-      "labels": [
-        "gold:required"
-      ],
-      "x_gold_evidence_quote": "the malware is disguised as a base64 digital certificate and decoded via certutil.exe",
-      "x_gold_context": "Première phrase, mécanisme de livraison de la campagne ; commande certutil -decode dans la section « change managment.dot »."
+      "x_gold_context": "« the file » renvoie à ntluca.txt, téléchargé par la commande PowerShell. Section « change managment.dot », qui détaille l'échantillon de la nouvelle campagne (« This post describes the new campaign »).",
+      "x_gold_revised_from": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05"
     }
   ]
 }

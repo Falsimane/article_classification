@@ -1,0 +1,945 @@
+{
+  "1281": [
+    {
+      "key": "manuel",
+      "rename": "campaign--99cdf874-bfc2-556e-b042-01ddd86347c3",
+      "name": "Axios npm package compromise campaign (STARDUST CHOLLIMA, March 2026)"
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+        "created": "2026-04-01T00:00:00.000Z",
+        "modified": "2026-04-01T00:00:00.000Z",
+        "name": "Ingress Tool Transfer",
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "external_id": "T1105",
+            "url": "https://attack.mitre.org/techniques/T1105"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "manuel"
+      }
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--cdea9f51-182c-534e-b489-f58546ba731d",
+        "created": "2026-04-01T00:00:00.000Z",
+        "modified": "2026-04-01T00:00:00.000Z",
+        "relationship_type": "uses",
+        "source_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+        "target_ref": "attack-pattern--e6919abc-99f9-4c6c-95a5-14761e7b2add",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "Implemented commands that enable the operator to inject binary payloads, execute arbitrary scripts and commands, enumerate the file system, and remotely terminate the implant",
+        "x_gold_source": "manuel"
+      }
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+        "created": "2026-04-01T00:00:00.000Z",
+        "modified": "2026-04-01T00:00:00.000Z",
+        "name": "Exfiltration Over C2 Channel",
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "external_id": "T1041",
+            "url": "https://attack.mitre.org/techniques/T1041"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "manuel"
+      }
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--19a672b5-c3bc-5f3e-b658-1efffb571736",
+        "created": "2026-04-01T00:00:00.000Z",
+        "modified": "2026-04-01T00:00:00.000Z",
+        "relationship_type": "uses",
+        "source_ref": "malware--6b0367ee-22cf-5640-9f72-c0a5ca5bc329",
+        "target_ref": "attack-pattern--92d7da27-2d91-488e-a00c-059dc162766d",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "how it sends the collected information",
+        "x_gold_source": "manuel",
+        "x_gold_context": "Verdict D de l'audit : le canal C2 n'est pas nommé dans la phrase ; acceptable."
+      }
+    },
+    {
+      "key": "E:location:DPRK",
+      "object": {
+        "type": "location",
+        "spec_version": "2.1",
+        "id": "location--71595172-8a96-5308-a6f7-7c4276967a27",
+        "created": "2026-11-12T16:01:30.015605Z",
+        "modified": "2026-11-12T16:01:30.015605Z",
+        "name": "DPRK",
+        "country": "KP",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:intrusion-set:FAMOUS CHOLLIMA --originates-from--> location:DPRK",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--85a509c1-6b51-5e65-bda1-925e200f309c",
+        "created": "2026-11-12T16:01:30.015605Z",
+        "modified": "2026-11-12T16:01:30.015605Z",
+        "relationship_type": "originates-from",
+        "source_ref": "intrusion-set--fe3d6d03-a863-5719-a3a0-022934f409b7",
+        "target_ref": "location--71595172-8a96-5308-a6f7-7c4276967a27",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "DPRK-nexus adversaries frequently share infrastructure, and FAMOUS CHOLLIMA has historically deployed DPRK-associated tooling and has extensively abused npm repositories in their operations.",
+        "x_gold_source": "audit J"
+      }
+    }
+  ],
+  "1602": [
+    {
+      "key": "manuel",
+      "rename": "campaign--6b69cc1f-b800-509a-bf4c-373bc1c45a05",
+      "name": "ISMAgent delivery campaign (GreenBug, August 2017)"
+    }
+  ],
+  "1553": [
+    {
+      "key": "manuel",
+      "rename": "campaign--4d9323dc-aab6-5d20-8c99-e01c47235298",
+      "name": "Poland targeting campaign (UAC-0057, April-May 2025)"
+    },
+    {
+      "key": "manuel",
+      "rename": "campaign--75f04b04-6c83-5c39-bc81-27d2ad361e01",
+      "name": "Ukraine targeting campaign (UAC-0057, May-July 2025)"
+    },
+    {
+      "key": "manuel",
+      "rename": "malware--f8cf7f73-12b0-58e3-9ee4-db5af6469598",
+      "name": "C++ dropper"
+    },
+    {
+      "key": "manuel",
+      "rename": "malware--b7570bd3-502a-5407-90f4-0809bc66e6d5",
+      "name": "C++ loader"
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "threat-actor",
+        "spec_version": "2.1",
+        "id": "threat-actor--ddb7c4ba-6043-5890-bafd-9eafbca91475",
+        "created": "2025-08-20T00:00:00.000Z",
+        "modified": "2025-08-20T00:00:00.000Z",
+        "name": "Belarusian state actor",
+        "threat_actor_types": [
+          "nation-state"
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "manuel"
+      }
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "identity",
+        "spec_version": "2.1",
+        "id": "identity--d913b62c-ba25-5fc7-bdc4-a9aa2586f0b1",
+        "created": "2025-08-20T00:00:00.000Z",
+        "modified": "2025-08-20T00:00:00.000Z",
+        "name": "Government of Belarus",
+        "identity_class": "organization",
+        "sectors": [
+          "government-national"
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "manuel"
+      }
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--351e2fec-aea0-5e99-82cc-65972ca4fd7a",
+        "created": "2025-08-20T00:00:00.000Z",
+        "modified": "2025-08-20T00:00:00.000Z",
+        "relationship_type": "attributed-to",
+        "source_ref": "intrusion-set--4a4be33a-2644-5033-8027-072d15b4ac3d",
+        "target_ref": "threat-actor--ddb7c4ba-6043-5890-bafd-9eafbca91475",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "a cyber espionage actor with reported ties to the Belarusian government",
+        "x_gold_source": "manuel",
+        "confidence": 60
+      }
+    },
+    {
+      "key": "manuel",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--db362a8a-57bc-50fb-9aab-671611b314ae",
+        "created": "2025-08-20T00:00:00.000Z",
+        "modified": "2025-08-20T00:00:00.000Z",
+        "relationship_type": "attributed-to",
+        "source_ref": "threat-actor--ddb7c4ba-6043-5890-bafd-9eafbca91475",
+        "target_ref": "identity--d913b62c-ba25-5fc7-bdc4-a9aa2586f0b1",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "a cyber espionage actor with reported ties to the Belarusian government",
+        "x_gold_source": "manuel",
+        "confidence": 60
+      }
+    },
+    {
+      "key": "E:identity:Ministry of Digital Transformation of Ukraine",
+      "object": {
+        "type": "identity",
+        "spec_version": "2.1",
+        "id": "identity--811ade9f-6a5e-574e-8f30-9a4c4d82e3e0",
+        "created": "2026-11-12T16:01:30.0232Z",
+        "modified": "2026-11-12T16:01:30.0232Z",
+        "name": "Ministry of Digital Transformation of Ukraine",
+        "identity_class": "organization",
+        "sectors": [
+          "government"
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "E:identity:Union of Rural Municipalities of the Republic of Poland",
+      "object": {
+        "type": "identity",
+        "spec_version": "2.1",
+        "id": "identity--762504bc-9abb-57bb-8b1f-7571983ca3b9",
+        "created": "2026-11-12T16:01:30.0232Z",
+        "modified": "2026-11-12T16:01:30.0232Z",
+        "name": "Union of Rural Municipalities of the Republic of Poland",
+        "identity_class": "organization",
+        "sectors": [
+          "government"
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "E:vulnerability:CVE-2024-42009",
+      "object": {
+        "type": "vulnerability",
+        "spec_version": "2.1",
+        "id": "vulnerability--5dea28ee-3f32-5596-b3d1-b4f4fce7b93c",
+        "created": "2026-11-12T16:01:30.0232Z",
+        "modified": "2026-11-12T16:01:30.0232Z",
+        "name": "CVE-2024-42009",
+        "external_references": [
+          {
+            "source_name": "cve",
+            "external_id": "CVE-2024-42009"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:intrusion-set:UAC-0057 --uses--> attack-pattern:Internet Connection Discovery [T1016.001]",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--132d5b37-aac5-4378-a8dc-3127b18a73dc",
+        "created": "2021-03-17T15:28:10.689Z",
+        "modified": "2025-10-24T17:48:26.017Z",
+        "name": "Internet Connection Discovery",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "discovery"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1016/001",
+            "external_id": "T1016.001"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:intrusion-set:UAC-0057 --uses--> attack-pattern:Internet Connection Discovery [T1016.001]",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--79b83828-1d0c-554e-8306-10e48b3a4d1f",
+        "created": "2026-11-12T16:01:30.0232Z",
+        "modified": "2026-11-12T16:01:30.0232Z",
+        "relationship_type": "uses",
+        "source_ref": "intrusion-set--4a4be33a-2644-5033-8027-072d15b4ac3d",
+        "target_ref": "attack-pattern--132d5b37-aac5-4378-a8dc-3127b18a73dc",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "information about the IP address which is used to browse on the Internet (retrieved by sending an HTTP GET request to `https://ip-info.ff.avast.com/v1/info`).",
+        "x_gold_source": "audit J"
+      }
+    }
+  ],
+  "1558": [
+    {
+      "key": "manuel",
+      "rename": "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "name": "Fake CAPTCHA campaign (HijackLoader, Lumma Stealer)"
+    },
+    {
+      "key": "T1140",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+        "created": "2017-12-14T16:46:06.044Z",
+        "modified": "2026-09-11T19:42:55.679Z",
+        "name": "Deobfuscate/Decode Files or Information",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "stealth"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1140",
+            "external_id": "T1140"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1140",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--51a2796d-aa16-5493-8435-3643d8bcbcca",
+        "created": "2026-11-12T16:01:57.318543Z",
+        "modified": "2026-11-12T16:01:57.318543Z",
+        "relationship_type": "uses",
+        "source_ref": "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1",
+        "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "For most DLL sideloading packages we analyzed, the purpose of the sideloaded HijackLoader DLL is to decrypt and execute an encrypted file which is provided in the package.",
+        "x_gold_source": "audit J"
+      }
+    }
+  ],
+  "1549": [
+    {
+      "key": "manuel",
+      "rename": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+      "name": "CVE-2025-8088 spearphishing campaign (Gamaredon, September 2025 - May 2026)"
+    },
+    {
+      "key": "E:identity:National Anti-Corruption Bureau",
+      "object": {
+        "type": "identity",
+        "spec_version": "2.1",
+        "id": "identity--cb319a17-2a8f-5f9a-a55a-3f17810ae118",
+        "created": "2026-11-12T16:02:16.960834Z",
+        "modified": "2026-11-12T16:02:16.960834Z",
+        "name": "National Anti-Corruption Bureau",
+        "identity_class": "organization",
+        "sectors": [
+          "government"
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1102.002",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--be055942-6e63-49d7-9fa1-9cb7d8a8f3f4",
+        "created": "2020-03-14T22:34:03.024Z",
+        "modified": "2026-09-03T19:46:40.085Z",
+        "name": "Bidirectional Communication",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "command-and-control"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1102/002",
+            "external_id": "T1102.002"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1102.002",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--5c1b1066-6608-5c70-962e-fbdb6eca732f",
+        "created": "2026-11-12T16:02:16.960834Z",
+        "modified": "2026-11-12T16:02:16.960834Z",
+        "relationship_type": "uses",
+        "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+        "target_ref": "attack-pattern--be055942-6e63-49d7-9fa1-9cb7d8a8f3f4",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "The supporting infrastructure combines Cloudflare Workers domains, fast flux DNS, dynamic DNS providers, and attacker-controlled email relays – all constantly evolving.",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:malware:GammaLoad --authored-by--> intrusion-set:Gamaredon Group",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--737cad03-26ad-5616-a49f-39eb0385f423",
+        "created": "2026-11-12T16:02:16.960834Z",
+        "modified": "2026-11-12T16:02:16.960834Z",
+        "relationship_type": "authored-by",
+        "source_ref": "malware--8786fa2f-1476-5253-9375-b0ad09b4f653",
+        "target_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "In the absence of public analysis of these malware, this report documents Gamaredon’s GammaDrop and GammaLoad downloader variants, the infrastructure behind them, and the methods used to deliver the spearphishing emails.",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:malware:GammaDrop --authored-by--> intrusion-set:Gamaredon Group",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--c5dca539-e887-510e-9f23-689851fe193e",
+        "created": "2026-11-12T16:02:16.960834Z",
+        "modified": "2026-11-12T16:02:16.960834Z",
+        "relationship_type": "authored-by",
+        "source_ref": "malware--1a321d3e-6938-5068-8e59-d963d4277f79",
+        "target_ref": "intrusion-set--6fddcb5b-5600-51e2-82fa-67da17c3b12f",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "In the absence of public analysis of these malware, this report documents Gamaredon’s GammaDrop and GammaLoad downloader variants, the infrastructure behind them, and the methods used to deliver the spearphishing emails.",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:campaign:Gamaredon spearphishing campaign against Ukrainian state institutions --uses--> attack-pattern:NTFS File Attributes [T1564.004]",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--f2857333-11d4-45bf-b064-2c28d8525be5",
+        "created": "2020-03-13T20:33:00.009Z",
+        "modified": "2026-05-12T15:12:00.724Z",
+        "name": "NTFS File Attributes",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "stealth"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1564/004",
+            "external_id": "T1564.004"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:campaign:Gamaredon spearphishing campaign against Ukrainian state institutions --uses--> attack-pattern:NTFS File Attributes [T1564.004]",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--150f17a9-6c1d-5c5a-b360-4420c452a0bd",
+        "created": "2026-11-12T16:02:16.960834Z",
+        "modified": "2026-11-12T16:02:16.960834Z",
+        "relationship_type": "uses",
+        "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+        "target_ref": "attack-pattern--f2857333-11d4-45bf-b064-2c28d8525be5",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "The archive contains a single file entry accompanied by an NTFS alternate data stream (ADS) service record[1]:",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:campaign:Gamaredon spearphishing campaign against Ukrainian state institutions --uses--> attack-pattern:Web Services [T1584.006]",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--ae797531-3219-49a4-bccf-324ad7a4c7b2",
+        "created": "2020-10-01T01:01:00.176Z",
+        "modified": "2026-09-18T00:31:18.340Z",
+        "name": "Web Services",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "resource-development"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1584/006",
+            "external_id": "T1584.006"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:campaign:Gamaredon spearphishing campaign against Ukrainian state institutions --uses--> attack-pattern:Web Services [T1584.006]",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--5fc562b3-a599-5c70-b7fd-01cbaecf9fe6",
+        "created": "2026-11-12T16:02:16.960834Z",
+        "modified": "2026-11-12T16:02:16.960834Z",
+        "relationship_type": "uses",
+        "source_ref": "campaign--0242924f-462e-557f-8379-ebf5484cf014",
+        "target_ref": "attack-pattern--ae797531-3219-49a4-bccf-324ad7a4c7b2",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "The supporting infrastructure combines Cloudflare Workers domains, fast flux DNS, dynamic DNS providers, and attacker-controlled email relays – all constantly evolving.",
+        "x_gold_source": "audit J"
+      }
+    }
+  ],
+  "1697": [
+    {
+      "key": "manuel",
+      "rename": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+      "name": "Southeast Asian government and energy campaign (CL-STA-1062, 2025)"
+    },
+    {
+      "key": "T1140",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+        "created": "2017-12-14T16:46:06.044Z",
+        "modified": "2026-09-11T19:42:55.679Z",
+        "name": "Deobfuscate/Decode Files or Information",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "stealth"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1140",
+            "external_id": "T1140"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1140",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--da48a13e-193f-5203-9027-e97a8999601d",
+        "created": "2026-11-12T16:02:22.65309Z",
+        "modified": "2026-11-12T16:02:22.65309Z",
+        "relationship_type": "uses",
+        "source_ref": "campaign--06d6c3a3-9209-5281-9b45-67548d8a4b9d",
+        "target_ref": "attack-pattern--3ccef7ae-cb5e-48f6-8302-897105fbf55c",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "In one case, the attackers used a web shell to extract a password-protected RAR archive containing a SoftEther VPN binary masquerading as vmtools.exe.",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1497.001",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--29be378d-262d-4e99-b00d-852d573628e6",
+        "created": "2020-03-06T20:57:37.959Z",
+        "modified": "2026-09-11T19:25:59.519Z",
+        "name": "System Checks",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "stealth"
+          },
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "discovery"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1497/001",
+            "external_id": "T1497.001"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1497.001",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--b21725e4-4e80-5eb8-8ec4-4cfdc7ea1553",
+        "created": "2026-11-12T16:02:22.65309Z",
+        "modified": "2026-11-12T16:02:22.65309Z",
+        "relationship_type": "uses",
+        "source_ref": "malware--82965012-cacd-5903-8a14-d0eec97177c0",
+        "target_ref": "attack-pattern--29be378d-262d-4e99-b00d-852d573628e6",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "Upon execution, the malware performs an environment validation to explicitly verify that it was executed from %LOCALAPPDATA%.",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1587.001",
+      "object": {
+        "type": "attack-pattern",
+        "spec_version": "2.1",
+        "id": "attack-pattern--212306d8-efa4-44c9-8c2d-ed3d2e224aa0",
+        "created": "2020-10-01T01:33:01.433Z",
+        "modified": "2026-05-12T15:12:00.622Z",
+        "name": "Malware",
+        "kill_chain_phases": [
+          {
+            "kill_chain_name": "mitre-attack",
+            "phase_name": "resource-development"
+          }
+        ],
+        "external_references": [
+          {
+            "source_name": "mitre-attack",
+            "url": "https://attack.mitre.org/techniques/T1587/001",
+            "external_id": "T1587.001"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "T1587.001",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--8189b96f-d137-5838-9345-bc33614e3b3c",
+        "created": "2026-11-12T16:02:22.65309Z",
+        "modified": "2026-11-12T16:02:22.65309Z",
+        "relationship_type": "uses",
+        "source_ref": "intrusion-set--4842468d-93cc-5092-b6ef-5810b54cb9a5",
+        "target_ref": "attack-pattern--212306d8-efa4-44c9-8c2d-ed3d2e224aa0",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "While they frequently use common open-source tools such as SoftEther VPN, Mimikatz and VNT, they have recently introduced TinyRCT, a bespoke, previously undocumented backdoor.",
+        "x_gold_source": "audit J"
+      }
+    }
+  ],
+  "1338": [
+    {
+      "key": "manuel",
+      "rename": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+      "name": "malicious kernel driver"
+    },
+    {
+      "key": "manuel",
+      "rename": "campaign--1195b9a7-bfb0-5496-9547-f96bc80511e1",
+      "name": "Telecom and BPO targeting campaign (SCATTERED SPIDER, 2022)"
+    },
+    {
+      "key": "E:campaign:SCATTERED SPIDER targeting telecom and BPO sectors",
+      "object": {
+        "type": "campaign",
+        "spec_version": "2.1",
+        "id": "campaign--1195b9a7-bfb0-5496-9547-f96bc80511e1",
+        "created": "2026-11-12T16:05:23.398385Z",
+        "modified": "2026-11-12T16:05:23.398385Z",
+        "name": "SCATTERED SPIDER targeting telecom and BPO sectors",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "E:course-of-action:Patch vulnerable Intel Ethernet Driver",
+      "object": {
+        "type": "course-of-action",
+        "spec_version": "2.1",
+        "id": "course-of-action--b01f9940-b5b3-5d38-bcb4-c083d6d73ba1",
+        "created": "2026-11-12T16:05:23.398385Z",
+        "modified": "2026-11-12T16:05:23.398385Z",
+        "name": "Patch vulnerable Intel Ethernet Driver",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:campaign:SCATTERED SPIDER targeting telecom and BPO sectors --attributed-to--> intrusion-set:Scattered Spider",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--1f19b19c-2441-50e3-bc29-b664400b6a15",
+        "created": "2026-11-12T16:05:23.398385Z",
+        "modified": "2026-11-12T16:05:23.398385Z",
+        "relationship_type": "attributed-to",
+        "source_ref": "campaign--1195b9a7-bfb0-5496-9547-f96bc80511e1",
+        "target_ref": "intrusion-set--4b1c1420-fc53-5c18-87d3-333c7cb75587",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "CrowdStrike Intelligence attributed this campaign with low confidence to the SCATTERED SPIDER eCrime adversary.",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:malware:malicious kernel driver --exploits--> vulnerability:CVE-2015-2291",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--ec0bcc28-9f47-5600-847d-e107f2a66d43",
+        "created": "2026-11-12T16:05:23.398385Z",
+        "modified": "2026-11-12T16:05:23.398385Z",
+        "relationship_type": "exploits",
+        "source_ref": "malware--0e28117f-2e73-5d80-9c13-df20735b0e71",
+        "target_ref": "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "In the weeks since that post, the CrowdStrike Falcon® platform prevented a novel attempt by SCATTERED SPIDER to deploy a malicious kernel driver through a vulnerability (CVE-2015-2291) in the Intel Ethernet diagnostics driver.",
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:course-of-action:Patch vulnerable Intel Ethernet Driver --remediates--> vulnerability:CVE-2015-2291",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--2054d541-5c5e-538f-8296-eb61d5029548",
+        "created": "2026-11-12T16:05:23.398385Z",
+        "modified": "2026-11-12T16:05:23.398385Z",
+        "relationship_type": "remediates",
+        "source_ref": "course-of-action--b01f9940-b5b3-5d38-bcb4-c083d6d73ba1",
+        "target_ref": "vulnerability--a42d214f-ecc1-5160-acfb-46207f0548f0",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "CrowdStrike customers should ensure they have the ability to locate and patch the vulnerable Intel Ethernet Driver specified in CVE-2015-2291.",
+        "x_gold_source": "audit J"
+      }
+    }
+  ],
+  "1079": [
+    {
+      "key": "E:course-of-action:Upgrade FortiOS firmware",
+      "object": {
+        "type": "course-of-action",
+        "spec_version": "2.1",
+        "id": "course-of-action--36dcf7ac-a899-5869-92d3-b925bb88e5d0",
+        "created": "2026-11-12T16:01:30.011125Z",
+        "modified": "2026-11-12T16:01:30.011125Z",
+        "name": "Upgrade FortiOS firmware",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "E:vulnerability:CVE-2019-5591",
+      "object": {
+        "type": "vulnerability",
+        "spec_version": "2.1",
+        "id": "vulnerability--0e5ce943-e9d9-5ba8-a4c3-b04ef5f6ab65",
+        "created": "2026-11-12T16:01:30.011125Z",
+        "modified": "2026-11-12T16:01:30.011125Z",
+        "name": "CVE-2019-5591",
+        "external_references": [
+          {
+            "source_name": "cve",
+            "external_id": "CVE-2019-5591"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "E:vulnerability:CVE-2020-12812",
+      "object": {
+        "type": "vulnerability",
+        "spec_version": "2.1",
+        "id": "vulnerability--71d51192-2ced-56fa-94bc-de46693760ab",
+        "created": "2026-11-12T16:01:30.011125Z",
+        "modified": "2026-11-12T16:01:30.011125Z",
+        "name": "CVE-2020-12812",
+        "external_references": [
+          {
+            "source_name": "cve",
+            "external_id": "CVE-2020-12812"
+          }
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "R:course-of-action:Upgrade FortiOS firmware --remediates--> vulnerability:CVE-2018-13379",
+      "object": {
+        "type": "relationship",
+        "spec_version": "2.1",
+        "id": "relationship--4332ec52-8956-5381-ab2b-406c6557d484",
+        "created": "2026-11-12T16:01:30.011125Z",
+        "modified": "2026-11-12T16:01:30.011125Z",
+        "relationship_type": "remediates",
+        "source_ref": "course-of-action--36dcf7ac-a899-5869-92d3-b925bb88e5d0",
+        "target_ref": "vulnerability--8d95cd1b-f13c-537d-916f-f66976ffa987",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_evidence_quote": "The original guidance for this vulnerability (from 2019) advised Fortigate customers to upgrade their FortiOS devices to 5.4.13, 5.6.8, 6.0.5 or 6.2.0 and above, depending on which firmware version stream those customers’ devices were using.",
+        "x_gold_source": "audit J"
+      }
+    }
+  ],
+  "1438": [
+    {
+      "key": "E:identity:FSB",
+      "object": {
+        "type": "identity",
+        "spec_version": "2.1",
+        "id": "identity--fc34e502-1a24-51ae-9d9a-47703866d1cb",
+        "created": "2026-11-12T16:03:16.610973Z",
+        "modified": "2026-11-12T16:03:16.610973Z",
+        "name": "FSB",
+        "identity_class": "organization",
+        "sectors": [
+          "government"
+        ],
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    },
+    {
+      "key": "E:location:Russia",
+      "object": {
+        "type": "location",
+        "spec_version": "2.1",
+        "id": "location--e58828ef-b073-53b9-bdd8-7e89a47c16d4",
+        "created": "2026-11-12T16:03:16.610973Z",
+        "modified": "2026-11-12T16:03:16.610973Z",
+        "name": "Russia",
+        "country": "RU",
+        "labels": [
+          "gold:acceptable"
+        ],
+        "x_gold_source": "audit J"
+      }
+    }
+  ]
+}

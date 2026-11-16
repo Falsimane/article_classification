@@ -1,0 +1,254 @@
+[
+  {
+    "relation_id": "relationship--d990abf2-a338-5a1f-8040-a71cf82b99f8",
+    "source": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+    "technique": "T1204.004",
+    "technique_name": "Malicious Copy and Paste",
+    "quote": "a pop-up invites targets to type a series of keyboard shortcuts so they open a command line interpreter, paste and execute a PowerShell payload",
+    "context": "",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--cf4d316e-fbcd-565f-b075-71137e394854",
+    "source": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+    "technique": "T1059.001",
+    "technique_name": "PowerShell",
+    "quote": "a PowerShell script is directly executed from a remote file",
+    "context": "Section « Infection chain » : variante 2 du script PowerShell de la campagne fake CAPTCHA.",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--b4cc426f-30b5-5e7a-9a05-a739d6fecedf",
+    "source": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+    "technique": "T1218.005",
+    "technique_name": "Mshta",
+    "quote": "The script leverages the Microsoft HTML Application Host to execute malicious code from a remote URL",
+    "context": "Section « Infection chain » : variante 1 du script PowerShell de la campagne fake CAPTCHA.",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--029a48bd-0fb4-5eec-b537-fc0f9659249a",
+    "source": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+    "technique": "T1218.007",
+    "technique_name": "Msiexec",
+    "quote": "The script also employs the Microsoft Windows Installer to silently download and execute a payload from a remote URL",
+    "context": "Section « Infection chain » : variante 3 du script PowerShell de la campagne fake CAPTCHA.",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--5da82e3e-7106-5578-af01-3297d79ba95b",
+    "source": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+    "technique": "T1105",
+    "technique_name": "Ingress Tool Transfer",
+    "quote": "As a result of the PowerShell execution, a ZIP archive is downloaded, decompressed and a binary is executed from it.",
+    "context": "",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--fdd27be3-b51a-5c91-8f22-44c7e5741392",
+    "source": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+    "technique": "T1574.001",
+    "technique_name": "DLL",
+    "quote": "contained a DLL sideloading7 package, which led to HijackLoader execution",
+    "context": "Technique T1574.002 (DLL Side-Loading) révoquée dans ATT&CK v20.0, remplacée par T1574.001 (DLL).",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--131e69e3-154f-5f93-9af7-a7126d7424e6",
+    "source": "malware:HijackLoader",
+    "technique": "T1574.001",
+    "technique_name": "DLL",
+    "quote": "It implements several evasion techniques including Process Doppelgänging, DLL Search Order Hijacking, and Heaven’s Gate",
+    "context": "Note de bas de page 2 de l'article (description générale de HijackLoader) ; T1574.001 regroupe le détournement de l'ordre de recherche des DLL et le sideloading dans ATT&CK v20.0.",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--b1430307-bfb2-54c3-a07c-8152017f6c39",
+    "source": "malware:HijackLoader",
+    "technique": "T1055.013",
+    "technique_name": "Process Doppelgänging",
+    "quote": "It implements several evasion techniques including Process Doppelgänging, DLL Search Order Hijacking, and Heaven’s Gate",
+    "context": "Note de bas de page 2 de l'article (description générale de HijackLoader). Heaven’s Gate n'a pas de technique ATT&CK.",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--111d7fac-a6f2-55ae-9a7d-d9c46e89a1e3",
+    "source": "malware:HijackLoader",
+    "technique": "T1027.013",
+    "technique_name": "Encrypted/Encoded File",
+    "quote": "decrypt and execute an encrypted file which is provided in the package. This file conceals the final HijackLoader stage",
+    "context": "Section « HijackLoader execution from DLL sideloading » : le fichier chiffré fournit l'étape finale de HijackLoader.",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--96f220b7-8a4d-54b8-80c7-aa3c0fac7363",
+    "source": "malware:HijackLoader",
+    "technique": "T1105",
+    "technique_name": "Ingress Tool Transfer",
+    "quote": "which is aimed at downloading and executing a stealer implant (Lumma Stealer in our cases)",
+    "context": "",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--5a17ee4c-8772-56f1-a214-8e302bcccf62",
+    "source": "malware:HijackLoader",
+    "technique": "T1553.002",
+    "technique_name": "Code Signing",
+    "quote": "the malware sample was properly signed with a genuine code-signing certificate",
+    "context": "Section « A wild signed HijackLoader appears! » : l'exécutable détecté le 2 octobre 2024 est « a signed HijackLoader sample ».",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  },
+  {
+    "relation_id": "relationship--15a9aec8-29c8-561c-81a0-1aa7693f5072",
+    "source": "malware:HijackLoader",
+    "technique": "T1036.005",
+    "technique_name": "Match Legitimate Resource Name or Location",
+    "quote": "we identified, and which is impersonating the “Firefox” browser",
+    "context": "Section « A wild signed HijackLoader appears! » : l'échantillon cité est « another HijackLoader sample » signé qui se fait passer pour Firefox.",
+    "candidates": [
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1"
+    ],
+    "candidate_names": {
+      "campaign--4a60f117-7b72-595e-9a14-911be5f75c82": "campaign:Campagne fake CAPTCHA (HijackLoader / Lumma Stealer)",
+      "malware--674c514f-e485-47a8-9d49-1aaa70de155b": "malware:Lumma Stealer",
+      "malware--9ba8def5-68b3-5861-93ca-2fe4cdc4cca1": "malware:HijackLoader"
+    },
+    "decision": "keep",
+    "new_source": null,
+    "reason": ""
+  }
+]

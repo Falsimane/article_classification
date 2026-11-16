@@ -40,6 +40,10 @@ from backend.extracting.agents import (
     ThreatModelerAgent,
     TTPHunterAgent,
 )
+from backend.extracting.cascade.clusters import build_clusters
+from backend.extracting.cascade.graph import build_graph, technique_relations
+from backend.extracting.cascade.techniques import attach_techniques
+from backend.extracting.cascade.verify import verify_claims
 from backend.extracting.graph.draft import DraftGraph, relationship_type_of, stix_type_of
 from backend.preprocessing.cleaning.text.evidence import mentions, normalize_name, parse_date
 from backend.extracting.observables.iocs import IocResult, extract_iocs
@@ -108,6 +112,11 @@ SECOND_LOOK_TOKENS = 1500
 MULTI_AGENT = os.environ.get("CTI_MULTI_AGENT", "on").strip().lower() in ("on", "1", "yes", "true")
 # Échantillonnage multi-températures pour l'agent TTP (CTI_MULTI_TEMP=on)
 MULTI_TEMP = _flag("CTI_MULTI_TEMP")
+# Extraction en cascade (cascade/) : remplace les agents, porteurs et corrections ; IOC et règles inchangés
+CASCADE = _flag("CTI_CASCADE")
+# Vérificateur par questions fermées (cascade/verify.py) : off = vérificateur actuel seul ; shadow = verdicts tracés sans effet ;
+# on = appliqué à la place de `verify_relations`
+VERIFY_MODE = os.environ.get("CTI_VERIFY", "off").strip().lower()
 _CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
 _CARRIER_TYPES = ("campaign", "intrusion-set", "threat-actor", "malware", "tool")
 _GROUP_TYPES = ("intrusion-set", "threat-actor")
@@ -138,6 +147,7 @@ class ExtractionResult:
     refused_relations: list[tuple[str, str, str, str]] = field(default_factory=list)
     # Chaque comportement relevé : phrases, candidates proposées et techniques choisies (rappel de la recherche à l'évaluation)
     behaviors: list[dict] = field(default_factory=list)
+    verdicts: list[dict] = field(default_factory=list)  # trace du vérificateur par questions fermées (CTI_VERIFY)
     iocs: IocResult = field(default_factory=IocResult)
     rules: RuleResult = field(default_factory=RuleResult)
     seconds: float = 0.0
@@ -220,7 +230,7 @@ RELATIONS (STIX 2.1, source --relation--> cible ; aucune autre n'est admise) :
 {relation_table()}
 SENS DES RELATIONS :
 {relation_definitions()}
-« targets » mène à une victime, un lieu visé, la vulnérabilité ou le produit attaqués : jamais à l'auteur du rapport, à une agence ou un éditeur qui publie une alerte, à un chercheur. Une technique d'exploitation --targets--> la vulnérabilité et le produit qu'elle exploite. software --related-to--> identity : l'éditeur du produit.
+« targets » mène à une victime, un lieu visé ou la vulnérabilité attaquée : jamais à l'auteur du rapport, à une agence ou un éditeur qui publie une alerte, à un chercheur, ni à une organisation seulement usurpée dans un leurre. Une technique d'exploitation --targets--> la vulnérabilité qu'elle exploite.
 Qui emploie une technique : le malware quand le texte décrit sa capacité propre ; sinon celui à qui le texte attribue l'action : la campagne décrite ou, sans campagne, l'acteur nommé (y compris avec un outil, qui est alors relié à lui par « uses »). Sans campagne ni acteur, la technique reste reliée à ce qui la porte (malware, vulnérabilité et produit visés).
 N'invente rien que le texte ne dise."""
 
@@ -228,8 +238,7 @@ N'invente rien que le texte ne dise."""
 def entity_prompt(text: str) -> str:
     return (
         f"{text}\n\n---\nTÂCHE : relève les entités du rapport ENTIER (aucun IOC, aucune relation). Éléments séparés par « ; » :\n"
-        "1) « entities » : toutes les entités, chacune « type|nom » ou « type|nom|alias1,alias2 » (« software|<produit>|<éditeur> », "
-        "« location|<pays>|<code ISO 3166-1> »), le nom tel que le texte l'écrit. Pas de technique ici.\n"
+        "1) « entities » : toutes les entités, chacune « type|nom » ou « type|nom|alias1,alias2 » (« location|<pays>|<code ISO 3166-1> »), le nom tel que le texte l'écrit. Pas de technique ici.\n"
         "2) « behaviors » : chaque comportement de l'attaquant ou d'un logiciel malveillant (accès initial, exécution, persistance, "
         "élévation, évasion, accès aux identifiants, découverte, mouvement latéral, collecte, communication, exfiltration, impact…), "
         "« numéros des phrases qui le décrivent|le comportement en anglais, avec les mots du mécanisme (action, moyen, but), sans "
@@ -380,8 +389,7 @@ def relation_prompt(text: str, table: list[str], carried: bool = False) -> str:
         "capacité propre, sinon la campagne décrite ou, sans campagne, l'acteur nommé à qui le texte attribue l'action (y compris "
         "avec un outil) ; chaque malware, outil et victime est relié à la campagne, à l'acteur ou à l'entité qui le déploie ou le subit. "
         "Sans malware, outil, campagne ni acteur (ex: analyse d'une vulnérabilité) : la technique d'exploitation cible directement "
-        "la vulnérabilité et le produit attaqué (« numéro technique|targets|numéro vulnérabilité ou produit|phrases »). "
-        "software --related-to--> identity relie un produit logiciel à son éditeur. "
+        "la vulnérabilité attaquée (« numéro technique|targets|numéro vulnérabilité|phrases »). "
         "La phrase citée (ou les 3 précédentes de sa section, ou son titre) nomme le malware, l'outil, la CVE ou la victime reliés." + already
     )
 
@@ -893,6 +901,8 @@ def extract_article(art: dict) -> ExtractionResult:
     draft = DraftGraph(units, ArticleContext(art["id"], art.get("site_name"), art.get("url"), art.get("title")))
     result = ExtractionResult(art["id"], draft, len(units))
     system, text = system_prompt(), render(units)
+    if CASCADE:
+        return extract_cascade(art, title, units, result, system, text, t0)
     try:
         if MULTI_AGENT:
             # 1. Micro-Agents de perception exécutés en parallèle avec cache de préfixe vLLM
@@ -1113,10 +1123,40 @@ def extract_article(art: dict) -> ExtractionResult:
             draft.prune_subsumed_techniques()
     except (TimeoutError, llm.requests.RequestException) as exc:
         result.failures.append(f"article : {type(exc).__name__}: {exc}")
-    entity_rows = draft.entity_rows()
+    return finish_article(art, title, units, result, t0)
+
+
+def finish_article(art: dict, title: str, units: list[Unit], result: ExtractionResult, t0: float) -> ExtractionResult:
+    """IOC et règles, rattachés aux entités reliées du graphe ; commun aux deux chemins d'extraction."""
+    entity_rows = result.draft.entity_rows()
     with ThreadPoolExecutor(max_workers=2) as pool:  # indépendants : tous deux ne lisent que les entités
         iocs = pool.submit(llm.in_context(extract_iocs), title, units, entity_rows, url=art.get("url"), published=parse_date(art.get("publication_date")))
         rules = pool.submit(llm.in_context(extract_rules), title, art["clean_markdown"], entity_rows)
         result.iocs, result.rules = iocs.result(), rules.result()
     result.seconds = time.perf_counter() - t0
     return result
+
+
+def extract_cascade(art: dict, title: str, units: list[Unit], result: ExtractionResult, system: str, text: str, t0: float) -> ExtractionResult:
+    """Cascade (cascade/) : graphe sous grammaire, grappes par porteur, techniques tactique par tactique, vérification."""
+    draft = result.draft
+
+    def call(stage, sys_, prompt, schema, tokens):
+        return _call(result, stage, sys_, prompt, schema, tokens)
+
+    try:
+        sids = build_graph(draft, text, system, result, call)
+        clusters = build_clusters(draft, text, system, sids, result, call)
+        attach_techniques(draft, title, clusters, result, call)
+        technique_relations(draft, text, system, sids, result, call)
+        try:
+            if VERIFY_MODE in ("shadow", "on"):
+                result.verdicts = verify_claims(draft, text, system, clusters, result, call, apply_decisions=VERIFY_MODE == "on")
+            if VERIFY_MODE != "on":
+                verify_relations(draft, text, system, result)
+        except (TimeoutError, llm.requests.RequestException) as exc:  # sans vérification, les relations acceptées restent
+            result.failures.append(f"vérification des relations : {type(exc).__name__}: {exc}")
+        draft.prune_subsumed_techniques()
+    except (TimeoutError, llm.requests.RequestException) as exc:
+        result.failures.append(f"article : {type(exc).__name__}: {exc}")
+    return finish_article(art, title, units, result, t0)

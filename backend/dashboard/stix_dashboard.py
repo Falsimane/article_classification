@@ -357,6 +357,13 @@ def _profile(actor: dict, nodes: dict[str, dict], edges: list[dict]) -> dict[str
             out["vulnerabilities"].append(entry(other, e))
         elif outgoing and rel == "targets" and kind in ("identity", "location"):
             out["targets"].append(entry(other, e))
+    # Commanditaire à travers le threat-actor parent (intrusion-set attributed-to threat-actor attributed-to identity, seule
+    # chaîne de STIX 2.1 : intrusion-set → identity n'existe pas)
+    parents = {p["node"]["id"] for p in out["parents"] if p["node"]["type"] == "threat-actor"}
+    for e in edges:
+        sponsor = nodes.get(e["target"])
+        if e["source"] in parents and e["type"] == "attributed-to" and sponsor and sponsor["type"] == "identity":
+            out["sponsors"].append({**entry(sponsor, e), "via": e["source"]})
     return {**out, "techniques": techniques}
 
 
