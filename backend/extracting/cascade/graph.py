@@ -6,7 +6,7 @@ extrémités) ; le modèle n'écrit aucun mini-langage."""
 
 from collections.abc import Callable
 
-from backend.extracting.cascade.schemas import entity_schema, label_schema, relation_schema
+from backend.extracting.cascade.schemas import context_schema, entity_schema, label_schema, relation_schema
 from backend.extracting.graph.draft import DraftGraph
 from backend.extracting.stix.attack import attack_id
 from backend.extracting.stix.objects import ENTITY_CLASSES
@@ -43,6 +43,20 @@ def entity_correction_prompt(prompt: str, refused: list[str]) -> str:
         "TÂCHE : pour CHAQUE numéro, « name » = le libellé que le texte donne à ce composant précis (son rôle ou sa famille, tel "
         "que le rapport le désigne dans une phrase ou un tableau : deux composants différents gardent deux libellés différents), "
         "jamais un nom de fichier."
+    )
+
+
+def context_prompt(text: str, table: list[str]) -> str:
+    listing = "\n".join(f"{i}. {row}" for i, row in enumerate(table, 1))
+    return (
+        f"{text}\n\n---\nENTITÉS DÉJÀ RELEVÉES (numérotées) :\n{listing}\n\n"
+        "TÂCHE, deux listes (vides si rien) :\n"
+        "« victims » : les victimes que le texte dit visées par l'attaque décrite et qui manquent à la liste : secteur entier, "
+        "organisation nommée (type identity, « detail » = « secteur STIX;classe »), pays ou région (type location, « detail » = "
+        "code ISO 3166-1). Jamais l'auteur du rapport, un éditeur de sécurité, un produit, ni une organisation seulement "
+        "usurpée dans un leurre.\n"
+        "« components » : les numéros des malwares de la liste que le texte désigne par leur rôle (un pilote, un chargeur, un "
+        "script) sans leur donner de nom de famille."
     )
 
 
@@ -113,8 +127,23 @@ def build_graph(draft: DraftGraph, text: str, system: str, result, call: Call) -
     if files:  # un refus sans reprise perd le composant et toutes ses relations ; même début de prompt (cache du serveur)
         answer = call("entities:corrections", system, entity_correction_prompt(prompt, files), label_schema(len(files)), CORRECTION_TOKENS)
         labels = {x.get("item"): _clean(x.get("name")) for x in answer.get("labels", []) if isinstance(x, dict)}
-        renamed = [{"type": line.split("|")[0], "name": labels[i], "aliases": []} for i, line in enumerate(files, 1) if labels.get(i)]
-        sids += [s for s in declare_entities(draft, {"entities": renamed}, result) if s not in sids]
+        for i, line in enumerate(files, 1):
+            kind, *names = line.split("|")
+            if not labels.get(i):
+                draft.log.append(f"reject « {line} » : aucun libellé rendu par la correction")
+                continue
+            fixed = declare_entities(draft, {"entities": [{"type": kind, "name": labels[i], "aliases": []}]}, result)
+            for sid in fixed:  # le fichier reste un terme reconnu dans les phrases (pas un alias STIX)
+                draft.add_terms(sid, {n.strip() for part in names for n in part.split(";") if n.strip()})
+            sids += [s for s in fixed if s not in sids]
+    # Passe dédiée : les victimes sont la catégorie la plus oubliée du premier appel ; un composant sans nom n'est pas une famille
+    numbers = [i for i, s in enumerate(sids, 1) if draft.type_of(s) == "malware" and s in draft.specs]
+    extra = call("entities:context", system, context_prompt(text, [f"{draft.type_of(s)}: {draft.name_of(s)}" for s in sids]), context_schema(numbers), CORRECTION_TOKENS)
+    for n in extra.get("components", []):
+        if n in numbers:
+            draft.mark_component(sids[n - 1])
+    victims = [{"type": v.get("type"), "name": v.get("name"), "detail": v.get("detail", "")} for v in extra.get("victims", []) if isinstance(v, dict)]
+    sids += [s for s in declare_entities(draft, {"entities": victims}, result) if s not in sids]
     schema = relation_schema([draft.type_of(s) for s in sids])
     if schema is None:
         return sids
@@ -132,7 +161,7 @@ def technique_relations(draft: DraftGraph, text: str, system: str, sids: list[st
     if not techniques:
         return
     every = sids + techniques
-    schema = relation_schema([draft.type_of(s) for s in every], sources={"attack-pattern"})
+    schema = relation_schema([draft.type_of(s) for s in every], sources={"attack-pattern"}, relations={"targets", "delivers"})
     if schema is None:
         return
     # Le texte ne nomme jamais une technique ATT&CK : chacune est montrée avec la procédure relevée et ses phrases, et la

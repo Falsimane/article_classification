@@ -36,13 +36,13 @@ def entity_schema() -> dict:
     return _object({"entities": _array(item, min_items=1, max_items=80)})
 
 
-def relation_schema(types: list[str], sources: set[str] | None = None) -> dict | None:
+def relation_schema(types: list[str], sources: set[str] | None = None, relations: set[str] | None = None) -> dict | None:
     """Relations entre entités numérotées 1..n (`types[i-1]` = type STIX de l'entité i) : une branche par (type source,
     relation), la source parmi les entités de ce type, la cible parmi celles des types admis par la table STIX. `sources`
     restreint les types de source (relations des seules techniques)."""
     targets: dict[tuple[str, str], set[str]] = defaultdict(set)
     for s, r, t in ALLOWED_RELATIONS:
-        if sources is None or s in sources:
+        if (sources is None or s in sources) and (relations is None or r in relations):
             targets[(s, r)].add(t)
     by_type: dict[str, list[int]] = defaultdict(list)
     for i, t in enumerate(types, 1):
@@ -93,3 +93,11 @@ def label_schema(n_items: int) -> dict:
     """Un libellé par entité refusée (numérotée) : la correction ne peut ni en oublier ni en ajouter."""
     item = _object({"item": {"type": "integer", "enum": list(range(1, n_items + 1))}, "name": {"type": "string"}})
     return _object({"labels": _array(item, min_items=n_items, max_items=n_items)})
+
+
+def context_schema(malware_numbers: list[int]) -> dict:
+    """Passe dédiée : victimes non encore relevées (identity, location) et, parmi les malwares numérotés, les composants
+    sans nom de famille."""
+    victim = _object({"type": {"type": "string", "enum": ["identity", "location"]}, "name": {"type": "string"}, "detail": {"type": "string"}})
+    numbers = {"type": "integer", "enum": malware_numbers} if malware_numbers else {"type": "integer"}
+    return _object({"victims": _array(victim, max_items=12), "components": _array(numbers, max_items=len(malware_numbers))})

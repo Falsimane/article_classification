@@ -115,3 +115,9 @@ def test_schema_with_no_agents_is_valid():
     schema = verify_schema(3, 0)
     item = schema["properties"]["verdicts"]["items"]["properties"]
     assert item["agent"]["enum"] == [0] and item["claim"]["enum"] == [1, 2, 3]
+
+
+def test_agent_named_is_the_target_keeps_the_relation():
+    """« campagne uses malware » dont la phrase décrit ce que fait le malware : l'agent nommé est la cible, rien à déplacer."""
+    claim = Claim(key=(CAMP, "uses", AGENTS[0]), kind="action", quotes=["the implant contacts its server"])
+    assert decide(claim, Verdict(1, "incident", "none", "established"), AGENTS).action == "keep"

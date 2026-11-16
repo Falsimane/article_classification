@@ -336,6 +336,8 @@ def _profile(actor: dict, nodes: dict[str, dict], edges: list[dict]) -> dict[str
         return {"node": node, "relation": edge["type"], "confidence": edge["confidence"], "evidence": edge["evidence"]}
 
     for e in edges:
+        if aid not in (e["source"], e["target"]):  # arête du second saut (parent → commanditaire) : lue plus bas, pas une division
+            continue
         outgoing = e["source"] == aid
         other = nodes.get(e["target"] if outgoing else e["source"])
         if other is None or other["id"] == aid:

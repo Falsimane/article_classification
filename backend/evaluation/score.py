@@ -434,6 +434,8 @@ def score_article(
     cands = _candidates(gold, pred)
     _align_operations(gold, pred, gold_rels, pred_rels, cands)
     judged = [(x["pred"], x["gold"]) for x in semantic or [] if x.get("pred") in pred and x.get("gold") in gold and pred[x["pred"]].klass == gold[x["gold"]].klass]
+    named_gold = {g for gs in cands.values() for g in gs}
+    judged = [(p, g) for p, g in judged if p not in cands and g not in named_gold]  # jamais à la place d'un appariement par le nom
     for p_sid, g_sid in judged:
         cands.setdefault(p_sid, {})[g_sid] = 1.0
     matched = _greedy([(c, p, g) for p, gs in cands.items() for g, c in gs.items()])

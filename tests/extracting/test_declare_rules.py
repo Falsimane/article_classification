@@ -61,3 +61,9 @@ def test_file_name_with_label_alias_keeps_label(draft):
 def test_file_name_with_only_file_aliases_refused(draft):
     sid, err = draft.declare("malware|alpha_loader.dll|beta.log;gamma.dat")
     assert sid is None and "nom de fichier" in err
+
+
+def test_promoted_label_keeps_the_file_as_a_term(draft):
+    sid, _ = draft.declare("malware|alpha_loader.dll|Alpha stage loader")
+    assert draft.resolve("alpha_loader.dll")[0] == sid and "alpha_loader.dll" in draft.terms[sid]
+    assert "alpha_loader.dll" not in (draft.objects[sid].get("aliases") or [])

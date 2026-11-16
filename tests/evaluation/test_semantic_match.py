@@ -54,3 +54,11 @@ def test_judge_saying_none_gives_no_pair():
 
 def test_out_of_range_answer_ignored():
     assert match_article(GOLD, PRED, get_attack_kb(), judge=lambda group: {1: 7, 3: 1}) == []
+
+
+def test_judged_pair_cannot_displace_a_name_match():
+    named = _bundle([{"type": "malware", "id": P_MAL, "name": "Beta-stage loader"}, {"type": "malware", "id": P_OTHER, "name": "Gamma stealer"}])
+    stale = [{"gold": G_MAL, "pred": P_OTHER, "gold_name": "Beta-stage loader", "pred_name": "Gamma stealer"}]
+    score = score_article(1, GOLD, named, semantic=stale)
+    assert score.entities.found_required == score_article(1, GOLD, named).entities.found_required
+    assert score.entities.predicted == 2

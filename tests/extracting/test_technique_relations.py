@@ -29,3 +29,10 @@ def test_prompt_shows_procedure_and_relation_is_written():
     technique_relations(draft, TEXT, "s", [group, cve], result, call)
     assert f"« exploits the exposed gateway » [{n}]" in prompts[0] and "nomme ses deux extrémités" not in prompts[0]
     assert (tech, "targets", cve) in draft.evidence
+
+
+def test_technique_relations_schema_has_no_uses_branch():
+    from backend.extracting.cascade.schemas import relation_schema
+
+    schema = relation_schema(["tool", "vulnerability", "attack-pattern"], sources={"attack-pattern"}, relations={"targets", "delivers"})
+    assert "uses" not in str(schema) and "targets" in str(schema)

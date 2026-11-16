@@ -15,3 +15,4 @@ def test_sponsor_through_parent():
     out = _profile(GROUP, nodes, [_e(GROUP, STATE), _e(STATE, GOV)])
     assert [p["node"]["id"] for p in out["parents"]] == [STATE["id"]]
     assert out["sponsors"][0]["node"]["id"] == GOV["id"] and out["sponsors"][0]["via"] == STATE["id"]
+    assert out["divisions"] == []

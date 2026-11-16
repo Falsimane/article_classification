@@ -134,7 +134,7 @@ uv run cti-eval --run --workers 4 --bundles backend/evaluation/eval/<nom>
 uv run cti-eval --bundles backend/evaluation/eval/<nom>   # re-score sans appel au modèle
 uv run cti-eval --compare v5_base_1,v5_base_2 <a>,<b>     # écart et IC 95 % par bootstrap sur les articles, compteurs de mécanisme
 uv run cti-eval --semantic --bundles backend/evaluation/eval/<nom>  # juge (modèle) les entités sans nom commun avec le gold : même objet sous deux
-#   libellés (« C++ loader » / « loader for a Cobalt Strike Beacon ») ; écrit <nom>/semantic_matches.json, relu ensuite sans appel au modèle.
+#   libellés (« <rôle> loader » / « loader for <malware> ») ; écrit <nom>/semantic_matches.json, relu ensuite sans appel au modèle.
 #   Comparer deux configurations seulement si les deux ont été jugées.
 ```
 Le backend Python n'a pas de tests unitaires : toute modification de l'extraction se mesure avec `cti-eval` sur les 9 articles

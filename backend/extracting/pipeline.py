@@ -1121,6 +1121,7 @@ def extract_article(art: dict) -> ExtractionResult:
             except (TimeoutError, llm.requests.RequestException) as exc:  # sans vérification, les relations acceptées restent
                 result.failures.append(f"vérification des relations : {type(exc).__name__}: {exc}")
             draft.prune_subsumed_techniques()
+            draft.prune_unsupported_authorship()
     except (TimeoutError, llm.requests.RequestException) as exc:
         result.failures.append(f"article : {type(exc).__name__}: {exc}")
     return finish_article(art, title, units, result, t0)
@@ -1157,6 +1158,7 @@ def extract_cascade(art: dict, title: str, units: list[Unit], result: Extraction
         except (TimeoutError, llm.requests.RequestException) as exc:  # sans vérification, les relations acceptées restent
             result.failures.append(f"vérification des relations : {type(exc).__name__}: {exc}")
         draft.prune_subsumed_techniques()
+        draft.prune_unsupported_authorship()
     except (TimeoutError, llm.requests.RequestException) as exc:
         result.failures.append(f"article : {type(exc).__name__}: {exc}")
     return finish_article(art, title, units, result, t0)

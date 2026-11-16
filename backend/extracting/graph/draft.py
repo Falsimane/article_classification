@@ -262,8 +262,11 @@ class DraftGraph:
         # Malware nommé par son fichier avec, en alias, le libellé de l'article : le libellé devient le nom (les fichiers sont des IOC)
         if stix_type == "malware" and _FILE_NAME.match(name):
             labels = [a.strip() for a in extra.split(";") if a.strip() and not _FILE_NAME.match(a.strip())]
-            if labels:
-                name, extra = labels[0], ";".join(labels[1:])
+            if labels:  # le fichier reste un terme reconnu dans les phrases (pas un alias STIX) : ses relations citent souvent ce nom
+                sid, err = self.declare("|".join([parts[0], labels[0], ";".join(labels[1:])]).rstrip("|"))
+                if sid:
+                    self.add_terms(sid, {name, *(a.strip() for a in extra.split(";") if _FILE_NAME.match(a.strip()))})
+                return sid, err
         # Nom connu d'ATT&CK sous un type compatible : l'objet officiel de MITRE (ou, sous un alias, l'objet nommé comme l'article)
         if stix_type in _ATTACK_TYPES:
             hits = [h for h in self.attack.lookup(name) if h["status"] == "active" and h["type"] in _ATTACK_TYPES[stix_type]]
@@ -439,6 +442,24 @@ class DraftGraph:
             s, rel, t = key
             self.evidence.pop(key, None)
             self.log.append(f"subsomption ontologique : retrait {self.name_of(s)} --uses--> {aid_by_sid.get(t, t)} au profit de sa sous-technique")
+
+    def mark_component(self, sid: str) -> None:
+        """Un malware désigné par son rôle (« pilote noyau malveillant ») et non par un nom de famille : is_family faux.
+        Sans effet sur un objet officiel d'ATT&CK."""
+        known = self.specs.get(sid)
+        if known and known[0] == "malware":
+            props = {**known[2], "is_family": False}
+            self.objects[sid] = entity("malware", known[1], self.ctx, **props)
+            self.specs[sid] = ("malware", known[1], props)
+
+    def prune_unsupported_authorship(self) -> None:
+        """« malware authored-by groupe » sans autre preuve que les phrases de « groupe uses malware » : ces phrases montrent
+        l'emploi (déployer, utiliser), pas l'écriture. L'attribution d'auteur demande une phrase à elle."""
+        for (s, rel, t), quotes in list(self.evidence.items()):
+            used = self.evidence.get((t, "uses", s))
+            if rel == "authored-by" and used and set(quotes) <= set(used):
+                del self.evidence[(s, rel, t)]
+                self.log.append(f"auteur sans preuve propre : retrait {self.name_of(s)} --authored-by--> {self.name_of(t)}")
 
     def is_salient_orphan(self, sid: str) -> bool:
         """Filtre de saillance contextuelle pour les entités orphelines (sans relation validée).
